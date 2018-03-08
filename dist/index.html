@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>3D Viewer Test</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <style>
+        #container {
+            margin: 20px;
+        }
+        #detail_viewer {
+            float: left;
+        }
+        .side-form {
+            width: 600px;
+            margin-left: 50px;
+            float: left;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js'></script>
+</head>
+<body>
+<div id="container">
+    <br>
+    <br>
+    <div class="dropdown" style="margin-bottom: 30px;">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Example Files
+        </button>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <a class="dropdown-item" href="javascript:load('1 (COLORWAY).zrest')">1 (COLORWAY).zrest</a>
+            <a class="dropdown-item" href="javascript:load('HB_very_far_trim.zrest')">HB_very_far_trim.zrest</a>
+            <a class="dropdown-item" href="javascript:load('PBRTest1.zrest')">PBRTest1.zrest</a>
+            <a class="dropdown-item" href="javascript:load('bomber.zrest')">bomber.zrest</a>
+            <a class="dropdown-item" href="javascript:load('denim.zrest')">denim.zrest</a>
+            <a class="dropdown-item" href="javascript:load('shirts.zrest')">shirts.zrest</a>
+        </div>
+    </div>
+    <div id="detail_viewer"></div>
+    <div class="side-form">
+
+        <form>
+            <div class="form-group row">
+                <label for="zrestURL" class="col-sm-2 col-form-label">zrest URL</label>
+                <div class="col-sm-10">
+                    <input type="email" class="form-control" id="zrestURL" placeholder="zrest URL">
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="offset-sm-2 col-sm-10">
+                    <button onclick="loadForm()" type="button" class="btn btn-primary">Load</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<script type='text/javascript' src='./clo.viewer.js'></script>
+<script>
+
+    CLO.viewer.init({
+        element: 'detail_viewer',
+        width: 620,
+        height: 780
+    })
+
+    function loadForm() {
+        var url = document.getElementById('zrestURL').value;
+        console.log('url', url)
+        CLO.viewer.loadZrestUrl(url);
+    }
+
+    function load(url) {
+        CLO.viewer.loadZrestUrl('https://s3.clo3d.com/zpac/' + url);
+    }
+
+    // (function(d, s, id) {
+    //     var js, fjs = d.getElementsByTagName(s)[0]
+    //     if (d.getElementById(id)) { return }
+    //     js = d.createElement(s); js.id = id
+    //     js.src = '/clo.viewer.js'
+    //     fjs.parentNode.insertBefore(js, fjs)
+    // }(document, 'script', 'clo-viewer'))
+    //
+    //
+    // window.cvInit = function() {
+    //     console.log('cvInit')
+    //
+    //     CLO.viewer.init({
+    //         element: 'detail_viewer',
+    //         width: 620,
+    //         height: 780
+    //     })
+    // }
+
+</script>
+</body>
+</html>
