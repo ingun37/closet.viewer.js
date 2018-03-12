@@ -331,6 +331,9 @@ function meshFactory(map, zip, retObject) {
 
                     material.glossiness = listMaterial[j].get("fGlossiness");
                     material.metalness = listMaterial[j].get("fMetalness");
+                    let bMetal = listMaterial[j].get("bMetal");
+                    if (bMetal !== undefined && bMetal == false) // metalness 는 m_bMetal 에 의해 지배되고 있음. bMetal은 없어졌지만 기존 버전 호환을 위해 필요함. 
+                        material.metalness = 0.0;
 
                     material.environmentLightIntensity = listMaterial[j].get("fEnvironmentLightIntensity");
                     material.cameraLightIntensity = listMaterial[j].get("fCameraLightIntensity");
