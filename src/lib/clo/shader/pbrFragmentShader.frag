@@ -1,4 +1,4 @@
-// normal map 을 위해 다음 extension 필요함 -> 아니다 three.js 에서는 ShaderMateiral.extensions.derivative = true 로 해 주면 된다. 다음과 같이 하면 warning만 생길 뿐
+    // normal map 을 위해 다음 extension 필요함 -> 아니다 three.js 에서는 ShaderMateiral.extensions.derivative = true 로 해 주면 된다. 다음과 같이 하면 warning만 생길 뿐
     //#extension GL_OES_standard_derivatives : enable
 
     uniform bool m_bUseMetalnessRoughnessPBR;
@@ -448,14 +448,14 @@
             // specular environment light
             // max_mip_level = 7 로 하드코딩.
             float mipLevel = 7.0 - glossinessSquare * 7.0;
-
+            
 #ifdef GL_EXT_shader_texture_lod
-            vec3 specularEnvColor = m_EnvironmentLightIntensity * RGBEToVec3(textureCubeLodEXT(sSpecularEnvironmentMap, worldR, mipLevel));
+            vec3 specularEnvColor = m_EnvironmentLightIntensity * RGBEToVec3(textureCubeLodEXT(sSpecularEnvironmentMap, worldR, mipLevel));           
 #else
             // 지원 안될 경우는 다음과 같이 glsl 120 만 지원하는 pc 버전 코드와 동일한 결과 나오게 하기
             vec3 specularEnvColor = diffuseEnvColor;
                // 다음은 왠지 부작용 있을 것 같아서 주석 처리. 뭔가 그럴싸하게 나오긴 한다.
-            //vec3 specularEnvColor = m_EnvironmentLightIntensity * RGBEToVec3(textureCube(sSpecularEnvironmentMap, worldR, mipLevel));
+            //vec3 specularEnvColor = m_EnvironmentLightIntensity * RGBEToVec3(textureCube(sSpecularEnvironmentMap, worldR, mipLevel)); 
 
             /*if(mipLevel < 1.0)
             specularEnvColor = (1.0 - mipLevel) * RGBEToVec3(textureCube(sSpecularEnvironmentMap0, worldR)) + mipLevel * RGBEToVec3(textureCube(sSpecularEnvironmentMap1, worldR));
@@ -503,7 +503,7 @@
                 float shadowIntensity = 1.0;
                 //if (uShadowMapIndex >= 0 && i == uShadowLightIndex && (bUseDoubleSidedLighting || gl_FrontFacing != false))
                 //shadowIntensity = shadow2DProj(shadowMap, shadowTexCoord).r;
-                if(i!=0)
+                if(i!=0)        
                     shadowIntensity = getShadowMask();
 
                 vec3 H = normalize(L + E);

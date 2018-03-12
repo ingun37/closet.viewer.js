@@ -1,4 +1,4 @@
-uniform mat4 gRotMatrix;
+	uniform mat4 gRotMatrix;
 	uniform mat4 gTransMatrix;
 
 	varying vec2 vUV;
