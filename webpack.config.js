@@ -7,7 +7,7 @@ function resolve (dir) {
 
 module.exports = {
     output: {
-        filename: './clo.viewer.js'
+        filename: './closet.viewer.js'
     },
     module: {
         rules: [

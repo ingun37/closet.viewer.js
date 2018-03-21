@@ -70,7 +70,7 @@ Authorization: Basic { base64({Email}:{Token}) }
 
 ### Usage ###
 
-Download the [library](https://github.com/clovirtualfashion/clo.viewer.js) and include it in your HTML.
+Download the [library](https://github.com/clovirtualfashion/closet.viewer.js) and include it in your HTML.
 
 ```html
 <!DOCTYPE html>
@@ -80,7 +80,7 @@ Download the [library](https://github.com/clovirtualfashion/clo.viewer.js) and i
     <title>CLO Viewer Test</title>
 </head>
 <body>
-<script type='text/javascript' src='js/clo.viewer.js'></script>
+<script type='text/javascript' src='js/closet.viewer.js'></script>
 <script>
     CLO.viewer.init({
         element: 'detail_viewer',
