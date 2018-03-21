@@ -104,69 +104,69 @@
             vec3 perturb_normal(vec3 N, vec3 V)
             {
             /* assume N, the interpolated vertex normal and V, the view vector (vertex to eye) */
-            vec3 seamPuckeringVec;
-            vec3 normalVec;
-            vec2 uv;
-
+            vec3 seamPuckeringVec = vec3(0.0, 0.0, 1.0);
+            vec3 normalVec = vec3(0.0, 0.0, 1.0);
+            
             if (bUseSeamPuckeringNormal)
             {
-            uv = vUV2.st;
-            seamPuckeringVec = texture2D(sSeamPuckeringNormal, uv).xyz;
-            // WITH_NORMALMAP_UNSIGNED
-            seamPuckeringVec = seamPuckeringVec * 2.0 - 1.0;
+				vec2 uv = vUV2.st;
+				seamPuckeringVec = texture2D(sSeamPuckeringNormal, uv).xyz;
+				// WITH_NORMALMAP_UNSIGNED
+				seamPuckeringVec = seamPuckeringVec * 2.0 - 1.0;
 
-            seamPuckeringVec.z = seamPuckeringVec.z * 0.5; // seam puckering 은 opengl blending으로 인해 약해진 intensity를 여기서 보상해 준다.
+				seamPuckeringVec.z = seamPuckeringVec.z * 0.5; // seam puckering 은 opengl blending으로 인해 약해진 intensity를 여기서 보상해 준다.
 
-            seamPuckeringVec = normalize(seamPuckeringVec);
+				seamPuckeringVec = normalize(seamPuckeringVec);
+				
+				seamPuckeringVec = cotangent_frame(N, -V, uv) * seamPuckeringVec;
             }
 
             if (bUseNormal)
             {
-            uv = (matNormal * vec4(vUV.st, 0.0, 1.0)).st;
-            normalVec = texture2D(sNormal, uv).xyz;
+				vec2 uv = (matNormal * vec4(vUV.st, 0.0, 1.0)).st;
+				normalVec = texture2D(sNormal, uv).xyz;
 
-            // WITH_NORMALMAP_UNSIGNED
-            normalVec = normalVec * 2.0 - 1.0;
-            normalVec = normalize(normalVec);
+				// WITH_NORMALMAP_UNSIGNED
+				normalVec = normalVec * 2.0 - 1.0;
+				normalVec = normalize(normalVec);
 
-            // 노멀로 변경했으니, intensity 조절
-            int direction = 1;
+				// 노멀로 변경했으니, intensity 조절
+				int direction = 1;
 
-            if (normalMapIntensityInPercentage < 0.0)
-            direction = -1;
+				if (normalMapIntensityInPercentage < 0.0)
+				direction = -1;
 
-            if (normalMapIntensityInPercentage == 0.0)
-            {
-            normalVec.x = 0.0;
-            normalVec.y = 0.0;
-            normalVec.z = 1.0;
-            }
-            else
-            {
-            normalVec.x = normalVec.x * float(direction);
-            normalVec.y = normalVec.y * float(direction);
-            normalVec.z = 3.0 * normalVec.z / ((abs(normalMapIntensityInPercentage * 0.1) - 1.0)*0.3 + 1.0);
-            normalVec = normalize(normalVec);
-            }
+				if (normalMapIntensityInPercentage == 0.0)
+				{
+				normalVec.x = 0.0;
+				normalVec.y = 0.0;
+				normalVec.z = 1.0;
+				}
+				else
+				{
+				normalVec.x = normalVec.x * float(direction);
+				normalVec.y = normalVec.y * float(direction);
+				normalVec.z = 3.0 * normalVec.z / ((abs(normalMapIntensityInPercentage * 0.1) - 1.0)*0.3 + 1.0);
+				normalVec = normalize(normalVec);
+				}
+
+				normalVec = cotangent_frame(N, -V, uv) * normalVec;
             }
 
             vec3 map;
             if (bUseSeamPuckeringNormal && bUseNormal)
             {
-            map = vec3(seamPuckeringVec.xy + normalVec.xy, seamPuckeringVec.z * normalVec.z);
+				// z 값을 곱해주고 xy 값은 더해줘야 그럴싸하게 normal map이 blending 된다. 
+				float z0 = dot(N, seamPuckeringVec);
+				float z1 = dot(N, normalVec);
+				return normalize(seamPuckeringVec - z0 * N + normalVec - z1 * N + z0 * z1 * N);
             }
             else if (bUseNormal)
             {
-            map = normalVec;
+				return normalVec;
             }
             else
-            map = seamPuckeringVec;
-
-            // WITH_NORMALMAP_2CHANNEL
-            // map.z = sqrt( 1. - dot( map.xy, map.xy ) );
-            // WITH_NORMALMAP_GREEN_UP
-            // map.y = -map.y;
-            mat3 TBN = cotangent_frame(N, -V, uv);
+				return seamPuckeringVec;
 
             // vray 처럼 노말맵 적용된 경우에는 back face 되지 않게 하려고 했는데 결과가 좋지 않아 주석 처리
             /*if (dot(TBN * map, V) < 0.0)
@@ -176,7 +176,7 @@
             return normalize(plz - dot(plz, normalizedE) * normalizedE);
             }
             else*/
-            return normalize(TBN * map);
+            
             }
 
             float F_Schlick(float f0, float f90, float VoH)
