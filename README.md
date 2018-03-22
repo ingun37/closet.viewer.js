@@ -1,16 +1,10 @@
 ﻿
 ## <a name="3"></a> CLOSET 3D Viewer
->CLOSET 3D Viewer is a JavaScript library to see the object in 3D on any web pages or applications supporting for HTTPS and JavaScript. Following the guide below, you can make your own 3D web viewer. As CLOSET has been also implemented with this library, you can refer to CLOSET(https://www.clo-set.com/Marketplace/Detail?itemid=a39e955d947647539314f85443c90e9b) as an example.   
->(Guide will be updated in a few days) 
+>CLOSET 3D Viewer is a JavaScript library to see the object in 3D on any web pages or applications supporting for HTTPS and JavaScript. By following the guide below, you can make your own 3D web viewer. As CLOSET has been also implemented with this library, you can refer to CLOSET(https://www.clo-set.com/Marketplace/Detail?itemid=a39e955d947647539314f85443c90e9b) as an example.   
 
-## Node.js (Install)
+### How to build
 
-#### Requirements
-
-- Node.js
-- npm (Node.js package manager)
-
-#### How to build
+First, you need to install [Node.js](https://nodejs.org/dist/v8.10.0/node-v8.10.0-x64.msi). 
 
 Clone a copy of the git repo by running:
 ```bash
@@ -32,11 +26,9 @@ Running develop with webpack-dev-server:
 npm run develop
 ```
 
+Then, you can get closet.viewer.js in "dist" folder.
 
 ### Usage ###
-
-Download the [library](https://github.com/clovirtualfashion/closet.viewer.js) and include it in your HTML.
-
 
 
 ```html
@@ -61,6 +53,7 @@ Download the [library](https://github.com/clovirtualfashion/closet.viewer.js) an
 </html>
 ```
 
+Here you need to get the URL of ZRest file. ZRest is a file format containing 3D geometry and material information only. When you upload a 3D file(ZPrj, Zpac, AVT and etc) onto CLOSET, a ZRest file is automatically generated in CLOSET server. You can get the URL of the ZRest file by using CLOSET API - [api/Item/ZrestUrl/{itemId}](http://www.clo-set.com/swagger/ui/index#!/ItemApi/ItemApi_ZrestUrl).
 
 ### Methods
 
