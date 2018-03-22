@@ -1,10 +1,10 @@
 ﻿
-## <a name="3"></a> CLOSET 3D Viewer
+## CLOSET 3D Viewer
 CLOSET 3D Viewer is a JavaScript library to see the object in 3D on any web pages or applications supporting for HTTPS and JavaScript. By following the guide below, you can make your own 3D web viewer. As CLOSET has been also implemented with this library, you can refer to CLOSET(https://www.clo-set.com/Marketplace/Detail?itemid=a39e955d947647539314f85443c90e9b) as an example.   
 
 ### Download ###
 
-Only you need is "closet.viewer.js" file under "dist" folder.
+Only you need is "closet.viewer.js" file under "dist" folder. If you want to customize the library, see [How to build](#1)
 
 ### Usage ###
 
@@ -54,7 +54,7 @@ Load the file from the server and places the 3D object on the viewer.
 
 Works in `IE11+`, and all modern browsers.
 
-### How to build
+### <a name="1"></a> How to build
 
 If you want to modify the source code and make your own library, please follow the guide below. 
 
