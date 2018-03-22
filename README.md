@@ -53,6 +53,7 @@ Then, you can get closet.viewer.js in "dist" folder.
 </html>
 ```
 
+Here you need to get the URL of ZRest file. ZRest is a file format containing 3D geometry and material information only. When you upload a 3D file(ZPrj, Zpac, AVT and etc) onto CLOSET, a ZRest file is automatically generated in CLOSET server. You can get the URL of the ZRest file by using CLOSET API - [api/Item/ZrestUrl/{itemId}](http://www.clo-set.com/swagger/ui/index#!/ItemApi/ItemApi_ZrestUrl).
 
 ### Methods
 
