@@ -6,12 +6,12 @@ CLOSET 3D Viewer is a JavaScript library to see the object in 3D on any web page
 
 1. First, you need to install [Node.js](https://nodejs.org/dist/v8.10.0/node-v8.10.0-x64.msi). 
 
-2, Clone a copy of the git repo by running:
+2. Clone a copy of the git repo by running:
 ```bash
 git clone https://github.com/clovirtualfashion/closet.viewer.js.git
 ```
 
-3, Enter the viewer directory:
+3. Enter the viewer directory:
 ```bash
 cd closet.viewer.js
 ```
