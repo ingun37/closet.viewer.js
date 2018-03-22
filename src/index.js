@@ -2,7 +2,7 @@
 
 import { init, loadZrestUrl } from './viewer'
 
-window.CLO = window.CLO || (function () {
+window.closet = window.closet || (function () {
 
     return {
         init: function(data) {

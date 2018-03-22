@@ -49,13 +49,13 @@ Download the [library](https://github.com/clovirtualfashion/closet.viewer.js) an
 <body>
 <script type='text/javascript' src='js/closet.viewer.js'></script>
 <script>
-    CLO.viewer.init({
+    closet.viewer.init({
         element: 'detail_viewer',
         width: 620,
         height: 780
     })
 
-    CLO.viewer.loadZrestUrl('https://s3.clo3d.com/zpac/denim.zrest');
+    closet.viewer.loadZrestUrl('https://s3.clo3d.com/zpac/denim.zrest');
 </script>
 </body>
 </html>
@@ -64,7 +64,7 @@ Download the [library](https://github.com/clovirtualfashion/closet.viewer.js) an
 
 ### Methods
 
-#### CLO.viewer.init(\[options:Object\])
+#### closet.viewer.init(\[options:Object\])
 
 Initialize viewer with options.
 
@@ -76,7 +76,7 @@ Initialize viewer with options.
 | `width`| Number | Width of viewer.
 | `height`| Number | Height of viewer.
 
-#### CLO.viewer.loadZrestUrl(\[zrestUrl:String\])
+#### closet.viewer.loadZrestUrl(\[zrestUrl:String\])
 
 Load the file from the server and places the 3D object on the viewer.
 

@@ -60,7 +60,7 @@
 <script type='text/javascript' src='./closet.viewer.js'></script>
 <script>
 
-    CLO.viewer.init({
+    closet.viewer.init({
         element: 'detail_viewer',
         width: 620,
         height: 780
@@ -69,11 +69,11 @@
     function loadForm() {
         var url = document.getElementById('zrestURL').value;
         console.log('url', url)
-        CLO.viewer.loadZrestUrl(url);
+        closet.viewer.loadZrestUrl(url);
     }
 
     function load(url) {
-        CLO.viewer.loadZrestUrl('https://s3.clo3d.com/zpac/' + url);
+        closet.viewer.loadZrestUrl('https://s3.clo3d.com/zpac/' + url);
     }
 
     // (function(d, s, id) {
@@ -88,7 +88,7 @@
     // window.cvInit = function() {
     //     console.log('cvInit')
     //
-    //     CLO.viewer.init({
+    //     closet.viewer.init({
     //         element: 'detail_viewer',
     //         width: 620,
     //         height: 780
