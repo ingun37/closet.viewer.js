@@ -2,34 +2,11 @@
 ## <a name="3"></a> CLOSET 3D Viewer
 CLOSET 3D Viewer is a JavaScript library to see the object in 3D on any web pages or applications supporting for HTTPS and JavaScript. By following the guide below, you can make your own 3D web viewer. As CLOSET has been also implemented with this library, you can refer to CLOSET(https://www.clo-set.com/Marketplace/Detail?itemid=a39e955d947647539314f85443c90e9b) as an example.   
 
-### How to build
+### Download ###
 
-1. First, you need to install [Node.js](https://nodejs.org/dist/v8.10.0/node-v8.10.0-x64.msi). 
-
-2. Clone a copy of the git repo by running:
-```bash
-git clone https://github.com/clovirtualfashion/closet.viewer.js.git
-```
-
-3. Enter the viewer directory:
-```bash
-cd closet.viewer.js
-```
-
-4. Install all dependencies and run the build script:
-```bash
-npm install && npm run build
-```
-
-5. Running develop with webpack-dev-server:
-```bash
-npm run develop
-```
-
-6. Then, you can get closet.viewer.js in "dist" folder.
+Only you need is "closet.viewer.js" file under "dist" folder.
 
 ### Usage ###
-
 
 ```html
 <!DOCTYPE html>
@@ -76,3 +53,31 @@ Load the file from the server and places the 3D object on the viewer.
 ### Browser Support
 
 Works in `IE11+`, and all modern browsers.
+
+### How to build
+
+If you want to modify the source code and make your own library, please follow the guide below. 
+
+1. First, you need to install [Node.js](https://nodejs.org/dist/v8.10.0/node-v8.10.0-x64.msi). 
+
+2. Clone a copy of the git repo by running:
+```bash
+git clone https://github.com/clovirtualfashion/closet.viewer.js.git
+```
+
+3. Enter the viewer directory:
+```bash
+cd closet.viewer.js
+```
+
+4. Install all dependencies and run the build script:
+```bash
+npm install && npm run build
+```
+
+5. Running develop with webpack-dev-server:
+```bash
+npm run develop
+```
+
+6. Then, you can get closet.viewer.js in "dist" folder.
