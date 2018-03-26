@@ -116,9 +116,8 @@
 
 				seamPuckeringVec.z = seamPuckeringVec.z * 0.5; // seam puckering 은 opengl blending으로 인해 약해진 intensity를 여기서 보상해 준다.
 
-				seamPuckeringVec = normalize(seamPuckeringVec);
-				
-				seamPuckeringVec = cotangent_frame(N, -V, uv) * seamPuckeringVec;
+				// 안전하게 여기서 최종 노말라이즈 해 주자. cotangent_frame 적용 전에 normalize 하면 이상하게 seam puckering 노말맵이 깨지는 경우 발생
+				seamPuckeringVec = normalize(cotangent_frame(N, -V, uv) * seamPuckeringVec);
             }
 
             if (bUseNormal)
@@ -147,10 +146,10 @@
 				normalVec.x = normalVec.x * float(direction);
 				normalVec.y = normalVec.y * float(direction);
 				normalVec.z = 3.0 * normalVec.z / ((abs(normalMapIntensityInPercentage * 0.1) - 1.0)*0.3 + 1.0);
-				normalVec = normalize(normalVec);
 				}
 
-				normalVec = cotangent_frame(N, -V, uv) * normalVec;
+				// 안전하게 여기서 최종 노말라이즈 해 주자. cotangent_frame 적용 전에 normalize 하면 이상하게 seam puckering 노말맵이 깨지는 경우 발생
+				normalVec = normalize(cotangent_frame(N, -V, uv) * normalVec);
             }
 
             vec3 map;
