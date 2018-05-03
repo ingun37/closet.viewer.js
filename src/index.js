@@ -1,5 +1,5 @@
 
-
+import 'babel-polyfill'
 import { init, loadZrestUrl } from './viewer'
 
 window.closet = window.closet || (function () {
