@@ -68,29 +68,51 @@ ZRestLoader.prototype = {
     }
 };
 
-function ZoomToObjects() {
+function ZoomToObjects(loadedCamera) {
     // scene 의 모든 geometry 방문하면서 bounding cube 계산해서 전체 scene bounding cube 계산
     let box = new THREE.Box3();
     box.expandByObject(scene);
     var center = new THREE.Vector3(0.5 * (box.min.x + box.max.x), 0.5 * (box.min.y + box.max.y), 0.5 * (box.min.z + box.max.z));
 
-    // trim이나 이상한 점 하나가 너무 동떨어진 경우에는 정해진 center 바라보게 하자
-    let maxDistance = 10000.0;
-    if (box.min.x < -maxDistance || box.min.y < -1000.0 || box.min.z < -maxDistance || box.max.x > maxDistance || box.max.y > maxDistance || box.max.z > maxDistance) {
-        center.x = 0.0;
-        center.y = 1100.0;
-        center.z = 0.0;
-        controls.target.copy(center);
-        center.z = 8000.0;
-        camera.position.copy(center);
+    if(loadedCamera.bLoaded === true)
+    {
+        camera.position.copy(new THREE.Vector3(loadedCamera.ltow.elements[12], loadedCamera.ltow.elements[13], loadedCamera.ltow.elements[14]))
 
+        let xAxis = new THREE.Vector3();
+        let yAxis = new THREE.Vector3();
+        let zAxis = new THREE.Vector3();
+        loadedCamera.ltow.extractBasis(xAxis, yAxis, zAxis);
+
+        zAxis.negate();
+
+        center.sub(camera.position);
+        let dotProd = center.dot(zAxis);
+        zAxis.multiplyScalar(dotProd);
+        zAxis.add(camera.position);
+        controls.target.copy(zAxis);
     }
-    else {
-        // 전체 scene bounding cube 의 중심을 바라보고 cube 를 fit하도록 camera zoom 설정
-        camera.position.copy(center);
-        camera.position.z = box.max.z + 0.5 * (box.max.y - box.min.y + 100.0) / Math.tan((camera.fov / 2) * Math.PI / 180.0); // 위아래로 100 mm 정도 여유있게
-        controls.target.copy(center);
+    else
+    {
+        // trim이나 이상한 점 하나가 너무 동떨어진 경우에는 정해진 center 바라보게 하자
+        let maxDistance = 10000.0;
+        if (box.min.x < -maxDistance || box.min.y < -1000.0 || box.min.z < -maxDistance || box.max.x > maxDistance || box.max.y > maxDistance || box.max.z > maxDistance) {
+            center.x = 0.0;
+            center.y = 1100.0;
+            center.z = 0.0;
+            controls.target.copy(center);
+            center.z = 8000.0;
+            camera.position.copy(center);
+
+        }
+        else {
+            // 전체 scene bounding cube 의 중심을 바라보고 cube 를 fit하도록 camera zoom 설정
+            camera.position.copy(center);
+            camera.position.z = box.max.z + 0.5 * (box.max.y - box.min.y + 100.0) / Math.tan((camera.fov / 2) * Math.PI / 180.0); // 위아래로 100 mm 정도 여유있게
+            controls.target.copy(center);
+        }
     }
+
+    
 }
 
 // !!!! CLO에 있는 TextureType 그대로 가져왔으므로 CLO 변경되면 여기서도 변경해 줘야 함
@@ -171,11 +193,17 @@ function readZrestFromBlobForWeb(blob, header, scene) {
 
         // seam puckering normal map 로드
         gSeamPuckeringNormalMap = LoadTexture(_globalZip, "seam_puckering_2ol97pf293f2sdk98.png");
-        meshFactory(rootMap, _globalZip, object3D);
+
+        let loadedCamera =
+        {
+            ltow : new THREE.Matrix4(),
+            bLoaded : false
+        }
+        meshFactory(rootMap, _globalZip, object3D, loadedCamera);
 
         // 여기가 실질적으로 Zrest 로드 완료되는 시점
         scene.add(object3D);
-        ZoomToObjects();
+        ZoomToObjects(loadedCamera);
 
         // 임시 데이터 clear
         _gNameToTextureMap.clear(); 
@@ -185,7 +213,7 @@ function readZrestFromBlobForWeb(blob, header, scene) {
     return object3D;
 }
 
-function meshFactory(map, zip, retObject) {
+function meshFactory(map, zip, retObject, loadedCamera) {
 
     let version = map.get("uiVersion");
 
@@ -193,6 +221,16 @@ function meshFactory(map, zip, retObject) {
         version = 1;
 
     Global._gVersion = version;
+
+    let mapCameraLtoW = map.get("m4CameraLocalToWorldMatrix");
+    if(mapCameraLtoW !== undefined)
+    {
+        loadedCamera.bLoaded = true;        
+        loadedCamera.ltow.set(mapCameraLtoW.a00, mapCameraLtoW.a01, mapCameraLtoW.a02, mapCameraLtoW.a03,
+                        mapCameraLtoW.a10, mapCameraLtoW.a11, mapCameraLtoW.a12, mapCameraLtoW.a13,
+                        mapCameraLtoW.a20, mapCameraLtoW.a21, mapCameraLtoW.a22, mapCameraLtoW.a23,
+                        mapCameraLtoW.a30, mapCameraLtoW.a31, mapCameraLtoW.a32, mapCameraLtoW.a33);
+    }
 
     var colorways = map.get("mapColorWay");
     if (colorways === undefined) {

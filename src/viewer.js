@@ -141,9 +141,31 @@ export function init(data) {
     canvas.addEventListener("mouseover", function () { controls.noPan = false; }, false);
 
 
-    animate()
+    animate();
+
+    
 }
 
+/// rendering 에 사용되는 현재 camera matrix 리턴. dll로 렌더링시 입력으로 사용되는 값.
+export function getCameraMatrix()
+{
+    let matrix = new Array();
+
+    matrix.push(camera.matrix.elements[0]);
+    matrix.push(camera.matrix.elements[4]);
+    matrix.push(camera.matrix.elements[8]);
+    matrix.push(camera.matrix.elements[12]);
+    matrix.push(camera.matrix.elements[1]);
+    matrix.push(camera.matrix.elements[5]);
+    matrix.push(camera.matrix.elements[9]);
+    matrix.push(camera.matrix.elements[13]);
+    matrix.push(camera.matrix.elements[2]);
+    matrix.push(camera.matrix.elements[6]);
+    matrix.push(camera.matrix.elements[10]);
+    matrix.push(camera.matrix.elements[14]);
+
+    return matrix;
+}
 function setWindowSize(w, h) {
 
     windowHalfX = w / 2;
@@ -229,6 +251,7 @@ export function loadZrestUrl(url) {
 
     var loader = new ZRestLoader({_scene: scene, _camera: camera, _controls: controls});
     loader.load(url, function (object) {
+
         // progress-bar remove
         // $el.find('.closet-progress').animate({
         //     opacity: 0.5,
