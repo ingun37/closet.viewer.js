@@ -387,26 +387,26 @@ THREE.OrbitControls = function ( object, domElement ) {
 		if ( scope.enabled === false ) return;
 		event.preventDefault();
 
-		if ( event.button === scope.mouseButtons.ORBIT ) {
-			if ( scope.noRotate === true ) return;
+		if (event.button === THREE.MOUSE.RIGHT) {
+		    if ( scope.noRotate === true ) return;
 
-			state = STATE.ROTATE;
+		    state = STATE.ROTATE;
 
-			rotateStart.set( event.clientX, event.clientY );
+		    rotateStart.set( event.clientX, event.clientY );
 
-		} else if ( event.button === scope.mouseButtons.ZOOM ) {
-			if ( scope.noZoom === true ) return;
+		} else if (event.button === THREE.MOUSE.LEFT && event.altKey === false) {
+		    if ( scope.noZoom === true ) return;
 
-			state = STATE.DOLLY;
+		    state = STATE.DOLLY;
 
-			dollyStart.set( event.clientX, event.clientY );
+		    dollyStart.set( event.clientX, event.clientY );
 
-		} else if ( event.button === scope.mouseButtons.PAN ) {
-			if ( scope.noPan === true ) return;
+		} else if (event.button === THREE.MOUSE.MIDDLE || (event.button === THREE.MOUSE.LEFT && event.altKey === true)) {
+		    if ( scope.noPan === true ) return;
 
-			state = STATE.PAN;
+		    state = STATE.PAN;
 
-			panStart.set( event.clientX, event.clientY );
+		    panStart.set( event.clientX, event.clientY );
 
 		}
 
