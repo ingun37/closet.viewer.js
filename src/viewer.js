@@ -180,12 +180,12 @@ function setWindowSize(w, h) {
 
 export function onWindowResize(datas) {
     var data = {
+        width : screen.width,
+        height : screen.height,
         fullscreen : false,
         marketplace : false
     }
     $.extend(data, datas);
-
-    console.log(data)
 
     if (!data.fullscreen) {
         if (data.marketplace)
@@ -207,13 +207,13 @@ export function onWindowResize(datas) {
             renderer.setSize(620, 780);
         }
     } else {
-        windowHalfX = screen.width / 2;
-        windowHalfY = screen.height - 60 / 2;
+        windowHalfX = data.width / 2;
+        windowHalfY = data.height - 60 / 2;
 
-        camera.aspect = screen.width / screen.height;
+        camera.aspect = data.width / data.height;
         camera.updateProjectionMatrix();
 
-        renderer.setSize(screen.width, screen.height - 60);
+        renderer.setSize(data.width, data.height - 60);
     }
 }
 
