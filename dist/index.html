@@ -39,6 +39,7 @@
             <a class="dropdown-item" href="javascript:load('shirts.zrest')">shirts.zrest</a>
         </div>
     </div>
+    
     <div id="detail_viewer"></div>
     <div class="side-form">
 
@@ -52,6 +53,9 @@
             <div class="form-group row">
                 <div class="offset-sm-2 col-sm-10">
                     <button onclick="loadForm()" type="button" class="btn btn-primary">Load</button>
+                </div>
+                <div class="offset-sm-2 col-sm-10">
+                    <button id="fullscreen" type="button" class="btn btn-primary">fullscreen</button>
                 </div>
             </div>
         </form>
@@ -74,6 +78,19 @@
 
     function load(url) {
         closet.viewer.loadZrestUrl('https://s3.clo3d.com/zpac/' + url);
+    }
+
+    window.onresize = function(event){
+        if(window.innerWidth > 2000)
+        {
+            closet.viewer.onWindowResize({
+                fullscreen : true
+            });
+        } else {
+            closet.viewer.onWindowResize({
+                fullscreen : false
+            });
+        }
     }
 
     // (function(d, s, id) {

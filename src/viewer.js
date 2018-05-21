@@ -25,6 +25,8 @@ var cameraDistance = 5000;
 var envDiffuseMap = null;
 var envSpecularMap = null;
 
+var intProgress = 0;
+
 export function init(data) {
 
     var w = data.width;
@@ -176,9 +178,17 @@ function setWindowSize(w, h) {
     camera.aspect = w / h;
 }
 
-function onWindowResize(fullscreen, use) {
-    if (fullscreen == false) {
-        if (use == 'marketplace' || use != null || use != undefined)
+export function onWindowResize(datas) {
+    var data = {
+        fullscreen : false,
+        marketplace : false
+    }
+    $.extend(data, datas);
+
+    console.log(data)
+
+    if (!data.fullscreen) {
+        if (data.marketplace)
         {
             windowHalfX = 572;
             windowHalfY = 720;
@@ -224,8 +234,6 @@ function render() {
 
 }
 
-
-
 export function loadZrestUrl(url) {
     // var $el = $('#detail_viewer');
     // // progress bar -- by terry
@@ -261,6 +269,7 @@ export function loadZrestUrl(url) {
 
         // loading 이 실제로 마무리되는 곳은 ZRestLoader 의 file reader 쪽에서이므로 scene 에 추가하는 것은 그쪽으로 변경한다. 이곳에서는 실제로 scene 에 object 가 add 되긴 하지만 로딩이 끝나기 전 빈 Object3D 만 추가된다.
         //scene.add(object);
+
     }, onProgress, onError);
 }
 /*

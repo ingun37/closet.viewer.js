@@ -1,9 +1,8 @@
 
 import 'babel-polyfill'
-import { init, loadZrestUrl } from './viewer'
+import { init, loadZrestUrl, onWindowResize } from './viewer'
 
 window.closet = window.closet || (function () {
-
     return {
         init: function(data) {
             console.log(data)
@@ -15,9 +14,11 @@ window.closet = window.closet || (function () {
             },
             loadZrestUrl: function(url) {
                 if(url !== ''){
-                    loadZrestUrl(url)
+                    loadZrestUrl(url);
                 }
-
+            },
+            onWindowResize : function(data){
+                onWindowResize(data);
             }
         }
     }
