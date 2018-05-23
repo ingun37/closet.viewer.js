@@ -235,9 +235,7 @@ function render() {
 
 }
 
-var loadProgressCallback;
-
-export function loadZrestUrl(url) {
+export function loadZrestUrl(url, callback) {
     // var $el = $('#detail_viewer');
     // // progress bar -- by terry
     // $el.append('<div class="closet-progress" style="position:absolute; top:50%;left:50%; margin-left:-100px; margin-top:-5px;">\
@@ -252,11 +250,8 @@ export function loadZrestUrl(url) {
             var percentComplete = xhr.loaded / xhr.total * 100;
             var percent = Math.round(percentComplete, 2);
             //console.log(Math.round(percentComplete, 2) + '% downloaded');
-
-            loadProgressCallback = loadProgress(function(){
-                console.log(percent);
-                return percent;
-            });
+            
+            callback(percent)
             // var percentValue = Math.round(percentComplete, 2) + "%";
             // $progressGif.css({ width: percentValue });
             // $progressNumber.html(percentValue);
@@ -276,8 +271,6 @@ export function loadZrestUrl(url) {
 
         // loading 이 실제로 마무리되는 곳은 ZRestLoader 의 file reader 쪽에서이므로 scene 에 추가하는 것은 그쪽으로 변경한다. 이곳에서는 실제로 scene 에 object 가 add 되긴 하지만 로딩이 끝나기 전 빈 Object3D 만 추가된다.
         //scene.add(object);
-
-        loadProgress();
 
     }, onProgress, onError);
 }
@@ -310,12 +303,6 @@ function loadOBJ(url_OBJ,url_MTL) {
         }, onProgress, onError);
     });
 }*/
-
-export function loadProgress(loadProgressCallback)
-{
-    console.log(loadProgressCallback)
-    //loadProgressCallback();
-}
 
 function changeColorway(number) {
     if (Global._globalColorwaySize - 1 < number) {

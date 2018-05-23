@@ -1,6 +1,6 @@
 
 import 'babel-polyfill'
-import { init, loadZrestUrl, onWindowResize, getCameraMatrix, loadProgress } from './viewer'
+import { init, loadZrestUrl, onWindowResize, getCameraMatrix } from './viewer'
 
 window.closet = window.closet || (function () {
     return {
@@ -12,9 +12,9 @@ window.closet = window.closet || (function () {
                 console.log('viewer init', data)
                 init(data);
             },
-            loadZrestUrl: function(url) {
+            loadZrestUrl: function(url, callback) {
                 if(url !== ''){
-                    loadZrestUrl(url);
+                    loadZrestUrl(url, callback);
                 }
             },
             onWindowResize : function(data){
@@ -22,9 +22,6 @@ window.closet = window.closet || (function () {
             },
             getCameraMatrix : function() {
                 getCameraMatrix();
-            },
-            loadProgress : function(){
-                loadProgress();
             }
         }
     }

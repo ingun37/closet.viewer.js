@@ -78,7 +78,11 @@
     }
 
     function load(url) {
-        closet.viewer.loadZrestUrl('https://s3.clo3d.com/zpac/' + url);
+        var progress = function(percent){ 
+            document.getElementById('progresstest').innerHTML = percent;
+        }
+
+        closet.viewer.loadZrestUrl('https://s3.clo3d.com/zpac/' + url, progress);
     }
 
     function cameraMatrix()
@@ -86,7 +90,7 @@
         closet.viewer.getCameraMatrix();
     }
 
-    //document.getElementById('progresstest').innerHTML = closet.viewer.loadProgress();
+    
 
     window.onresize = function(event){
         if(window.innerWidth > 2000)
