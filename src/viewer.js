@@ -304,7 +304,7 @@ function loadOBJ(url_OBJ,url_MTL) {
     });
 }*/
 
-function changeColorway(number) {
+export function changeColorway(number) {
     if (Global._globalColorwaySize - 1 < number) {
         console.log("index is over colorway size");
         return;

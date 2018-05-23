@@ -1,6 +1,6 @@
 
 import 'babel-polyfill'
-import { init, loadZrestUrl, onWindowResize, getCameraMatrix } from './viewer'
+import { init, loadZrestUrl, onWindowResize, getCameraMatrix, changeColorway } from './viewer'
 
 window.closet = window.closet || (function () {
     return {
@@ -22,6 +22,9 @@ window.closet = window.closet || (function () {
             },
             getCameraMatrix : function() {
                 getCameraMatrix();
+            },
+            changeColorway : function(index){
+                changeColorway(index);
             }
         }
     }
