@@ -23,6 +23,7 @@
     <script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js'></script>
 </head>
 <body>
+    <div id="progresstest"></div>
 <div id="container">
     <br>
     <br>
@@ -79,6 +80,13 @@
     function load(url) {
         closet.viewer.loadZrestUrl('https://s3.clo3d.com/zpac/' + url);
     }
+
+    function cameraMatrix()
+    {
+        closet.viewer.getCameraMatrix();
+    }
+
+    //document.getElementById('progresstest').innerHTML = closet.viewer.loadProgress();
 
     window.onresize = function(event){
         if(window.innerWidth > 2000)

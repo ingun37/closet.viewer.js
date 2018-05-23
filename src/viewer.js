@@ -183,11 +183,12 @@ export function onWindowResize(datas) {
         width : screen.width,
         height : screen.height,
         fullscreen : false,
-        marketplace : false
+        marketplace : false,
+        reponsive : false,
     }
     $.extend(data, datas);
 
-    if (!data.fullscreen) {
+    if (!data.fullscreen || !data.responsive) {
         if (data.marketplace)
         {
             windowHalfX = 572;
@@ -234,6 +235,8 @@ function render() {
 
 }
 
+var loadProgressCallback;
+
 export function loadZrestUrl(url) {
     // var $el = $('#detail_viewer');
     // // progress bar -- by terry
@@ -245,21 +248,25 @@ export function loadZrestUrl(url) {
     // var $progressNumber = $('.closet-progress').find('.progressNumber');
 
     var onProgress = function (xhr) {
-        // if (xhr.lengthComputable) {
-        //     var percentComplete = xhr.loaded / xhr.total * 90;
-        //     console.log(Math.round(percentComplete, 2) + '% downloaded');
-        //
-        //     var percentValue = Math.round(percentComplete, 2) + "%";
-        //     $progressGif.css({ width: percentValue });
-        //     $progressNumber.html(percentValue);
-        // }
+        if (xhr.lengthComputable) {
+            var percentComplete = xhr.loaded / xhr.total * 100;
+            var percent = Math.round(percentComplete, 2);
+            //console.log(Math.round(percentComplete, 2) + '% downloaded');
+
+            loadProgressCallback = loadProgress(function(){
+                console.log(percent);
+                return percent;
+            });
+            // var percentValue = Math.round(percentComplete, 2) + "%";
+            // $progressGif.css({ width: percentValue });
+            // $progressNumber.html(percentValue);
+        }
     };
 
     var onError = function (xhr) { };
 
     var loader = new ZRestLoader({_scene: scene, _camera: camera, _controls: controls});
     loader.load(url, function (object) {
-
         // progress-bar remove
         // $el.find('.closet-progress').animate({
         //     opacity: 0.5,
@@ -269,6 +276,8 @@ export function loadZrestUrl(url) {
 
         // loading 이 실제로 마무리되는 곳은 ZRestLoader 의 file reader 쪽에서이므로 scene 에 추가하는 것은 그쪽으로 변경한다. 이곳에서는 실제로 scene 에 object 가 add 되긴 하지만 로딩이 끝나기 전 빈 Object3D 만 추가된다.
         //scene.add(object);
+
+        loadProgress();
 
     }, onProgress, onError);
 }
@@ -302,6 +311,11 @@ function loadOBJ(url_OBJ,url_MTL) {
     });
 }*/
 
+export function loadProgress(loadProgressCallback)
+{
+    console.log(loadProgressCallback)
+    //loadProgressCallback();
+}
 
 function changeColorway(number) {
     if (Global._globalColorwaySize - 1 < number) {
