@@ -208,13 +208,13 @@ export function onWindowResize(datas) {
 
             renderer.setSize(572, 720);
         } else {
-            windowHalfX = 620;
-            windowHalfY = 780;
+            windowHalfX = 650;
+            windowHalfY = 750;
 
-            camera.aspect = 620 / 780;
+            camera.aspect = 650 / 750;
             camera.updateProjectionMatrix();
 
-            renderer.setSize(620, 780);
+            renderer.setSize(650, 750);
         }
     }
 }
@@ -252,7 +252,10 @@ export function loadZrestUrl(url, callback) {
             var percent = Math.round(percentComplete, 2);
             //console.log(Math.round(percentComplete, 2) + '% downloaded');
             
-            callback(percent)
+            if(callback != null || callback != undefined)
+            {
+                callback(percent)
+            }
             // var percentValue = Math.round(percentComplete, 2) + "%";
             // $progressGif.css({ width: percentValue });
             // $progressNumber.html(percentValue);
