@@ -157,8 +157,8 @@ function readZrestFromBlobForWeb(blob, header, scene) {
     var bthNameList = [];
 
     reader.onload = function (e) {
-        _globalZip = new JSZip(e.target.result);
-        var keyList = Object.keys(_globalZip.files);
+        Global._globalZip = new JSZip(e.target.result);
+        var keyList = Object.keys(Global._globalZip.files);
 
         keyList.forEach(function (value) {
             var list = value.split('.');
@@ -186,20 +186,20 @@ function readZrestFromBlobForWeb(blob, header, scene) {
         });
 
         var fileOffset = { Offset: 0 };
-        var dataView = new DataView(_globalZip.file(restName).asArrayBuffer());
+        var dataView = new DataView(Global._globalZip.file(restName).asArrayBuffer());
         console.log("pac file size = " + dataView.byteLength);
 
         rootMap = readMap(dataView, fileOffset);
 
         // seam puckering normal map 로드
-        gSeamPuckeringNormalMap = LoadTexture(_globalZip, "seam_puckering_2ol97pf293f2sdk98.png");
+        gSeamPuckeringNormalMap = LoadTexture(Global._globalZip, "seam_puckering_2ol97pf293f2sdk98.png");
 
         let loadedCamera =
         {
             ltow : new THREE.Matrix4(),
             bLoaded : false
         }
-        meshFactory(rootMap, _globalZip, object3D, loadedCamera);
+        meshFactory(rootMap, Global._globalZip, object3D, loadedCamera);
 
         // 여기가 실질적으로 Zrest 로드 완료되는 시점
         scene.add(object3D);
@@ -463,7 +463,7 @@ function LoadTexture(zip, textureFileName)
     return loader.load(url);
 }
 
-function makeMaterialForZrest(zip, property, colorwayIndex, bUseSeamPuckeringNormalMap, version) {
+export function makeMaterialForZrest(zip, property, colorwayIndex, bUseSeamPuckeringNormalMap, version) {
 
     var zRestColorwayMaterialArray = property.colorwayMaterials;
     let material = zRestColorwayMaterialArray[colorwayIndex];

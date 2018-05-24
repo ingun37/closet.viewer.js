@@ -1,8 +1,9 @@
-﻿import ZRestLoader, { dataWorkerFunction, checkFileReaderSyncSupport } from './lib/clo/readers/ZrestReader'
+﻿import ZRestLoader, { dataWorkerFunction, checkFileReaderSyncSupport, makeMaterialForZrest } from './lib/clo/readers/ZrestReader'
 import * as Global from '@/lib/clo/utils/Global'
 import * as THREE from '@/lib/threejs/three'
 import '@/lib/threejs/OrbitControls'
 import '@/lib/draco/DRACOLoader'
+//import '@/lib/clo/UtilFunctions'
 
 var container, states;
 var camera, scene, renderer, controls;
@@ -321,8 +322,6 @@ export function changeColorway(number) {
     }
     Global._globalCurrentColorwayIndex = number;
 
-    console.log(Global)
-
     for (var i = 0 ; i < Global._globalMatMeshInformationList.length ; ++i) {
         var prevMaterial = Global._globalMatMeshInformationList[i].material;
         let preUseSeamPuckeringMap = false;
@@ -334,4 +333,10 @@ export function changeColorway(number) {
         var id = Global._globalMatMeshInformationList[i].userData;
         Global._globalMatMeshInformationList[i].material = makeMaterialForZrest(Global._globalZip, Global._globalMaterialInformationMap.get(id), number, preUseSeamPuckeringMap, Global._gVersion);
     }
+}
+
+
+function SafeDeallocation(object, type, type_cb, nontype_cb){
+	if(object instanceof type){type_cb(object);}
+	else{nontype_cb(object);}
 }
