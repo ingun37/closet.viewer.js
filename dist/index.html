@@ -73,8 +73,10 @@
 
     function loadForm() {
         var url = document.getElementById('zrestURL').value;
-        console.log('url', url)
-        closet.viewer.loadZrestUrl(url);
+        var progress = function(percent){ 
+            document.getElementById('progresstest').innerHTML = percent;
+        }
+        closet.viewer.loadZrestUrl(url, progress);
     }
 
     function load(url) {
@@ -94,8 +96,6 @@
     {
         closet.viewer.changeColorway(index);
     }
-
-    
 
     window.onresize = function(event){
         if(window.innerWidth > 2000)

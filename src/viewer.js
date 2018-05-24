@@ -187,8 +187,16 @@ export function onWindowResize(datas) {
         reponsive : false,
     }
     $.extend(data, datas);
+    
+    if (data.fullscreen || data.responsive) {
+        windowHalfX = data.width / 2;
+        windowHalfY = data.height - 60 / 2;
 
-    if (!data.fullscreen || !data.responsive) {
+        camera.aspect = data.width / data.height;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(data.width, data.height - 60);
+    } else {
         if (data.marketplace)
         {
             windowHalfX = 572;
@@ -207,14 +215,6 @@ export function onWindowResize(datas) {
 
             renderer.setSize(620, 780);
         }
-    } else {
-        windowHalfX = data.width / 2;
-        windowHalfY = data.height - 60 / 2;
-
-        camera.aspect = data.width / data.height;
-        camera.updateProjectionMatrix();
-
-        renderer.setSize(data.width, data.height - 60);
     }
 }
 
@@ -320,6 +320,8 @@ export function changeColorway(number) {
         return;
     }
     Global._globalCurrentColorwayIndex = number;
+
+    console.log(Global)
 
     for (var i = 0 ; i < Global._globalMatMeshInformationList.length ; ++i) {
         var prevMaterial = Global._globalMatMeshInformationList[i].material;
