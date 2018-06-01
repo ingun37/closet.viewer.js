@@ -191,12 +191,12 @@ export function onWindowResize(datas) {
     
     if (data.fullscreen || data.responsive) {
         windowHalfX = data.width / 2;
-        windowHalfY = data.height - 60 / 2;
+        windowHalfY = data.height / 2;
 
         camera.aspect = data.width / data.height;
         camera.updateProjectionMatrix();
 
-        renderer.setSize(data.width, data.height - 60);
+        renderer.setSize(data.width, data.height);
     } else {
         if (data.marketplace)
         {
