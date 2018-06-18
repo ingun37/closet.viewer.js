@@ -22,6 +22,8 @@ window.closet = window.closet || (function () {
             },
             getCameraMatrix : function() {
                 getCameraMatrix();
+
+                return getCameraMatrix();
             },
             changeColorway : function(index){
                 changeColorway(index);

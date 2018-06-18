@@ -61,6 +61,10 @@
             </div>
         </form>
     </div>
+
+    <div>
+        <button type="button" onclick="cameraMatrix()" id="getMatrix" class="btn btn-primary">Matrix</button>
+    </div>
 </div>
 <script type='text/javascript' src='./closet.viewer.js'></script>
 <script>
@@ -90,6 +94,7 @@
     function cameraMatrix()
     {
         closet.viewer.getCameraMatrix();
+        console.log(closet.viewer.getCameraMatrix())
     }
 
     function changeColrway(index)
