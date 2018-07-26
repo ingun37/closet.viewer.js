@@ -1,5 +1,5 @@
 import * as THREE from '@/lib/threejs/three'
-import DracoModule from 'exports-loader?DracoModule!@/lib/draco/draco_decoder'
+import DracoModule from 'exports-loader?DracoDecoderModule!@/lib/draco/draco_decoder'
 // Copyright 2016 The Draco Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,7 +63,7 @@ THREE.DRACOLoader.prototype = {
            */
           const buffer = new dracoDecoder.DecoderBuffer();
           buffer.Init(new Int8Array(rawBuffer), rawBuffer.byteLength);
-          const wrapper = new dracoDecoder.WebIDLWrapper();
+          const wrapper = new dracoDecoder.Decoder();
 
           /*
            * Determine what type is this file: mesh or point cloud.
@@ -76,6 +76,7 @@ THREE.DRACOLoader.prototype = {
           } else if (geometryType == dracoDecoder.POINT_CLOUD) {
             if (this.verbosity > 0) {
               console.log('Loaded a point cloud.');
+
             }
           } else {
             const errorMsg = 'THREE.DRACOLoader: Unknown geometry type.'
@@ -89,12 +90,26 @@ THREE.DRACOLoader.prototype = {
 
     convertDracoGeometryTo3JS: function(wrapper, geometryType, buffer,
                                         dracoDecoder) {
-        let dracoGeometry;
+        var dracoGeometry;
+        var decodingStatus;
         const start_time = performance.now();
-        if (geometryType == dracoDecoder.TRIANGULAR_MESH) {
-          dracoGeometry = wrapper.DecodeMeshFromBuffer(buffer);
+        if (geometryType === dracoDecoder.TRIANGULAR_MESH) {
+          // dracoGeometry = wrapper.DecodeMeshFromBuffer(buffer);
+            dracoGeometry = new dracoDecoder.Mesh();
+            decodingStatus = wrapper.DecodeBufferToMesh(buffer, dracoGeometry);
         } else {
-          dracoGeometry = wrapper.DecodePointCloudFromBuffer(buffer);
+          // dracoGeometry = wrapper.DecodePointCloudFromBuffer(buffer);
+            dracoGeometry = new dracoDecoder.PointCloud();
+            decodingStatus =
+                wrapper.DecodeBufferToPointCloud(buffer, dracoGeometry);
+        }
+        if (!decodingStatus.ok() || dracoGeometry.ptr === 0) {
+            var errorMsg = 'THREE.DRACOLoader: Decoding failed: ';
+            errorMsg += decodingStatus.error_msg();
+            console.error(errorMsg);
+            dracoDecoder.destroy(wrapper);
+            dracoDecoder.destroy(dracoGeometry);
+            throw new Error(errorMsg);
         }
         const decode_end = performance.now();
         dracoDecoder.destroy(buffer);
