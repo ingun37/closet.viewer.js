@@ -200,13 +200,13 @@ export function onWindowResize(datas) {
     } else {
         if (data.marketplace)
         {
-            windowHalfX = 572;
-            windowHalfY = 720;
+            windowHalfX = 520;
+            windowHalfY = 650;
 
-            camera.aspect = 572 / 720;
+            camera.aspect = 520 / 650;
             camera.updateProjectionMatrix();
 
-            renderer.setSize(572, 720);
+            renderer.setSize(520, 650);
         } else {
             windowHalfX = 650;
             windowHalfY = 750;
