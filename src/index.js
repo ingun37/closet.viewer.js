@@ -1,6 +1,6 @@
 
 import 'babel-polyfill'
-import { init, loadZrestUrl, onWindowResize, getCameraMatrix, changeColorway } from './viewer'
+import { init, loadZrestUrl, onWindowResize, getCameraMatrix, changeColorway, loadZrestUrlWithParameters, setCameraMatrix } from './viewer'
 
 window.closet = window.closet || (function () {
     return {
@@ -17,7 +17,7 @@ window.closet = window.closet || (function () {
                     loadZrestUrl(url, callback);
                 }
             },
-            // camera matrix³ª colorway index ¾÷µ¥ÀÌÆ® ¾ÈÇÒ °Å¸é °¢ º¯¼ö¸¦ undefined »óÅÂ·Î ³Ñ±â¸é µÈ´Ù.
+            // camera matrixï¿½ï¿½ colorway index ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Å¸ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ undefined ï¿½ï¿½ï¿½Â·ï¿½ ï¿½Ñ±ï¿½ï¿½ ï¿½È´ï¿½.
             loadZrestUrlWithParameters: function(url, cameraMatrix, colorwayIndex, callback) {
                 if(url !== ''){
                     loadZrestUrlWithParameters(url, cameraMatrix, colorwayIndex, callback);
