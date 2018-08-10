@@ -33,7 +33,7 @@ export function init(data) {
     var w = data.width;
     var h = data.height;
     var setter = data.element;
-
+    
 
 
     //container canvas width&height setting
@@ -169,6 +169,28 @@ export function getCameraMatrix()
 
     return matrix;
 }
+
+export function setCameraMatrix(mat, bUpdateRendering)
+{
+    if(mat !== undefined && mat.length == 12)
+    {
+        camera.matrix.elements[0] = mat[0];
+        camera.matrix.elements[4] = mat[1];
+        camera.matrix.elements[8] = mat[2];
+        camera.matrix.elements[12] = mat[3];
+        camera.matrix.elements[1] = mat[4];
+        camera.matrix.elements[5] = mat[5];
+        camera.matrix.elements[9] = mat[6];
+        camera.matrix.elements[13] = mat[7];
+        camera.matrix.elements[2] = mat[8];
+        camera.matrix.elements[6] = mat[9];
+        camera.matrix.elements[10] = mat[10];
+        camera.matrix.elements[14] = mat[11];        
+
+        if(bUpdateRendering === true)
+            render();
+    }
+}
 function setWindowSize(w, h) {
 
     windowHalfX = w / 2;
@@ -237,6 +259,13 @@ function render() {
 }
 
 export function loadZrestUrl(url, callback) {
+
+    let tmpCameraMatrix;
+    let tmpColorwayIndex;
+    loadZrestUrlWithParameters(url, tmpCameraMatrix, tmpColorwayIndex, callback);
+}
+
+export function loadZrestUrlWithParameters(url, cameraMatrix, colorwayIndex, callback) {
     // var $el = $('#detail_viewer');
     // // progress bar -- by terry
     // $el.append('<div class="closet-progress" style="position:absolute; top:50%;left:50%; margin-left:-100px; margin-top:-5px;">\
@@ -276,6 +305,9 @@ export function loadZrestUrl(url, callback) {
         // loading 이 실제로 마무리되는 곳은 ZRestLoader 의 file reader 쪽에서이므로 scene 에 추가하는 것은 그쪽으로 변경한다. 이곳에서는 실제로 scene 에 object 가 add 되긴 하지만 로딩이 끝나기 전 빈 Object3D 만 추가된다.
         //scene.add(object);
 
+        setCameraMatrix(cameraMatrix, false);
+        changeColorway(colorwayIndex);
+
     }, onProgress, onError);
 }
 /*
@@ -309,6 +341,10 @@ function loadOBJ(url_OBJ,url_MTL) {
 }*/
 
 export function changeColorway(number) {
+
+    if(number === undefined)
+        return;
+
     if (Global._globalColorwaySize - 1 < number) {
         console.log("index is over colorway size");
         return;
