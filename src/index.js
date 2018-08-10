@@ -26,9 +26,7 @@ window.closet = window.closet || (function () {
             onWindowResize : function(data){
                 onWindowResize(data);
             },
-            getCameraMatrix : function() {
-                getCameraMatrix();
-
+            getCameraMatrix : function() {                
                 return getCameraMatrix();
             },
             setCameraMatrix : function(mat, bUpdateRendering) {
