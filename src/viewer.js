@@ -52,7 +52,7 @@ export function init(data) {
     windowHalfY = h / 2;
 
     //create webgl renderer
-    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true  });
     renderer.setClearColor(0xcccccc);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(w, h);
@@ -147,6 +147,10 @@ export function init(data) {
     animate();
 
     
+}
+
+export function capture() {
+    return renderer.domElement.toDataURL( 'image/png' )
 }
 
 /// rendering 에 사용되는 현재 camera matrix 리턴. dll로 렌더링시 입력으로 사용되는 값.

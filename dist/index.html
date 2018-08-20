@@ -53,17 +53,26 @@
             </div>
             <div class="form-group row">
                 <div class="offset-sm-2 col-sm-10">
-                    <button onclick="loadForm()" type="button" class="btn btn-primary">Load</button>
+                    <button type="button" onclick="cameraMatrix()" id="getMatrix" class="btn btn-primary">Matrix</button>
                 </div>
+                <br/>
+                <br/>
                 <div class="offset-sm-2 col-sm-10">
                     <button id="fullscreen" type="button" class="btn btn-primary">fullscreen</button>
+                </div>
+                <br/>
+                <br/>
+                <div class="offset-sm-2 col-sm-10">
+                    <button id="capture" type="button" onclick="canvasCapture()" class="btn btn-primary">capture</button>
                 </div>
             </div>
         </form>
     </div>
-
     <div>
-        <button type="button" onclick="cameraMatrix()" id="getMatrix" class="btn btn-primary">Matrix</button>
+        <button onclick="loadForm()" type="button" class="btn btn-primary">Load</button>
+    </div>
+    <div>
+        <img id="capturedImage" src="" />
     </div>
 </div>
 <script type='text/javascript' src='./closet.viewer.js'></script>
@@ -89,6 +98,13 @@
         }
 
         closet.viewer.loadZrestUrl('https://s3.clo3d.com/zpac/' + url, progress);
+    }
+
+    function canvasCapture() {
+        console.log('capture')
+        var dataURL = closet.viewer.capture()
+        var img = document.getElementById('capturedImage')
+        img.src = dataURL
     }
 
     function cameraMatrix()
