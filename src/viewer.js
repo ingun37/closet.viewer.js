@@ -42,11 +42,11 @@ export function init(data) {
     //     h = $('#' + setter).height();
     // }
     //create container div
-    container = document.createElement('div');
+    // container = document.createElement('div');
     //document.body.appendChild(container);
 
-    document.getElementById(setter).innerHTML = '';
-    document.getElementById(setter).appendChild(container);
+    // document.getElementById(setter).innerHTML = '';
+    // document.getElementById(setter).appendChild(container);
 
     windowHalfX = w / 2;
     windowHalfY = h / 2;
@@ -60,7 +60,7 @@ export function init(data) {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    container.appendChild(renderer.domElement);
+    document.getElementById(setter).appendChild(renderer.domElement);
 
     //create camera
     
@@ -245,21 +245,29 @@ export function onWindowResize(datas) {
     }
 }
 
+let requestId;
 function animate() {
-
-    requestAnimationFrame(animate);
+    requestId = requestAnimationFrame(animate);
     controls.update();
     render();
-
 }
 
 function render() {
-
     renderer.autoClear = false;
     renderer.clear();
     renderer.render(background_scene, background_camera);
     renderer.render(scene, camera);
+}
 
+export function stopRender() {
+    if (requestId) {
+        window.cancelAnimationFrame(requestId);
+        scene = null;
+        camera = null;
+        controls = null;
+        renderer = null;
+        requestId = undefined;
+    }
 }
 
 export function loadZrestUrl(url, callback) {
