@@ -11,6 +11,7 @@ import vertexShader from 'raw-loader!@/lib/clo/shader/vertexShader.vert'
 import pbrVertexShader from 'raw-loader!@/lib/clo/shader/pbrVertexShader.vert'
 
 let scene;
+let scene1;
 let camera;
 let controls;
 let _globalZip;
@@ -24,8 +25,9 @@ var syncDetectionScript = "onmessage = function(e) { postMessage(!!FileReaderSyn
 var drawMode = { wireframe: { pattern: false, button: false } };
 
 
-export default function ZRestLoader({_scene, _camera, _controls}, manager) {
+export default function ZRestLoader({_scene, _scene1, _camera, _controls}, manager) {
     scene = _scene
+    scene1 = _scene1
     camera = _camera
     controls = _controls
     this.manager = (manager !== undefined) ? manager : THREE.DefaultLoadingManager;
@@ -203,6 +205,11 @@ function readZrestFromBlobForWeb(blob, header, scene) {
 
         // 여기가 실질적으로 Zrest 로드 완료되는 시점
         scene.add(object3D);
+        scene1.add(object3D.clone());
+        // object3D.clone()
+        // var aa = object3D.clone()
+        // aa.rotation.x = 90
+        // scene.add(aa);
         ZoomToObjects(loadedCamera);
 
         // 임시 데이터 clear

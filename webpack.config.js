@@ -7,7 +7,8 @@ function resolve (dir) {
 
 module.exports = {
     output: {
-        filename: './closet.viewer.js'
+        filename: './closet.viewer.js',
+        libraryTarget: "umd"
     },
     module: {
         rules: [

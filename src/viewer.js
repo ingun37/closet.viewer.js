@@ -6,7 +6,7 @@ import '@/lib/draco/DRACOLoader'
 //import '@/lib/clo/UtilFunctions'
 
 var container, states;
-var camera, scene, renderer, controls;
+var camera, scene, scene1, renderer, renderer1, controls, controls1;
 var background_camera, background_scene;
 var mouseX = 0, mouseY = 0;
 var windowHalfX = window.innerWidth / 2;
@@ -28,11 +28,13 @@ var envSpecularMap = null;
 
 var intProgress = 0;
 
+var setter = null
+
 export function init(data) {
 
     var w = data.width;
     var h = data.height;
-    var setter = data.element;
+    setter = data.element;
     
 
 
@@ -60,7 +62,16 @@ export function init(data) {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
+    renderer1 = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true  });
+    renderer1.setClearColor(0xcccccc);
+    renderer1.setPixelRatio(window.devicePixelRatio);
+    renderer1.setSize(w/2, h/2);
+    renderer1.sortObjects = false; // 투명 object 제대로 렌더링하려면 자동 sort 꺼야 한다
+    renderer1.shadowMap.enabled = true;
+    renderer1.shadowMap.type = THREE.PCFSoftShadowMap;
+
     document.getElementById(setter).appendChild(renderer.domElement);
+    document.getElementById('viewer1').appendChild(renderer1.domElement);
 
     //create camera
     
@@ -72,9 +83,14 @@ export function init(data) {
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.target = new THREE.Vector3(0, cameraHeight, 0);
     controls.addEventListener('change', render);
+    //create camera controller
+    controls1 = new THREE.OrbitControls(camera, renderer1.domElement);
+    controls1.target = new THREE.Vector3(0, cameraHeight, 0);
+    controls1.addEventListener('change', render);
     
     //create scenegraph
     scene = new THREE.Scene();
+    scene1 = new THREE.Scene();
 
     // 이제 version 3 이후 파일에 대해서는 shader에서 light 설정을 hard coding해서 사용한다. 하지만 version 2 이하 파일을 위해 여기에서도 설정한다. 
     var DirLight0 = new THREE.DirectionalLight(0xd2d2d2);
@@ -103,6 +119,9 @@ export function init(data) {
     //scene.add(new THREE.AmbientLight(0x8c8c8c));// amibent light은 추가하지 않고 shader에서 하드코딩으로 처리한다. CLO와 three.js 의 light 구조가 다르므로 이렇게 하자
     scene.add(DirLight0);
     scene.add(DirLight1);
+
+    scene1.add(DirLight0.clone());
+    scene1.add(DirLight1.clone());
 
     var loader = new THREE.TextureLoader();
     var texture = loader.load(require('@/lib/clo/background/img_3dwindow_bg_Designer.png'));
@@ -257,6 +276,11 @@ function render() {
     renderer.clear();
     renderer.render(background_scene, background_camera);
     renderer.render(scene, camera);
+
+    renderer1.autoClear = false;
+    renderer1.clear();
+    renderer1.render(background_scene, background_camera);
+    renderer1.render(scene1, camera);
 }
 
 export function stopRender() {
@@ -271,10 +295,14 @@ export function stopRender() {
 }
 
 export function loadZrestUrl(url, callback) {
+    if(url === ''){
+        return
+    }
 
     let tmpCameraMatrix;
     let tmpColorwayIndex;
     loadZrestUrlWithParameters(url, tmpCameraMatrix, tmpColorwayIndex, callback);
+
 }
 
 export function loadZrestUrlWithParameters(url, cameraMatrix, colorwayIndex, callback) {
@@ -286,6 +314,10 @@ export function loadZrestUrlWithParameters(url, cameraMatrix, colorwayIndex, cal
     //
     // var $progressGif = $('.closet-progress').find('.progressGif');
     // var $progressNumber = $('.closet-progress').find('.progressNumber');
+
+    if(url === ''){
+        return
+    }
 
     var onProgress = function (xhr) {
         if (xhr.lengthComputable) {
@@ -305,7 +337,7 @@ export function loadZrestUrlWithParameters(url, cameraMatrix, colorwayIndex, cal
 
     var onError = function (xhr) { };
 
-    var loader = new ZRestLoader({_scene: scene, _camera: camera, _controls: controls});
+    var loader = new ZRestLoader({_scene: scene, _scene1: scene1, _camera: camera, _controls: controls});
     loader.load(url, function (object) {
         // progress-bar remove
         // $el.find('.closet-progress').animate({

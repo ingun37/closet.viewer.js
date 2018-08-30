@@ -24,7 +24,7 @@
 </head>
 <body>
     <div id="progresstest"></div>
-<div id="container">
+<div id="container" class="clearfix">
     <br>
     <br>
     <div class="dropdown" style="margin-bottom: 30px;">
@@ -42,6 +42,7 @@
     </div>
     
     <div id="detail_viewer"></div>
+
     <div class="side-form">
 
         <form>
@@ -75,6 +76,11 @@
         <img id="capturedImage" src="" />
     </div>
 </div>
+    <div>
+        <div id="viewer1"></div>
+        <div id="viewer2"></div>
+        <div id="viewer3"></div>
+    </div>
 <script type='text/javascript' src='./closet.viewer.js'></script>
 <script>
 
@@ -86,14 +92,14 @@
 
     function loadForm() {
         var url = document.getElementById('zrestURL').value;
-        var progress = function(percent){ 
+        var progress = function(percent){
             document.getElementById('progresstest').innerHTML = percent;
         }
         closet.viewer.loadZrestUrl(url, progress);
     }
 
     function load(url) {
-        var progress = function(percent){ 
+        var progress = function(percent){
             document.getElementById('progresstest').innerHTML = percent;
         }
 
@@ -149,6 +155,22 @@
     //         height: 780
     //     })
     // }
+
+</script>
+<script>
+    // var cv1 = new ClosetViewer()
+    // cv1.init({
+    //     element: 'viewer1',
+    //     width: 300,
+    //     height: 400
+    // })
+    //
+    // var cv2 = new ClosetViewer()
+    // cv2.init({
+    //     element: 'viewer2',
+    //     width: 300,
+    //     height: 400
+    // })
 
 </script>
 </body>
