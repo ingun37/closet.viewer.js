@@ -16,6 +16,10 @@
             margin-left: 50px;
             float: left;
         }
+        .clo-viewer {
+            float: left;
+            margin-right: 20px;
+        }
     </style>
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
@@ -77,18 +81,20 @@
     </div>
 </div>
     <div>
-        <div id="viewer1"></div>
-        <div id="viewer2"></div>
-        <div id="viewer3"></div>
+        <div id="viewer1" class="clo-viewer"></div>
+        <div id="viewer2" class="clo-viewer"></div>
+        <div id="viewer3" class="clo-viewer"></div>
     </div>
 <script type='text/javascript' src='./closet.viewer.js'></script>
 <script>
 
-    closet.viewer.init({
-        element: 'detail_viewer',
-        width: 620,
-        height: 780
-    })
+
+
+    // closet.viewer.init({
+    //     element: 'detail_viewer',
+    //     width: 620,
+    //     height: 780
+    // })
 
     function loadForm() {
         var url = document.getElementById('zrestURL').value;
@@ -96,6 +102,8 @@
             document.getElementById('progresstest').innerHTML = percent;
         }
         closet.viewer.loadZrestUrl(url, progress);
+        cv1.loadZrestUrl(url, progress);
+        cv2.loadZrestUrl(url, progress);
     }
 
     function load(url) {
@@ -104,6 +112,9 @@
         }
 
         closet.viewer.loadZrestUrl('https://s3.clo3d.com/zpac/' + url, progress);
+
+        cv1.loadZrestUrl('https://s3.clo3d.com/zpac/' + url, progress);
+        cv2.loadZrestUrl('https://s3.clo3d.com/zpac/' + url, progress);
     }
 
     function canvasCapture() {
@@ -158,19 +169,55 @@
 
 </script>
 <script>
-    // var cv1 = new ClosetViewer()
-    // cv1.init({
+
+    // var cv0 = new ClosetViewer()
+    // cv0.init({
     //     element: 'viewer1',
     //     width: 300,
     //     height: 400
     // })
-    //
-    // var cv2 = new ClosetViewer()
-    // cv2.init({
+
+
+
+    // closet.viewer.init({
     //     element: 'viewer2',
     //     width: 300,
     //     height: 400
     // })
+    var cvRenderer = []
+    var cv1 = new ClosetViewer()
+    cv1.init({
+        element: 'viewer1',
+        width: 300,
+        height: 400
+    })
+
+
+    var cv2 = new ClosetViewer()
+    cv2.init({
+        element: 'viewer2',
+        width: 300,
+        height: 400
+    })
+
+    closet.viewer.init({
+        element: 'detail_viewer',
+        width: 300,
+        height: 400
+    })
+
+    // var cv3 = new ClosetViewer()
+    // cv3.init({
+    //     element: 'viewer3',
+    //     width: 300,
+    //     height: 400
+    // })
+    // function animate() {
+    //     requestAnimationFrame(animate);
+    //
+    // }
+    //
+    // animate()
 
 </script>
 </body>

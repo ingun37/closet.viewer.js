@@ -1,10 +1,10 @@
 
 import 'babel-polyfill'
-import { init, loadZrestUrl, onWindowResize, getCameraMatrix, changeColorway, loadZrestUrlWithParameters, setCameraMatrix, capture, stopRender } from './viewer'
+import ClosetViewer from './viewer'
 global._babelPolyfill = false;
 
 const closet = window.closet || {
-    viewer: require('./viewer')
+    viewer: new ClosetViewer()
 }
 
 exports.closet = closet
@@ -15,14 +15,14 @@ exports.closet = closet
 //
 //     }
 // }
-
+//
 // var ClosetViewer = function(){
 //
 // }
 //
 // ClosetViewer.prototype = require('./viewer')
-//
-// exports.ClosetViewer = ClosetViewer
+
+exports.ClosetViewer = ClosetViewer
 
 //
 // window.closet = window.closet || (function () {

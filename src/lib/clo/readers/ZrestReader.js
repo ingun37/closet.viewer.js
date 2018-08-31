@@ -10,8 +10,6 @@ import pbrFragmentShader from 'raw-loader!@/lib/clo/shader/pbrFragmentShader.fra
 import vertexShader from 'raw-loader!@/lib/clo/shader/vertexShader.vert'
 import pbrVertexShader from 'raw-loader!@/lib/clo/shader/pbrVertexShader.vert'
 
-let scene;
-let scene1;
 let camera;
 let controls;
 let _globalZip;
@@ -25,9 +23,8 @@ var syncDetectionScript = "onmessage = function(e) { postMessage(!!FileReaderSyn
 var drawMode = { wireframe: { pattern: false, button: false } };
 
 
-export default function ZRestLoader({_scene, _scene1, _camera, _controls}, manager) {
-    scene = _scene
-    scene1 = _scene1
+export default function ZRestLoader({_scene, _camera, _controls}, manager) {
+    this.scene = _scene
     camera = _camera
     controls = _controls
     this.manager = (manager !== undefined) ? manager : THREE.DefaultLoadingManager;
@@ -66,11 +63,11 @@ ZRestLoader.prototype = {
         var dataView = new DataView(data);
         var header = readHeader(dataView, headerOffset);
         
-        return readZrestFromBlobForWeb(blob, header, scene);
+        return readZrestFromBlobForWeb(blob, header, this.scene);
     }
 };
 
-function ZoomToObjects(loadedCamera) {
+function ZoomToObjects(loadedCamera, scene) {
     // scene 의 모든 geometry 방문하면서 bounding cube 계산해서 전체 scene bounding cube 계산
     let box = new THREE.Box3();
     box.expandByObject(scene);
@@ -142,13 +139,15 @@ var RenderFace =
     MV_FRONT_FACE: 1,
     MV_BACK_FACE: 2
 };
-var object3D;
+var _object3D;
 function readZrestFromBlobForWeb(blob, header, scene) {
-    if(object3D){
-        scene.remove(object3D)
+    if(_object3D){
+        scene.remove(_object3D)
     }
-    object3D = new THREE.Object3D();
+    var object3D = new THREE.Object3D();
     object3D.name = 'object3D'
+    _object3D = object3D
+
     var reader = new FileReader();
 
     var contentBlob = blob.slice(header.FileContentPos, header.FileContentPos + header.FileContentSize);
@@ -205,12 +204,7 @@ function readZrestFromBlobForWeb(blob, header, scene) {
 
         // 여기가 실질적으로 Zrest 로드 완료되는 시점
         scene.add(object3D);
-        scene1.add(object3D.clone());
-        // object3D.clone()
-        // var aa = object3D.clone()
-        // aa.rotation.x = 90
-        // scene.add(aa);
-        ZoomToObjects(loadedCamera);
+        ZoomToObjects(loadedCamera, scene);
 
         // 임시 데이터 clear
         _gNameToTextureMap.clear(); 
