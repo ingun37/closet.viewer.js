@@ -59,14 +59,19 @@ export default class ClosetViewer {
         document.getElementById(this.setter).appendChild(this.renderer.domElement);
 
         //create camera
-        camera = new THREE.PerspectiveCamera(15, w / h, 100, 100000);
-        camera.position.y = cameraHeight;
-        camera.position.z = cameraDistance;
+        console.log('++++++++++++++++++++++++ camera', camera)
+        if(!camera){
+            camera = new THREE.PerspectiveCamera(15, w / h, 100, 100000);
+            camera.position.y = cameraHeight;
+            camera.position.z = cameraDistance;
 
-        //create camera controller
-        controls = new THREE.OrbitControls(camera, this.renderer.domElement);
-        controls.target = new THREE.Vector3(0, cameraHeight, 0);
-        controls.addEventListener('change', this.render);
+            //create camera controller
+            controls = new THREE.OrbitControls(camera, this.renderer.domElement);
+            controls.target = new THREE.Vector3(0, cameraHeight, 0);
+            controls.addEventListener('change', this.render);
+        }
+
+
 
         //create scenegraph
         this.scene = new THREE.Scene();

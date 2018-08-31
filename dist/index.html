@@ -16,7 +16,7 @@
             margin-left: 50px;
             float: left;
         }
-        .clo-viewer {
+        .sub-viewer div {
             float: left;
             margin-right: 20px;
         }
@@ -83,28 +83,58 @@
         <img id="capturedImage" src="" />
     </div>
 </div>
-    <div>
-        <div id="viewer1" class="clo-viewer"></div>
-        <div id="viewer2" class="clo-viewer"></div>
-        <div id="viewer3" class="clo-viewer"></div>
+    <div style="margin: 20px;">
+        <button type="button" onclick="add()" class="btn btn-primary">add</button>
+        <div class="sub-viewer" style="margin-top: 20px;">
+
+        </div>
     </div>
 <script type='text/javascript' src='./closet.viewer.js'></script>
 <script>
 
 
+    var closetViewerArray = []
 
     closet.viewer.init({
         element: 'detail_viewer',
-        width: 620,
-        height: 780
+        width: 400,
+        height: 560
     })
+    closetViewerArray.push({viewer: closet.viewer, id: 'detail_viewer'})
+
+    function add() {
+        var container = document.querySelector('.sub-viewer')
+
+        var div = document.createElement('div')
+        div.id = 'viewer' + Math.floor(Math.random() * 1000)
+
+        container.appendChild(div)
+
+        createClosetViewer(div.id)
+    }
+
+    function createClosetViewer(id) {
+        var cv = new ClosetViewer()
+        cv.init({
+            element: id,
+            width: 300,
+            height: 400
+        })
+
+        closetViewerArray.push({viewer: cv, id: id})
+    }
 
     function loadForm() {
         var url = document.getElementById('zrestURL').value;
         var progress = function(percent){
             document.getElementById('progresstest').innerHTML = percent;
         }
-        closet.viewer.loadZrestUrl(url, progress);
+        // closet.viewer.loadZrestUrl(url, progress);
+
+        for(var i = 0;i<closetViewerArray.length;i++){
+            var viewer = closetViewerArray[i].viewer
+            viewer.loadZrestUrl(url, progress);
+        }
     }
 
     function load(url) {
@@ -112,7 +142,11 @@
             document.getElementById('progresstest').innerHTML = percent;
         }
 
-        closet.viewer.loadZrestUrl(url, progress);
+        // closet.viewer.loadZrestUrl(url, progress);
+        for(var i = 0;i<closetViewerArray.length;i++){
+            var viewer = closetViewerArray[i].viewer
+            viewer.loadZrestUrl(url, progress);
+        }
     }
 
     function canvasCapture() {
