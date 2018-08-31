@@ -353,7 +353,7 @@ export default class ClosetViewer {
         if(number === undefined)
             return;
 
-        if (Global._globalColorwaySize - 1 < number) {
+        if (this.loader.colorwaySize - 1 < number) {
             console.log("index is over colorway size");
             return;
         }

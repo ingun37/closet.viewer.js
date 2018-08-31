@@ -36,12 +36,15 @@
             Example Files
         </button>
         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-            <a class="dropdown-item" href="javascript:load('1 (COLORWAY).zrest')">1 (COLORWAY).zrest</a>
-            <a class="dropdown-item" href="javascript:load('HB_very_far_trim.zrest')">HB_very_far_trim.zrest</a>
-            <a class="dropdown-item" href="javascript:load('PBRTest1.zrest')">PBRTest1.zrest</a>
-            <a class="dropdown-item" href="javascript:load('bomber.zrest')">bomber.zrest</a>
-            <a class="dropdown-item" href="javascript:load('denim.zrest')">denim.zrest</a>
-            <a class="dropdown-item" href="javascript:load('shirts.zrest')">shirts.zrest</a>
+            <a class="dropdown-item" href="javascript:load('https://s3.clo3d.com/zpac/1 (COLORWAY).zrest')">1 (COLORWAY).zrest</a>
+            <a class="dropdown-item" href="javascript:load('https://s3.clo3d.com/zpac/HB_very_far_trim.zrest')">HB_very_far_trim.zrest</a>
+            <a class="dropdown-item" href="javascript:load('https://s3.clo3d.com/zpac/PBRTest1.zrest')">PBRTest1.zrest</a>
+            <a class="dropdown-item" href="javascript:load('https://s3.clo3d.com/zpac/bomber.zrest')">bomber.zrest</a>
+            <a class="dropdown-item" href="javascript:load('https://s3.clo3d.com/zpac/denim.zrest')">denim.zrest</a>
+            <a class="dropdown-item" href="javascript:load('https://s3.clo3d.com/zpac/shirts.zrest')">shirts.zrest</a>
+            <a class="dropdown-item" href="javascript:load('https://s3.clo3d.com/zpac/Male_A_V3.zrest')">Male_A_V3.zrest</a>
+            <a class="dropdown-item" href="javascript:load('https://s3.clo3d.com/zpac/bomber_desat.zrest')">bomber_desat.zrest</a>
+            <a class="dropdown-item" href="javascript:load('https://s3.clo3d.com/zpac/Shoes_No_Show.zrest')">Shoes_No_Show.zrest</a>
         </div>
     </div>
     
@@ -90,11 +93,11 @@
 
 
 
-    // closet.viewer.init({
-    //     element: 'detail_viewer',
-    //     width: 620,
-    //     height: 780
-    // })
+    closet.viewer.init({
+        element: 'detail_viewer',
+        width: 620,
+        height: 780
+    })
 
     function loadForm() {
         var url = document.getElementById('zrestURL').value;
@@ -102,8 +105,6 @@
             document.getElementById('progresstest').innerHTML = percent;
         }
         closet.viewer.loadZrestUrl(url, progress);
-        cv1.loadZrestUrl(url, progress);
-        cv2.loadZrestUrl(url, progress);
     }
 
     function load(url) {
@@ -111,10 +112,7 @@
             document.getElementById('progresstest').innerHTML = percent;
         }
 
-        closet.viewer.loadZrestUrl('https://s3.clo3d.com/zpac/' + url, progress);
-
-        cv1.loadZrestUrl('https://s3.clo3d.com/zpac/' + url, progress);
-        cv2.loadZrestUrl('https://s3.clo3d.com/zpac/' + url, progress);
+        closet.viewer.loadZrestUrl(url, progress);
     }
 
     function canvasCapture() {
@@ -184,27 +182,23 @@
     //     width: 300,
     //     height: 400
     // })
-    var cvRenderer = []
-    var cv1 = new ClosetViewer()
-    cv1.init({
-        element: 'viewer1',
-        width: 300,
-        height: 400
-    })
+    // var cvRenderer = []
+    // var cv1 = new ClosetViewer()
+    // cv1.init({
+    //     element: 'viewer1',
+    //     width: 300,
+    //     height: 400
+    // })
+    //
+    //
+    // var cv2 = new ClosetViewer()
+    // cv2.init({
+    //     element: 'viewer2',
+    //     width: 300,
+    //     height: 400
+    // })
 
 
-    var cv2 = new ClosetViewer()
-    cv2.init({
-        element: 'viewer2',
-        width: 300,
-        height: 400
-    })
-
-    closet.viewer.init({
-        element: 'detail_viewer',
-        width: 300,
-        height: 400
-    })
 
     // var cv3 = new ClosetViewer()
     // cv3.init({
