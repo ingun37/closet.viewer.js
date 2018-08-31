@@ -1,4 +1,4 @@
-﻿import ZRestLoader, { dataWorkerFunction, checkFileReaderSyncSupport, makeMaterialForZrest } from './lib/clo/readers/ZrestReader'
+﻿import ZRestLoader, { dataWorkerFunction, checkFileReaderSyncSupport } from './lib/clo/readers/ZrestReader'
 import * as Global from '@/lib/clo/utils/Global'
 import * as THREE from '@/lib/threejs/three'
 import '@/lib/threejs/OrbitControls'
@@ -42,8 +42,7 @@ export default class ClosetViewer {
         var w = data.width;
         var h = data.height;
         this.setter = data.element;
-        this.setter = data.element;
-
+        this.object3D = null
 
         windowHalfX = w / 2;
         windowHalfY = h / 2;
@@ -319,8 +318,10 @@ export default class ClosetViewer {
 
         var onError = function (xhr) { };
 
-        var loader = new ZRestLoader({_scene: this.scene, _camera: camera, _controls: controls});
-        loader.load(url, (object) => {
+
+        this.loader = new ZRestLoader({_scene: this.scene, _camera: camera, _controls: controls});
+        this.loader.load(url, (object) => {
+            console.log('------------------ loaded object', object)
             // progress-bar remove
             // $el.find('.closet-progress').animate({
             //     opacity: 0.5,
@@ -329,7 +330,17 @@ export default class ClosetViewer {
             // });
 
             // loading 이 실제로 마무리되는 곳은 ZRestLoader 의 file reader 쪽에서이므로 scene 에 추가하는 것은 그쪽으로 변경한다. 이곳에서는 실제로 scene 에 object 가 add 되긴 하지만 로딩이 끝나기 전 빈 Object3D 만 추가된다.
-            //scene.add(object);
+
+            // if(this.object3D){
+            //
+            //
+            // }
+            // var selectedObject = this.scene.getObjectByName('object3D');
+            // console.log('selectedObject', selectedObject)
+            //
+            if(this.object3D) this.scene.remove( this.object3D )
+            this.scene.add(object)
+            this.object3D = object
 
             this.setCameraMatrix(cameraMatrix, false);
             this.changeColorway(colorwayIndex);
@@ -347,27 +358,32 @@ export default class ClosetViewer {
             return;
         }
 
-        if (Global._globalCurrentColorwayIndex === number) {
+        if (this.loader.currentColorwayIndex === number) {
             console.log("index is same current index");
             return;
         }
 
-        if (Global._globalZip === undefined || Global._globalZip === null) {
+        if (this.loader.jsZip === undefined || this.loader.jsZip === null) {
             console.log("zip is null");
             return;
         }
-        Global._globalCurrentColorwayIndex = number;
+        this.loader.currentColorwayIndex = number;
 
-        for (var i = 0 ; i < Global._globalMatMeshInformationList.length ; ++i) {
-            var prevMaterial = Global._globalMatMeshInformationList[i].material;
+        // const matMeshList = this.loader.matMeshList
+
+        // const matMeshList = Global._globalMatMeshInformationList
+        const matMeshList = this.loader.matMeshList
+
+        for (var i = 0 ; i < matMeshList.length ; ++i) {
+            var prevMaterial = matMeshList[i].material;
             let preUseSeamPuckeringMap = false;
             if (prevMaterial.uniforms.bUseSeamPuckeringNormal !== undefined)
                 preUseSeamPuckeringMap = prevMaterial.uniforms.bUseSeamPuckeringNormal.value;
 
             this.SafeDeallocation(prevMaterial, THREE.ShaderMaterial, function () {/*console.log("success deallocation");*/ }, function () {/*console.log("unsuccess deallocation");*/ });
 
-            var id = Global._globalMatMeshInformationList[i].userData;
-            Global._globalMatMeshInformationList[i].material = makeMaterialForZrest(Global._globalZip, Global._globalMaterialInformationMap.get(id), number, preUseSeamPuckeringMap, Global._gVersion);
+            var id = matMeshList[i].userData;
+            matMeshList[i].material = this.loader.makeMaterialForZrest(this.loader.jsZip, this.loader.materialInformationMap.get(id), number, preUseSeamPuckeringMap, this.loader.gVersion);
         }
     }
 
