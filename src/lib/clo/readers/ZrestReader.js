@@ -641,6 +641,7 @@ export function makeMaterialForZrest(zip, property, colorwayIndex, bUseSeamPucke
                 // wrap type 외에는 기본값을 그대로 사용하면 된다.
                 texture.wrapS = THREE.RepeatWrapping;
                 texture.wrapT = THREE.RepeatWrapping;
+                texture.anisotropy = 16; // 이거 설정해 줘야 텍스처 블러링 문제 없어져서 CLO에서처럼 선명하게 나온다. 적당히 16으로 설정했으나 성능 문제 있을 수 있다 Jaden 2018.09.03
 
                 var rotMatrix = new THREE.Matrix4();
                 rotMatrix.identity();
@@ -1227,6 +1228,7 @@ function LoadMaterialTexture(material, zip, textureFileName, onload) {
             // wrap type 외에는 기본값을 그대로 사용하면 된다.
             texture.wrapS = THREE.RepeatWrapping;
             texture.wrapT = THREE.RepeatWrapping;
+            texture.anisotropy = 16; // 이거 설정해 줘야 텍스처 블러링 문제 없어져서 CLO에서처럼 선명하게 나온다. 적당히 16으로 설정했으나 성능 문제 있을 수 있다 Jaden 2018.09.03
 
             onload(texture);
 
