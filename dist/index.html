@@ -92,8 +92,12 @@
 <script type='text/javascript' src='./closet.viewer.js'></script>
 <script>
 
+    var progress = function(percent){
+        document.getElementById('progresstest').innerHTML = percent;
+    }
 
     var closetViewerArray = []
+    var currentURL = ''
 
     closet.viewer.init({
         element: 'detail_viewer',
@@ -121,14 +125,16 @@
             height: 400
         })
 
+        if(currentURL){
+            cv.loadZrestUrl(currentURL, progress);
+        }
+
         closetViewerArray.push({viewer: cv, id: id})
     }
 
     function loadForm() {
         var url = document.getElementById('zrestURL').value;
-        var progress = function(percent){
-            document.getElementById('progresstest').innerHTML = percent;
-        }
+
         // closet.viewer.loadZrestUrl(url, progress);
 
         for(var i = 0;i<closetViewerArray.length;i++){
@@ -138,15 +144,15 @@
     }
 
     function load(url) {
-        var progress = function(percent){
-            document.getElementById('progresstest').innerHTML = percent;
-        }
+
 
         // closet.viewer.loadZrestUrl(url, progress);
         for(var i = 0;i<closetViewerArray.length;i++){
             var viewer = closetViewerArray[i].viewer
             viewer.loadZrestUrl(url, progress);
         }
+
+        currentURL = url
     }
 
     function canvasCapture() {
