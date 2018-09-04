@@ -16,9 +16,12 @@
             margin-left: 50px;
             float: left;
         }
-        .sub-viewer div {
+        .sub-viewer .viewer {
             float: left;
             margin-right: 20px;
+        }
+        .colorwayBtn {
+            margin-right: 5px;
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
@@ -96,6 +99,28 @@
         document.getElementById('progresstest').innerHTML = percent;
     }
 
+    var loaded = function (viewer) {
+        console.log('viewer.getColorwaySize()', viewer.getColorwaySize())
+        var setter = document.getElementById(viewer.setter)
+        var colorwaySize = viewer.getColorwaySize()
+
+        var btns = $(setter).append('<div class="colorwayBtns"></div>').find('.colorwayBtns')
+
+
+
+        for (var i = 0;i<colorwaySize;i++){
+            var btn = document.createElement('button')
+            btn.className = 'btn btn-primary colorwayBtn'
+            btn.innerText = i + 1
+            btn.index = i
+            btn.addEventListener('click', function(e) {
+                viewer.changeColorway(this.index)
+            })
+            btns.append(btn)
+
+        }
+    }
+
     var closetViewerArray = []
     var currentURL = ''
 
@@ -110,6 +135,7 @@
         var container = document.querySelector('.sub-viewer')
 
         var div = document.createElement('div')
+        div.className = 'viewer'
         div.id = 'viewer' + Math.floor(Math.random() * 1000)
 
         container.appendChild(div)
@@ -124,9 +150,8 @@
             width: 300,
             height: 400
         })
-
         if(currentURL){
-            cv.loadZrestUrl(currentURL, progress);
+            cv.loadZrestUrl(currentURL, progress, loaded);
         }
 
         closetViewerArray.push({viewer: cv, id: id})
@@ -139,7 +164,7 @@
 
         for(var i = 0;i<closetViewerArray.length;i++){
             var viewer = closetViewerArray[i].viewer
-            viewer.loadZrestUrl(url, progress);
+            viewer.loadZrestUrl(url, progress, loaded);
         }
     }
 
@@ -149,7 +174,7 @@
         // closet.viewer.loadZrestUrl(url, progress);
         for(var i = 0;i<closetViewerArray.length;i++){
             var viewer = closetViewerArray[i].viewer
-            viewer.loadZrestUrl(url, progress);
+            viewer.loadZrestUrl(url, progress, loaded);
         }
 
         currentURL = url
@@ -168,9 +193,10 @@
         console.log(closet.viewer.getCameraMatrix())
     }
 
-    function changeColrway(index)
+    function changeColrway(viewer, index)
     {
-        closet.viewer.changeColorway(index);
+        console.log(this, index)
+        // viewer.changeColorway(index);
     }
 
     window.onresize = function(event){

@@ -1,5 +1,4 @@
 ﻿import ZRestLoader, { dataWorkerFunction, checkFileReaderSyncSupport } from './lib/clo/readers/ZrestReader'
-import * as Global from '@/lib/clo/utils/Global'
 import * as THREE from '@/lib/threejs/three'
 import '@/lib/threejs/OrbitControls'
 import '@/lib/draco/DRACOLoader'
@@ -34,7 +33,16 @@ let requestId = null
 
 export default class ClosetViewer {
     constructor() {
+        this.init = this.init.bind(this)
         this.render = this.render.bind(this)
+        this.loadZrestUrl = this.loadZrestUrl.bind(this)
+        this.getCameraMatrix = this.getCameraMatrix.bind(this)
+        this.setCameraMatrix = this.setCameraMatrix.bind(this)
+        this.setWindowSize = this.setWindowSize.bind(this)
+        this.onWindowResize = this.onWindowResize.bind(this)
+        this.changeColorway = this.changeColorway.bind(this)
+        this.getColorwaySize = this.getColorwaySize.bind(this)
+        this.stopRender = this.stopRender.bind(this)
     }
 
     init(data) {
@@ -59,17 +67,17 @@ export default class ClosetViewer {
         document.getElementById(this.setter).appendChild(this.renderer.domElement);
 
         //create camera
-        console.log('++++++++++++++++++++++++ camera', camera)
-        if(!camera){
-            camera = new THREE.PerspectiveCamera(15, w / h, 100, 100000);
-            camera.position.y = cameraHeight;
-            camera.position.z = cameraDistance;
+        console.log('++++++++++++++++++++++++ this.camera', this.camera)
+        // if(!camera){
+            this.camera = new THREE.PerspectiveCamera(15, w / h, 100, 100000);
+            this.camera.position.y = cameraHeight;
+            this.camera.position.z = cameraDistance;
 
             //create camera controller
-            controls = new THREE.OrbitControls(camera, this.renderer.domElement);
-            controls.target = new THREE.Vector3(0, cameraHeight, 0);
-            controls.addEventListener('change', this.render);
-        }
+            this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+            this.controls.target = new THREE.Vector3(0, cameraHeight, 0);
+            this.controls.addEventListener('change', this.render);
+        // }
 
 
 
@@ -116,11 +124,11 @@ export default class ClosetViewer {
         backgroundMesh.material.depthTest = false;
         backgroundMesh.material.depthWrite = false;
 
-        background_scene = new THREE.Scene();
-        background_camera = new THREE.Camera();
+        this.background_scene = new THREE.Scene();
+        this.background_camera = new THREE.Camera();
 
-        background_scene.add(background_camera);
-        background_scene.add(backgroundMesh);
+        this.background_scene.add(this.background_camera);
+        this.background_scene.add(backgroundMesh);
 
         // floor
         /* var planeGeometry = new THREE.PlaneBufferGeometry(10000, 10000, 2, 2);
@@ -140,65 +148,46 @@ export default class ClosetViewer {
 
         // canvas event
         var canvas = document.getElementById(this.setter);
-        canvas.addEventListener("mouseout", function () { controls.noPan = true; }, false);
-        canvas.addEventListener("mouseover", function () { controls.noPan = false; }, false);
+        canvas.addEventListener("mouseout", () => this.controls.noPan = true, false);
+        canvas.addEventListener("mouseover", () => this.controls.noPan = false, false);
 
-
-        // if(typeof window.cvRenderer )
-
-        // if(window.hasOwnProperty('cvRenderer') && Array.isArray(cvRenderer)){
-        //     // cvRenderer.push({ renderer })
-        //     console.log('cvRenderer', this.setter)
-        // }else{
-        //     console.log('animate', this.setter)
-        //     this.animate(this.setter);
-        //
-        // }
-        // if(this.setter === 'detail_viewer'){
-        //     this.animate(this.setter);
-        // }
-
-        this.animate(this.setter);
-    }
-
-    capture() {
-        return this.renderer.domElement.toDataURL( 'image/png' )
+        this.animate()
     }
 
     getCameraMatrix() {
-        let matrix = new Array();
+        let matrix = [];
 
-        matrix.push(camera.matrix.elements[0]);
-        matrix.push(camera.matrix.elements[4]);
-        matrix.push(camera.matrix.elements[8]);
-        matrix.push(camera.matrix.elements[12]);
-        matrix.push(camera.matrix.elements[1]);
-        matrix.push(camera.matrix.elements[5]);
-        matrix.push(camera.matrix.elements[9]);
-        matrix.push(camera.matrix.elements[13]);
-        matrix.push(camera.matrix.elements[2]);
-        matrix.push(camera.matrix.elements[6]);
-        matrix.push(camera.matrix.elements[10]);
-        matrix.push(camera.matrix.elements[14]);
+        matrix.push(this.camera.matrix.elements[0]);
+        matrix.push(this.camera.matrix.elements[4]);
+        matrix.push(this.camera.matrix.elements[8]);
+        matrix.push(this.camera.matrix.elements[12]);
+        matrix.push(this.camera.matrix.elements[1]);
+        matrix.push(this.camera.matrix.elements[5]);
+        matrix.push(this.camera.matrix.elements[9]);
+        matrix.push(this.camera.matrix.elements[13]);
+        matrix.push(this.camera.matrix.elements[2]);
+        matrix.push(this.camera.matrix.elements[6]);
+        matrix.push(this.camera.matrix.elements[10]);
+        matrix.push(this.camera.matrix.elements[14]);
 
         return matrix;
     }
 
     setCameraMatrix(mat, bUpdateRendering) {
-        if(mat !== undefined && mat.length == 12)
+        if(mat !== undefined && mat.length === 12)
         {
-            camera.matrix.elements[0] = mat[0];
-            camera.matrix.elements[4] = mat[1];
-            camera.matrix.elements[8] = mat[2];
-            camera.matrix.elements[12] = mat[3];
-            camera.matrix.elements[1] = mat[4];
-            camera.matrix.elements[5] = mat[5];
-            camera.matrix.elements[9] = mat[6];
-            camera.matrix.elements[13] = mat[7];
-            camera.matrix.elements[2] = mat[8];
-            camera.matrix.elements[6] = mat[9];
-            camera.matrix.elements[10] = mat[10];
-            camera.matrix.elements[14] = mat[11];
+            this.camera.matrix.elements[0] = mat[0];
+            this.camera.matrix.elements[4] = mat[1];
+            this.camera.matrix.elements[8] = mat[2];
+            this.camera.matrix.elements[12] = mat[3];
+            this.camera.matrix.elements[1] = mat[4];
+            this.camera.matrix.elements[5] = mat[5];
+            this.camera.matrix.elements[9] = mat[6];
+            this.camera.matrix.elements[13] = mat[7];
+            this.camera.matrix.elements[2] = mat[8];
+            this.camera.matrix.elements[6] = mat[9];
+            this.camera.matrix.elements[10] = mat[10];
+            this.camera.matrix.elements[14] = mat[11];
 
             if(bUpdateRendering === true)
                 this.render();
@@ -212,7 +201,7 @@ export default class ClosetViewer {
 
         this.renderer.setSize(w, h);
 
-        camera.aspect = w / h;
+        this.camera.aspect = w / h;
     }
 
     onWindowResize(datas) {
@@ -229,8 +218,8 @@ export default class ClosetViewer {
             windowHalfX = data.width / 2;
             windowHalfY = data.height / 2;
 
-            camera.aspect = data.width / data.height;
-            camera.updateProjectionMatrix();
+            this.camera.aspect = data.width / data.height;
+            this.camera.updateProjectionMatrix();
 
             this.renderer.setSize(data.width, data.height);
         } else {
@@ -239,16 +228,16 @@ export default class ClosetViewer {
                 windowHalfX = 520;
                 windowHalfY = 650;
 
-                camera.aspect = 520 / 650;
-                camera.updateProjectionMatrix();
+                this.camera.aspect = 520 / 650;
+                this.camera.updateProjectionMatrix();
 
                 this.renderer.setSize(520, 650);
             } else {
                 windowHalfX = 650;
                 windowHalfY = 750;
 
-                camera.aspect = 650 / 750;
-                camera.updateProjectionMatrix();
+                this.camera.aspect = 650 / 750;
+                this.camera.updateProjectionMatrix();
 
                 this.renderer.setSize(650, 750);
             }
@@ -256,16 +245,15 @@ export default class ClosetViewer {
     }
     animate() {
         requestAnimationFrame(this.animate.bind(this));
-        controls.update();
+        this.controls.update();
         this.render();
-        // console.log('animate', this.setter)
     }
 
     render() {
         this.renderer.autoClear = false;
         this.renderer.clear();
-        this.renderer.render(background_scene, background_camera);
-        this.renderer.render(this.scene, camera);
+        this.renderer.render(this.background_scene, this.background_camera);
+        this.renderer.render(this.scene, this.camera);
 
     }
 
@@ -273,25 +261,25 @@ export default class ClosetViewer {
         if (requestId) {
             window.cancelAnimationFrame(requestId);
             this.scene = null;
-            camera = null;
-            controls = null;
+            this.camera = null;
+            this.controls = null;
             this.renderer = null;
             requestId = undefined;
         }
     }
 
-    loadZrestUrl(url, callback) {
+    loadZrestUrl(url, onProgress, onLoad) {
         if(url === ''){
             return
         }
 
         let tmpCameraMatrix;
         let tmpColorwayIndex;
-        this.loadZrestUrlWithParameters(url, tmpCameraMatrix, tmpColorwayIndex, callback);
+        this.loadZrestUrlWithParameters(url, tmpCameraMatrix, tmpColorwayIndex, onProgress, onLoad);
 
     }
 
-    loadZrestUrlWithParameters(url, cameraMatrix, colorwayIndex, callback) {
+    loadZrestUrlWithParameters(url, cameraMatrix, colorwayIndex, onProgress, onLoad) {
         // var $el = $('#detail_viewer');
         // // progress bar -- by terry
         // $el.append('<div class="closet-progress" style="position:absolute; top:50%;left:50%; margin-left:-100px; margin-top:-5px;">\
@@ -305,27 +293,24 @@ export default class ClosetViewer {
             return
         }
 
-        var onProgress = function (xhr) {
+        var progress = function (xhr) {
             if (xhr.lengthComputable) {
                 var percentComplete = xhr.loaded / xhr.total * 100;
                 var percent = Math.round(percentComplete, 2);
                 //console.log(Math.round(percentComplete, 2) + '% downloaded');
 
-                if(callback != null || callback !== undefined)
-                {
-                    callback(percent)
-                }
+                if(onProgress) onProgress(percent)
                 // var percentValue = Math.round(percentComplete, 2) + "%";
                 // $progressGif.css({ width: percentValue });
                 // $progressNumber.html(percentValue);
             }
         };
 
-        var onError = function (xhr) { };
+        var error = function (xhr) { };
 
 
-        this.loader = new ZRestLoader({_scene: this.scene, _camera: camera, _controls: controls});
-        this.loader.load(url, (object) => {
+        this.zrest = new ZRestLoader({_scene: this.scene, _camera: this.camera, _controls: this.controls});
+        this.zrest.load(url, (object) => {
             console.log('------------------ loaded object', object)
             // progress-bar remove
             // $el.find('.closet-progress').animate({
@@ -347,10 +332,16 @@ export default class ClosetViewer {
             this.scene.add(object)
             this.object3D = object
 
+            if(onLoad) onLoad(this)
+
             this.setCameraMatrix(cameraMatrix, false);
             this.changeColorway(colorwayIndex);
 
-        }, onProgress, onError);
+        }, progress, error);
+    }
+
+    getColorwaySize() {
+        return this.zrest.colorwaySize
     }
 
     changeColorway(number) {
@@ -358,26 +349,26 @@ export default class ClosetViewer {
         if(number === undefined)
             return;
 
-        if (this.loader.colorwaySize - 1 < number) {
+        if (this.zrest.colorwaySize - 1 < number) {
             console.log("index is over colorway size");
             return;
         }
 
-        if (this.loader.currentColorwayIndex === number) {
+        if (this.zrest.currentColorwayIndex === number) {
             console.log("index is same current index");
             return;
         }
 
-        if (this.loader.jsZip === undefined || this.loader.jsZip === null) {
+        if (this.zrest.jsZip === undefined || this.zrest.jsZip === null) {
             console.log("zip is null");
             return;
         }
-        this.loader.currentColorwayIndex = number;
+        this.zrest.currentColorwayIndex = number;
 
-        // const matMeshList = this.loader.matMeshList
+        // const matMeshList = this.zrest.matMeshList
 
         // const matMeshList = Global._globalMatMeshInformationList
-        const matMeshList = this.loader.matMeshList
+        const matMeshList = this.zrest.matMeshList
 
         for (var i = 0 ; i < matMeshList.length ; ++i) {
             var prevMaterial = matMeshList[i].material;
@@ -388,7 +379,7 @@ export default class ClosetViewer {
             this.SafeDeallocation(prevMaterial, THREE.ShaderMaterial, function () {/*console.log("success deallocation");*/ }, function () {/*console.log("unsuccess deallocation");*/ });
 
             var id = matMeshList[i].userData;
-            matMeshList[i].material = this.loader.makeMaterialForZrest(this.loader.jsZip, this.loader.materialInformationMap.get(id), number, preUseSeamPuckeringMap, this.loader.gVersion);
+            matMeshList[i].material = this.zrest.makeMaterialForZrest(this.zrest.jsZip, this.zrest.materialInformationMap.get(id), number, preUseSeamPuckeringMap, this.zrest.gVersion);
         }
     }
 
