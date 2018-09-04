@@ -68,16 +68,14 @@ export default class ClosetViewer {
 
         //create camera
         console.log('++++++++++++++++++++++++ this.camera', this.camera)
-        // if(!camera){
-            this.camera = new THREE.PerspectiveCamera(15, w / h, 100, 100000);
-            this.camera.position.y = cameraHeight;
-            this.camera.position.z = cameraDistance;
+        this.camera = new THREE.PerspectiveCamera(15, w / h, 100, 100000);
+        this.camera.position.y = cameraHeight;
+        this.camera.position.z = cameraDistance;
 
-            //create camera controller
-            this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
-            this.controls.target = new THREE.Vector3(0, cameraHeight, 0);
-            this.controls.addEventListener('change', this.render);
-        // }
+        //create camera controller
+        this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+        this.controls.target = new THREE.Vector3(0, cameraHeight, 0);
+        this.controls.addEventListener('change', this.render);
 
 
 
@@ -114,21 +112,21 @@ export default class ClosetViewer {
 
         var loader = new THREE.TextureLoader();
         var texture = loader.load(require('@/lib/clo/background/img_3dwindow_bg_Designer.png'));
-        var backgroundMesh = new THREE.Mesh(
+        this.backgroundMesh = new THREE.Mesh(
             new THREE.PlaneGeometry(2, 2, 0),
             new THREE.MeshBasicMaterial({
                 map: texture
             })
         );
 
-        backgroundMesh.material.depthTest = false;
-        backgroundMesh.material.depthWrite = false;
+        this.backgroundMesh.material.depthTest = false;
+        this.backgroundMesh.material.depthWrite = false;
 
         this.background_scene = new THREE.Scene();
         this.background_camera = new THREE.Camera();
 
         this.background_scene.add(this.background_camera);
-        this.background_scene.add(backgroundMesh);
+        this.background_scene.add(this.backgroundMesh);
 
         // floor
         /* var planeGeometry = new THREE.PlaneBufferGeometry(10000, 10000, 2, 2);

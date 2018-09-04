@@ -50,8 +50,8 @@ var RenderFace =
 
 export default function ZRestLoader({_scene, _camera, _controls}, manager) {
     this.scene = _scene
-    camera = _camera
-    controls = _controls
+    this.camera = _camera
+    this.controls = _controls
     this.manager = (manager !== undefined) ? manager : THREE.DefaultLoadingManager;
 
     this.matMeshList = []
@@ -177,7 +177,7 @@ ZRestLoader.prototype = {
 
         if(loadedCamera.bLoaded === true)
         {
-            camera.position.copy(new THREE.Vector3(loadedCamera.ltow.elements[12], loadedCamera.ltow.elements[13], loadedCamera.ltow.elements[14]))
+            this.camera.position.copy(new THREE.Vector3(loadedCamera.ltow.elements[12], loadedCamera.ltow.elements[13], loadedCamera.ltow.elements[14]))
 
             let xAxis = new THREE.Vector3();
             let yAxis = new THREE.Vector3();
@@ -186,11 +186,11 @@ ZRestLoader.prototype = {
 
             zAxis.negate();
 
-            center.sub(camera.position);
+            center.sub(this.camera.position);
             let dotProd = center.dot(zAxis);
             zAxis.multiplyScalar(dotProd);
-            zAxis.add(camera.position);
-            controls.target.copy(zAxis);
+            zAxis.add(this.camera.position);
+            this.controls.target.copy(zAxis);
         }
         else
         {
@@ -200,16 +200,16 @@ ZRestLoader.prototype = {
                 center.x = 0.0;
                 center.y = 1100.0;
                 center.z = 0.0;
-                controls.target.copy(center);
+                this.controls.target.copy(center);
                 center.z = 8000.0;
-                camera.position.copy(center);
+                this.camera.position.copy(center);
 
             }
             else {
                 // 전체 scene bounding cube 의 중심을 바라보고 cube 를 fit하도록 camera zoom 설정
-                camera.position.copy(center);
-                camera.position.z = box.max.z + 0.5 * (box.max.y - box.min.y + 100.0) / Math.tan((camera.fov / 2) * Math.PI / 180.0); // 위아래로 100 mm 정도 여유있게
-                controls.target.copy(center);
+                this.camera.position.copy(center);
+                this.camera.position.z = box.max.z + 0.5 * (box.max.y - box.min.y + 100.0) / Math.tan((this.camera.fov / 2) * Math.PI / 180.0); // 위아래로 100 mm 정도 여유있게
+                this.controls.target.copy(center);
             }
         }
 
