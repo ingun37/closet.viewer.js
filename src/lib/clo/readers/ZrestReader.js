@@ -48,10 +48,11 @@ var RenderFace =
         MV_BACK_FACE: 2
     };
 
-export default function ZRestLoader({_scene, _camera, _controls}, manager) {
-    this.scene = _scene
-    this.camera = _camera
-    this.controls = _controls
+export default function ZRestLoader({ scene, camera, controls, cameraPosition }, manager) {
+    this.scene = scene
+    this.camera = camera
+    this.controls = controls
+    this.cameraPosition = cameraPosition
     this.manager = (manager !== undefined) ? manager : THREE.DefaultLoadingManager;
 
     this.matMeshList = []
@@ -159,6 +160,8 @@ ZRestLoader.prototype = {
             // scene.add(object3D);
             this.onLoad(object3D)
             this.ZoomToObjects(loadedCamera, scene);
+            // add 할때 cameraPosition 이 있으면 설정해준다.
+            if(this.cameraPosition) this.camera.position.copy(this.cameraPosition)
 
             // 임시 데이터 clear
             _gNameToTextureMap.clear();

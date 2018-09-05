@@ -31,6 +31,7 @@ var intProgress = 0;
 
 let requestId = null
 
+
 export default class ClosetViewer {
     constructor() {
         this.init = this.init.bind(this)
@@ -38,19 +39,25 @@ export default class ClosetViewer {
         this.loadZrestUrl = this.loadZrestUrl.bind(this)
         this.getCameraMatrix = this.getCameraMatrix.bind(this)
         this.setCameraMatrix = this.setCameraMatrix.bind(this)
+
         this.setWindowSize = this.setWindowSize.bind(this)
         this.onWindowResize = this.onWindowResize.bind(this)
+
         this.changeColorway = this.changeColorway.bind(this)
         this.getColorwaySize = this.getColorwaySize.bind(this)
+        this.onUpdateCamera = this.onUpdateCamera.bind(this)
         this.stopRender = this.stopRender.bind(this)
+
+        this.object3D = null
     }
 
-    init(data) {
+    init({ width, height, element, cameraPosition = null }) {
 
-        var w = data.width;
-        var h = data.height;
-        this.setter = data.element;
-        this.object3D = null
+        var w = width;
+        var h = height;
+        this.setter = element;
+        this.id = element;
+        this.cameraPosition = cameraPosition
 
         windowHalfX = w / 2;
         windowHalfY = h / 2;
@@ -67,7 +74,6 @@ export default class ClosetViewer {
         document.getElementById(this.setter).appendChild(this.renderer.domElement);
 
         //create camera
-        console.log('++++++++++++++++++++++++ this.camera', this.camera)
         this.camera = new THREE.PerspectiveCamera(15, w / h, 100, 100000);
         this.camera.position.y = cameraHeight;
         this.camera.position.z = cameraDistance;
@@ -75,8 +81,11 @@ export default class ClosetViewer {
         //create camera controller
         this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
         this.controls.target = new THREE.Vector3(0, cameraHeight, 0);
-        this.controls.addEventListener('change', this.render);
-
+        this.controls.update();
+        this.controls.addEventListener('change', () => {
+            if(this.updateCamera) this.updateCamera({ position: this.camera.position, id: this.id })
+            this.render()
+        });
 
 
         //create scenegraph
@@ -266,6 +275,10 @@ export default class ClosetViewer {
         }
     }
 
+    onUpdateCamera(callback) {
+        this.updateCamera = callback
+    }
+
     loadZrestUrl(url, onProgress, onLoad) {
         if(url === ''){
             return
@@ -307,7 +320,7 @@ export default class ClosetViewer {
         var error = function (xhr) { };
 
 
-        this.zrest = new ZRestLoader({_scene: this.scene, _camera: this.camera, _controls: this.controls});
+        this.zrest = new ZRestLoader({ scene: this.scene, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition });
         this.zrest.load(url, (object) => {
             console.log('------------------ loaded object', object)
             // progress-bar remove
@@ -332,7 +345,7 @@ export default class ClosetViewer {
 
             if(onLoad) onLoad(this)
 
-            this.setCameraMatrix(cameraMatrix, false);
+            // this.setCameraMatrix(cameraMatrix, false);
             this.changeColorway(colorwayIndex);
 
         }, progress, error);
