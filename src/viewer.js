@@ -4,6 +4,8 @@ import * as THREE from '@/lib/threejs/three'
 import '@/lib/threejs/OrbitControls'
 import '@/lib/draco/DRACOLoader'
 //import '@/lib/clo/UtilFunctions'
+import RendererStats from '@xailabs/three-renderer-stats';
+
 
 var container, states;
 var camera, scene, renderer, controls;
@@ -17,7 +19,7 @@ var progress = document.querySelector('.percent');
 var dataSyncWorkerURL = URL.createObjectURL(new Blob(["(" + dataWorkerFunction.toString() + ")()"], { type: 'text/javascript' }));
 var timerId = 0;
 
-
+const rendererStats = new RendererStats();
 checkFileReaderSyncSupport();
 
 var cameraHeight = 1100;
@@ -143,6 +145,11 @@ export function init(data) {
     canvas.addEventListener("mouseout", function () { controls.noPan = true; }, false);
     canvas.addEventListener("mouseover", function () { controls.noPan = false; }, false);
 
+    rendererStats.domElement.style.position	= 'absolute'
+    rendererStats.domElement.style.left	= '0px'
+    rendererStats.domElement.style.bottom	= '0px'
+    document.getElementById(setter).appendChild( rendererStats.domElement )
+
 
     animate();
 
@@ -257,6 +264,7 @@ function render() {
     renderer.clear();
     renderer.render(background_scene, background_camera);
     renderer.render(scene, camera);
+    rendererStats.update(renderer);
 }
 
 export function stopRender() {

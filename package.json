@@ -28,7 +28,9 @@
     "webpack-cli": "^2.0.4"
   },
   "devDependencies": {
+    "@xailabs/three-renderer-stats": "^1.0.4",
     "s3": "^4.4.0",
+    "three": "^0.96.0",
     "webpack-dev-server": "^3.1.0"
   }
 }
