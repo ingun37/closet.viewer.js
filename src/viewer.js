@@ -215,12 +215,12 @@ export default class ClosetViewer {
 
     setWindowSize(w, h) {
 
-        windowHalfX = w / 2;
-        windowHalfY = h / 2;
+      windowHalfX = w / 2;
+      windowHalfY = h / 2;
 
-        this.renderer.setSize(w, h);
-
-        this.camera.aspect = w / h;
+      this.renderer.setSize(w, h);
+      this.camera.aspect = w / h;
+      this.camera.updateProjectionMatrix();
     }
 
     onWindowResize(datas) {
