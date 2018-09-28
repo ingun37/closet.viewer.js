@@ -17,8 +17,8 @@ var reader;
 var progress = document.querySelector('.percent');
 var dataSyncWorkerURL = URL.createObjectURL(new Blob(["(" + dataWorkerFunction.toString() + ")()"], { type: 'text/javascript' }));
 var timerId = 0;
+let rendererStats = null
 
-const rendererStats = new RendererStats();
 checkFileReaderSyncSupport();
 
 var cameraHeight = 1100;
@@ -32,6 +32,8 @@ var intProgress = 0;
 // var setter = null
 
 let requestId = null
+
+if(!PRODUCTION) rendererStats = new RendererStats();
 
 
 export default class ClosetViewer {
@@ -160,10 +162,13 @@ export default class ClosetViewer {
         canvas.addEventListener("mouseout", () => this.controls.noPan = true, false);
         canvas.addEventListener("mouseover", () => this.controls.noPan = false, false);
 
-        rendererStats.domElement.style.position	= 'absolute'
-        rendererStats.domElement.style.left	= '0px'
-        rendererStats.domElement.style.bottom	= '0px'
-        document.getElementById(this.setter).appendChild( rendererStats.domElement )
+        if(!PRODUCTION){
+          rendererStats.domElement.style.position	= 'absolute'
+          rendererStats.domElement.style.left	= '0px'
+          rendererStats.domElement.style.bottom	= '0px'
+          document.getElementById(this.setter).appendChild( rendererStats.domElement )
+        }
+
 
         this.animate()
     }
@@ -268,7 +273,7 @@ export default class ClosetViewer {
         this.renderer.clear();
         this.renderer.render(this.background_scene, this.background_camera);
         this.renderer.render(this.scene, this.camera);
-        rendererStats.update(this.renderer);
+      if(!PRODUCTION) rendererStats.update(this.renderer);
     }
 
     stopRender() {
