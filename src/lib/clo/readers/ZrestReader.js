@@ -14,6 +14,7 @@ let camera;
 let controls;
 let _globalZip;
 var _globalWorkerCount = 0;
+var _gDefaultCameraDistance = 8000.0;
 var _globalWorkerCreateFlag = false;
 var _globalCompleteLoadFile = false;
 var _gNameToTextureMap = new Map();
@@ -191,6 +192,11 @@ ZRestLoader.prototype = {
 
             center.sub(this.camera.position);
             let dotProd = center.dot(zAxis);
+            if(dotProd > 20000.0) // trim 등이 멀리 떨어지면 target과의 거리가 엄청 멀어져서 뷰 회전시 의상이 사라질수 있다. 그래서 어느정도 이상이면 무조건 기본 거리로 설정한다.
+                dotProd = _gDefaultCameraDistance;
+            else if(dotProd < 10.0) //  예외적으로 target이 뒤에 있는 경우도 처리.
+                dotProd = _gDefaultCameraDistance;
+
             zAxis.multiplyScalar(dotProd);
             zAxis.add(this.camera.position);
             this.controls.target.copy(zAxis);
@@ -204,7 +210,7 @@ ZRestLoader.prototype = {
                 center.y = 1100.0;
                 center.z = 0.0;
                 this.controls.target.copy(center);
-                center.z = 8000.0;
+                center.z = _gDefaultCameraDistance;
                 this.camera.position.copy(center);
 
             }
