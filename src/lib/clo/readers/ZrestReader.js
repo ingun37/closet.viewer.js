@@ -629,7 +629,7 @@ ZRestLoader.prototype = {
                 var matMeshType = listMatMeshIDOnIndexedMesh[m].get("enType");
                 if (matMeshType === undefined || matMeshType === null)
                 {
-                    threeMesh.userData = {MATMESH_ID: matMeshID, TYPE: MatMeshType.PATTERN_MATMESH};
+                    threeMesh.userData = {MATMESH_ID: matMeshID, TYPE: this.MatMeshType.PATTERN_MATMESH};
                 }
                 else
                 {
