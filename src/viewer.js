@@ -77,6 +77,10 @@ export default class ClosetViewer {
         this.createAnnotation = this.createAnnotation.bind(this)
         this.setVisibleAllGarment = this.setVisibleAllGarment.bind(this)
         this.setVisibleAllAvatar = this.setVisibleAllAvatar.bind(this)
+        this.isExistGarment = this.isExistGarment.bind(this)
+        this.isExistAvatar = this.isExistAvatar.bind(this)
+
+        this.computeSpherePosition = this.computeSpherePosition.bind(this)
 
         this.object3D = null
     }
@@ -363,9 +367,12 @@ export default class ClosetViewer {
         //1. sets the mouse position with a coordinate system where the center
         //   of the screen is the origin
 
-        let canvasBounds = this.renderer.context.canvas.getBoundingClientRect();
-        mouse.x = ( ( e.clientX - canvasBounds.left ) / ( canvasBounds.right - canvasBounds.left ) ) * 2 - 1;
-        mouse.y = - ( ( e.clientY - canvasBounds.top ) / ( canvasBounds.bottom - canvasBounds.top) ) * 2 + 1;
+        //let canvasBounds = this.renderer.context.canvas.getBoundingClientRect();
+        //mouse.x = ( ( e.clientX - canvasBounds.left ) / ( canvasBounds.right - canvasBounds.left ) ) * 2 - 1;
+        //mouse.y = - ( ( e.clientY - canvasBounds.top ) / ( canvasBounds.bottom - canvasBounds.top) ) * 2 + 1;
+
+        mouse.x = 0;
+        mouse.y = 0;
 
         if (this.zrest.matMeshList !== undefined)
         {
@@ -383,6 +390,8 @@ export default class ClosetViewer {
             else
             {
                 // 여기서 평면에다 다시 쏴야 함.
+                let spherePos = this.computeSpherePosition();
+                this.createAnnotation(spherePos, this.camera.getWorldDirection().normalize(), this.camera.position);
             }
 
             /*
@@ -429,6 +438,30 @@ export default class ClosetViewer {
         }
     }
 
+    computeSpherePosition()
+    {
+        // 1. 카메라 포지션 - center 포지션 dot product 카메라 디렉션의 반대 방향 
+        var cameraPos = new THREE.Vector3();
+        cameraPos.copy(this.camera.position);
+        
+        var centerPos = new THREE.Vector3(0.0, 0.0, 0.0);
+        
+        var dirVector = new THREE.Vector3();
+        dirVector.copy(this.camera.getWorldDirection());
+        
+        var normalizedCameraDirVector = new THREE.Vector3();
+        normalizedCameraDirVector.copy(this.camera.getWorldDirection().normalize());
+
+        var sub = cameraPos.sub(centerPos);
+        var distance = Math.abs(sub.dot(normalizedCameraDirVector));
+
+        var transformVector = normalizedCameraDirVector.multiplyScalar(distance);
+
+        var intersectPos = cameraPos.add(transformVector);
+
+        return intersectPos;
+    }
+
     setVisibleAllGarment(visibility)
     {
         for(var i=0; i<this.zrest.matMeshList.length; i++)
@@ -440,6 +473,19 @@ export default class ClosetViewer {
         }
     }
 
+    isExistGarment()
+    {
+        for(var i=0; i<this.zrest.matMeshList.length; i++)
+        {
+            if(this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.PATTERN_MATMESH)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     setVisibleAllAvatar(visibility)
     {
         for(var i=0; i<this.zrest.matMeshList.length; i++)
@@ -449,6 +495,19 @@ export default class ClosetViewer {
                 this.zrest.matMeshList[i].visible = visibility;
             }
         }
+    }
+
+    isExistAvatar()
+    {
+        for(var i=0; i<this.zrest.matMeshList.length; i++)
+        {
+            if(this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.AVATAR_MATMESH)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     getCameraMatrix() {
