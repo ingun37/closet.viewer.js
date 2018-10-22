@@ -14,7 +14,6 @@ let camera;
 let controls;
 let _globalZip;
 var _globalWorkerCount = 0;
-var _gDefaultCameraDistance = 8000.0;
 var _globalWorkerCreateFlag = false;
 var _globalCompleteLoadFile = false;
 var _gNameToTextureMap = new Map();
@@ -61,6 +60,16 @@ export default function ZRestLoader({ scene, camera, controls, cameraPosition },
     this.currentColorwayIndex = 0
     this.colorwaySize = 0
     this.jsZip = null
+
+    this.MatMeshType =
+    {
+        PATTERN_MATMESH:  0,
+        TRIM_MATMESH: 1,
+        PRINTOVERLAY_MATMESH: 2,
+        BUTTONHEAD_MATMESH: 3,
+        NORMAL_MATMESH: 4,
+        AVATAR_MATMESH: 5
+    };
 };
 
 ZRestLoader.prototype = {
@@ -192,11 +201,6 @@ ZRestLoader.prototype = {
 
             center.sub(this.camera.position);
             let dotProd = center.dot(zAxis);
-            if(dotProd > 20000.0) // trim 등이 멀리 떨어지면 target과의 거리가 엄청 멀어져서 뷰 회전시 의상이 사라질수 있다. 그래서 어느정도 이상이면 무조건 기본 거리로 설정한다.
-                dotProd = _gDefaultCameraDistance;
-            else if(dotProd < 10.0) //  예외적으로 target이 뒤에 있는 경우도 처리.
-                dotProd = _gDefaultCameraDistance;
-
             zAxis.multiplyScalar(dotProd);
             zAxis.add(this.camera.position);
             this.controls.target.copy(zAxis);
@@ -210,7 +214,7 @@ ZRestLoader.prototype = {
                 center.y = 1100.0;
                 center.z = 0.0;
                 this.controls.target.copy(center);
-                center.z = _gDefaultCameraDistance;
+                center.z = 8000.0;
                 this.camera.position.copy(center);
 
             }
@@ -619,20 +623,34 @@ ZRestLoader.prototype = {
 
                 // var material = new THREE.MeshLambertMaterial({ color: 0xffffff, envMap: envDiffuseMap });
 
-
                 var threeMesh = new THREE.Mesh(bufferGeometry, material);
-                threeMesh.userData = matMeshID;
+                
+                //
+                var matMeshType = listMatMeshIDOnIndexedMesh[m].get("enType");
+                if (matMeshType === undefined || matMeshType === null)
+                {
+                    threeMesh.userData = {MATMESH_ID: matMeshID, TYPE: MatMeshType.PATTERN_MATMESH};
+                }
+                else
+                {
+                    threeMesh.userData = {MATMESH_ID: matMeshID, TYPE: matMeshType};
+                }
+                
                 threeMesh.castShadow = true;
                 threeMesh.receiveShadow = true;
                 tf.add(threeMesh);
                 // Global._globalMatMeshInformationList.push(threeMesh);
                 this.matMeshList.push(threeMesh);
 
+                console.log(threeMesh);
+
                 //indexOffset = indexOffset - listIndexCount[m + 1];
 
                 //console.log(indexOffset);
             }
         }
+
+        var matMeshLength = this.matMeshList.length;
     },
 
 
