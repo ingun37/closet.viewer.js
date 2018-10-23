@@ -187,12 +187,12 @@ export default class ClosetViewer {
         //sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
         //this.scene.add(sphere);
         
-        var geometryCone = new THREE.ConeBufferGeometry( 20, 100, 3 ); 
-        geometryCone.translate( 0, 50, 0 ); 
-        geometryCone.rotateX( Math.PI / 2 ); 
-        helper = new THREE.Mesh( geometryCone, new THREE.MeshNormalMaterial() ); 
-        this.scene.add( helper ); 
-        helper.visible = false;
+        //var geometryCone = new THREE.ConeBufferGeometry( 20, 100, 3 ); 
+        //geometryCone.translate( 0, 50, 0 ); 
+        //geometryCone.rotateX( Math.PI / 2 ); 
+        //helper = new THREE.Mesh( geometryCone, new THREE.MeshNormalMaterial() ); 
+        //this.scene.add( helper ); 
+        //helper.visible = false;
         
         // floor
         /*var planeGeometry = new THREE.PlaneBufferGeometry(10000, 10000, 2, 2);
@@ -214,8 +214,8 @@ export default class ClosetViewer {
         var canvas = document.getElementById(this.setter);
         canvas.addEventListener("mouseout", () => this.controls.noPan = true, false);
         canvas.addEventListener("mouseover", () => this.controls.noPan = false, false);
-        canvas.addEventListener("click", this.onMouseClick, false);
-        canvas.addEventListener('mousemove', this.onDocumentMouseMove, false);
+        //canvas.addEventListener("click", this.onMouseClick, false);
+        //canvas.addEventListener('mousemove', this.onDocumentMouseMove, false);
 
         if(!PRODUCTION){
           rendererStats.domElement.style.position	= 'absolute'
