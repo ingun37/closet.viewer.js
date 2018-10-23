@@ -645,18 +645,23 @@ ZRestLoader.prototype = {
                 
 
                 //
-                var bVisible = listMatShape[i].get("bMatShapeVisible");
-                if (bVisible === undefined || bVisible === null)
+                if(this.gVersion >= 4)
                 {
-                    threeMesh.visible = true;
+                    var bVisible = listMatShape[i].get("bMatShapeVisible");
+                    if (bVisible === undefined || bVisible === null)
+                    {
+                        threeMesh.visible = true;
+                    }
+                    else
+                    {
+                        if(bVisible === 0)
+                            threeMesh.visible = false;
+                        else if(bVisible === 1)
+                            threeMesh.visible = true;
+                    }
                 }
                 else
-                {
-                    if(bVisible === 0)
-                        threeMesh.visible = false;
-                    else if(bVisible === 1)
-                        threeMesh.visible = true;
-                }
+                    threeMesh.visible = true;
 
                 threeMesh.castShadow = true;
                 threeMesh.receiveShadow = true;
