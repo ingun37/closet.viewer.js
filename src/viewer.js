@@ -79,7 +79,8 @@ export default class ClosetViewer {
         this.setVisibleAllAvatar = this.setVisibleAllAvatar.bind(this)
         this.isExistGarment = this.isExistGarment.bind(this)
         this.isExistAvatar = this.isExistAvatar.bind(this)
-
+        this.GetAvatarShowHideStatus = this.GetAvatarShowHideStatus.bind(this)
+        this.GetGarmentShowHideStatue = this.GetGarmentShowHideStatue.bind(this)
         this.computeSpherePosition = this.computeSpherePosition.bind(this)
 
         this.object3D = null
@@ -504,6 +505,34 @@ export default class ClosetViewer {
             if(this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.AVATAR_MATMESH)
             {
                 return true;
+            }
+        }
+
+        return false;
+    }
+
+    GetGarmentShowHideStatue()
+    {
+        for(var i=0; i<this.zrest.matMeshList.length; i++)
+        {
+            if(this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.PATTERN_MATMESH)
+            {
+                if(this.zrest.matMeshList[i].visible.equals(true))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    GetAvatarShowHideStatus()
+    {
+        for(var i=0; i<this.zrest.matMeshList.length; i++)
+        {
+            if(this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.AVATAR_MATMESH)
+            {
+                if(this.zrest.matMeshList[i].visible.equals(true))
+                    return true;
             }
         }
 

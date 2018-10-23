@@ -643,6 +643,21 @@ ZRestLoader.prototype = {
                     threeMesh.userData = {MATMESH_ID: matMeshID, TYPE: matMeshType};
                 }
                 
+
+                //
+                var bVisible = listMatShape[i].get("bMatShapeVisible");
+                if (bVisible === undefined || bVisible === null)
+                {
+                    threeMesh.visible = true;
+                }
+                else
+                {
+                    if(bVisible === 0)
+                        threeMesh.visible = false;
+                    else if(bVisible === 1)
+                        threeMesh.visible = true;
+                }
+
                 threeMesh.castShadow = true;
                 threeMesh.receiveShadow = true;
                 tf.add(threeMesh);
