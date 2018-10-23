@@ -742,7 +742,7 @@ export default class ClosetViewer {
 
             this.SafeDeallocation(prevMaterial, THREE.ShaderMaterial, function () {/*console.log("success deallocation");*/ }, function () {/*console.log("unsuccess deallocation");*/ });
 
-            var id = matMeshList[i].userData;
+            var id = matMeshList[i].userData.MATMESH_ID;
             matMeshList[i].material = this.zrest.makeMaterialForZrest(this.zrest.jsZip, this.zrest.materialInformationMap.get(id), number, preUseSeamPuckeringMap, this.zrest.gVersion);
         }
     }
