@@ -79,8 +79,8 @@ export default class ClosetViewer {
         this.setVisibleAllAvatar = this.setVisibleAllAvatar.bind(this)
         this.isExistGarment = this.isExistGarment.bind(this)
         this.isExistAvatar = this.isExistAvatar.bind(this)
+        this.GetGarmentShowHideStatus = this.GetGarmentShowHideStatus.bind(this)
         this.GetAvatarShowHideStatus = this.GetAvatarShowHideStatus.bind(this)
-        this.GetGarmentShowHideStatue = this.GetGarmentShowHideStatue.bind(this)
         this.computeSpherePosition = this.computeSpherePosition.bind(this)
 
         this.object3D = null
@@ -511,7 +511,7 @@ export default class ClosetViewer {
         return false;
     }
 
-    GetGarmentShowHideStatue()
+    GetGarmentShowHideStatus()
     {
         for(var i=0; i<this.zrest.matMeshList.length; i++)
         {
