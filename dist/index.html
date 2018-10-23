@@ -51,6 +51,7 @@
                         <i class="dropdown icon"></i>
                         <div class="default text">Select ZREST</div>
                         <div class="menu">
+                            <div class="item" onclick="load('https://files.clo-set.com/public/common/testViewer/222.zrest')" data-value="1">Avatar&Garment visible test</div>
                             <div class="item" onclick="load('https://s3.clo3d.com/zpac/HB_very_far_trim.zrest')" data-value="1">1 (COLORWAY).zrest</div>
                             <div class="item" onclick="load('https://s3.clo3d.com/zpac/PBRTest1.zrest')" data-value="1">PBRTest1.zrest</div>
                             <div class="item" onclick="load('https://s3.clo3d.com/zpac/bomber.zrest')" data-value="1">bomber.zrest</div>
@@ -73,7 +74,11 @@
                     <button type="button" onclick="cameraMatrix()" id="getMatrix" class="ui button">Matrix</button>
                     <button id="fullscreen" type="button" class="ui button">fullscreen</button>
                 </div>
-                <div>
+                <div class="field">
+                    getGarmentStatus : <span id="getGarmentStatus"></span><br/>
+                    getAvatarStatus : <span id="getAvatarStatus"></span>  
+                </div>
+                <div class="field">
                     <button type="button" onclick="setVisibleAllGarment()" data-on="false" id="setGarment" class="ui button">Garment Visible</button>
                     <button type="button" onclick="setVisibleAllAvatar()" data-on="false" id="setAvatar" class="ui button">Avatar Visible</button>
                 </div>
@@ -181,8 +186,6 @@
         $(setter).find('.colorwayBtns').remove()
         var btns = $(setter).append('<div class="colorwayBtns"></div>').find('.colorwayBtns')
 
-
-
         for (var i = 0;i<colorwaySize;i++){
             var btn = document.createElement('button')
             btn.className = 'mini ui button'
@@ -192,7 +195,6 @@
                 viewer.changeColorway(this.index)
             })
             btns.append(btn)
-
         }
     }
 
@@ -268,6 +270,9 @@
         }
 
         currentURL = url
+
+        document.getElementById('getGarmentStatus').innerText = closet.viewer.GetGarmentShowHideStatus();
+        document.getElementById('getAvatarStatus').innerText = closet.viewer.GetAvatarShowHideStatus();
     }
 
     function canvasCapture() {
