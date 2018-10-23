@@ -73,6 +73,11 @@
                     <button type="button" onclick="cameraMatrix()" id="getMatrix" class="ui button">Matrix</button>
                     <button id="fullscreen" type="button" class="ui button">fullscreen</button>
                 </div>
+                <div>
+                    <button type="button" onclick="setVisibleAllGarment()" data-on="false" id="setGarment" class="ui button">Garment Visible</button>
+                    <button type="button" onclick="setVisibleAllAvatar()" data-on="false" id="setAvatar" class="ui button">Avatar Visible</button>
+                </div>
+
                 <div>Loaded: <span id="progresstest">0</span></div>
             </div>
 
@@ -212,6 +217,28 @@
         container.appendChild(div)
 
         createClosetViewer(div.id)
+    }
+
+    let garmentBool = true;
+    let avatarBool = true;
+
+    function setVisibleAllGarment() {
+        if(!garmentBool) {
+            garmentBool = true;
+        } else {
+            garmentBool = false;
+        }
+        closet.viewer.setVisibleAllGarment(garmentBool);
+    }
+    function setVisibleAllAvatar() {
+
+        if(!avatarBool) {
+            avatarBool = true;
+        } else {
+            avatarBool = false;
+        }
+
+        closet.viewer.setVisibleAllAvatar(avatarBool);
     }
 
     function createClosetViewer(id) {

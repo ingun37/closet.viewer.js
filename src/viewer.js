@@ -1,15 +1,15 @@
 ﻿import ZRestLoader, { dataWorkerFunction, checkFileReaderSyncSupport } from './lib/clo/readers/ZrestReader'
 import * as THREE from '@/lib/threejs/three'
+//import { Raycaster } from '@/lib/threejs/Raycaster'
+//import '@/lib/threejs/Raycaster'
 import '@/lib/threejs/OrbitControls'
 import '@/lib/draco/DRACOLoader'
 //import '@/lib/clo/UtilFunctions'
 import RendererStats from '@xailabs/three-renderer-stats';
 
-
 var container, states;
 var camera, scene, renderer, controls;
 var background_camera, background_scene;
-var mouseX = 0, mouseY = 0;
 var windowHalfX = window.innerWidth / 2;
 var windowHalfY = window.innerHeight / 2;
 
@@ -35,6 +35,27 @@ let requestId = null
 
 if(!PRODUCTION) rendererStats = new RendererStats();
 
+var raycaster;
+
+var mouse = new THREE.Vector2(), INTERSECTED;
+
+var sphere;
+
+var helper;
+
+var AnnotationList = [];
+
+function Annotation(sphere_position, normal, camera_position)
+{
+    this.spherePos = new THREE.Vector3();
+    this.spherePos = sphere_position;
+
+    this.faceNormal = new THREE.Vector3();
+    this.faceNormal = normal;
+
+    this.cameraPos = new THREE.Vector3();
+    this.cameraPos = camera_position;
+}
 
 export default class ClosetViewer {
     constructor() {
@@ -51,6 +72,15 @@ export default class ClosetViewer {
         this.getColorwaySize = this.getColorwaySize.bind(this)
         this.onUpdateCamera = this.onUpdateCamera.bind(this)
         this.stopRender = this.stopRender.bind(this)
+        this.onMouseClick = this.onMouseClick.bind(this)
+        this.onDocumentMouseMove = this.onDocumentMouseMove.bind(this)
+        this.createAnnotation = this.createAnnotation.bind(this)
+        this.setVisibleAllGarment = this.setVisibleAllGarment.bind(this)
+        this.setVisibleAllAvatar = this.setVisibleAllAvatar.bind(this)
+        this.isExistGarment = this.isExistGarment.bind(this)
+        this.isExistAvatar = this.isExistAvatar.bind(this)
+
+        this.computeSpherePosition = this.computeSpherePosition.bind(this)
 
         this.object3D = null
     }
@@ -61,7 +91,7 @@ export default class ClosetViewer {
         var h = height;
         this.setter = element;
         this.id = element;
-        this.cameraPosition = cameraPosition
+        this.cameraPosition = cameraPosition;
 
         windowHalfX = w / 2;
         windowHalfY = h / 2;
@@ -77,10 +107,14 @@ export default class ClosetViewer {
 
         document.getElementById(this.setter).appendChild(this.renderer.domElement);
 
+        console.log(w);
+        console.log(window.innerWidth);
+
         //create camera
         this.camera = new THREE.PerspectiveCamera(15, w / h, 100, 100000);
-        this.camera.position.y = cameraHeight;
-        this.camera.position.z = cameraDistance;
+        //this.camera.position.y = cameraHeight;
+        //this.camera.position.z = cameraDistance;
+        this.camera.position.set(0, cameraHeight, cameraDistance);
 
         //create camera controller
         this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
@@ -141,26 +175,47 @@ export default class ClosetViewer {
         this.background_scene.add(this.background_camera);
         this.background_scene.add(this.backgroundMesh);
 
+        //
+        //var geometry = new THREE.BoxBufferGeometry( 20, 20, 20 );
+        //var material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
+        //var cube = new THREE.Mesh( geometry, material );
+        //this.scene.add( cube );
+    
+        // sphere
+        //var sphereGeometry = new THREE.SphereBufferGeometry(3, 32, 32);
+        //var sphereMaterial = new THREE.MeshBasicMaterial({color: 0xff0000});
+        //sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        //this.scene.add(sphere);
+        
+        var geometryCone = new THREE.ConeBufferGeometry( 20, 100, 3 ); 
+        geometryCone.translate( 0, 50, 0 ); 
+        geometryCone.rotateX( Math.PI / 2 ); 
+        helper = new THREE.Mesh( geometryCone, new THREE.MeshNormalMaterial() ); 
+        this.scene.add( helper ); 
+        helper.visible = false;
+        
         // floor
-        /* var planeGeometry = new THREE.PlaneBufferGeometry(10000, 10000, 2, 2);
-         var planeMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, opacity: 0.2 })
-         var plane = new THREE.Mesh(planeGeometry, planeMaterial);
-         plane.receiveShadow = true;
+        /*var planeGeometry = new THREE.PlaneBufferGeometry(10000, 10000, 2, 2);
+        var planeMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, opacity: 0.2 })
+        var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        plane.receiveShadow = true;
 
-         let quaternion = new THREE.Quaternion();
-         quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
-         plane.quaternion.copy(quaternion);
+        let quaternion = new THREE.Quaternion();
+        quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+        plane.quaternion.copy(quaternion);
 
-         scene.add(plane);*/
+        scene.add(plane);*/
 
         //Create a helper for the shadow camera (optional)
         //var helper = new THREE.CameraHelper(light.shadow.camera);
         //scene.add(helper);
-
+       
         // canvas event
         var canvas = document.getElementById(this.setter);
         canvas.addEventListener("mouseout", () => this.controls.noPan = true, false);
         canvas.addEventListener("mouseover", () => this.controls.noPan = false, false);
+        canvas.addEventListener("click", this.onMouseClick, false);
+        canvas.addEventListener('mousemove', this.onDocumentMouseMove, false);
 
         if(!PRODUCTION){
           rendererStats.domElement.style.position	= 'absolute'
@@ -169,8 +224,290 @@ export default class ClosetViewer {
           document.getElementById(this.setter).appendChild( rendererStats.domElement )
         }
 
+        // raycaster for picking
+        raycaster = new THREE.Raycaster();
+        //raycaster.params.Points.threshold = threshold;
 
         this.animate()
+    }
+    
+    onDocumentMouseMove( e )
+    {
+        e.preventDefault();
+        
+        //1. sets the mouse position with a coordinate system where the center
+        //   of the screen is the origin
+        // canvas full screen
+        //mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+        //mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
+
+        let canvasBounds = this.renderer.context.canvas.getBoundingClientRect();
+        mouse.x = ( ( e.clientX - canvasBounds.left ) / ( canvasBounds.right - canvasBounds.left ) ) * 2 - 1;
+        mouse.y = - ( ( e.clientY - canvasBounds.top ) / ( canvasBounds.bottom - canvasBounds.top) ) * 2 + 1;
+        
+
+        //2. set the picking ray from the camera position and mouse coordinates
+        raycaster.setFromCamera(mouse, this.camera);
+
+        //console.log(this.object3D);
+        //3. compute intersections
+        if (this.zrest.matMeshList !== undefined)
+        {
+            var intersects = raycaster.intersectObjects(this.zrest.matMeshList, true);
+            if(intersects.length > 0)
+            {
+                helper.position.set(0, 0, 0);
+                helper.lookAt(intersects[0].face.normal);
+                helper.position.copy(intersects[0].point);
+            }
+        }
+
+        /*
+        if ( intersects.length > 0 )
+        {
+
+            //if ( INTERSECTED != intersects[ 0 ].object )
+            {
+                if ( INTERSECTED ) 
+                {
+                    //INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+                    //INTERSECTED.material.color.setHex( INTERSECTED.currentHex );
+                }
+
+                INTERSECTED = intersects[ 0 ].object;
+                //INTERSECTED.currentHex = INTERSECTED.material.color.getHex();
+                //INTERSECTED.material.color.setHex( 0xff0000 );
+                //INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+                //INTERSECTED.material.emissive.setHex( 0xff0000 );
+
+                sphere.position.set(0,0,0);
+                sphere.lookAt(intersects[0].face.normal);
+                sphere.position.copy(intersects[0].point);
+
+                console.log(intersects[ 0 ].point);
+
+            }
+        }
+        else
+        {
+            if ( INTERSECTED )
+            {
+                //INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+                //INTERSECTED.material.color.setHex( INTERSECTED.currentHex );
+            }
+
+            INTERSECTED = null;
+        }
+        */
+
+
+        //console.log(this.object3D);
+        //for ( var i = 0; i < intersects.length; i++ )
+        //{
+        //    console.log( intersects[ i ] ); 
+            /*
+                An intersection has the following properties :
+                    - object : intersected object (THREE.Mesh)
+                    - distance : distance from camera to intersection (number)
+                    - face : intersected face (THREE.Face3)
+                    - faceIndex : intersected face index (number)
+                    - point : intersection point (THREE.Vector3)
+                    - uv : intersection point in the object's UV coordinates (THREE.Vector2)
+            */
+        //}
+    }
+
+    createAnnotation( spherePos, faceNormal, cameraPos )
+    {
+        // 여기서 현재 화면 기준 가운데에 sphere 만들자.
+        //let cameraPos = ;
+        //let spherePos = ;
+
+        //let mouse = new THREE.Vector2();
+        //mouse.x = 0.0;
+        //mouse.y = 0.0;
+        //mouse.x = x;
+        //mouse.y = y;
+
+        // 여기서 이미 있으면 안만들기. 검사하자.
+        let bDuplicatePos = false;
+        for (var i = 0 ; i < AnnotationList.length; i++)
+        {
+            let spherePosition = AnnotationList[i].spherePos;
+            if(spherePosition.equals(spherePos))
+            {
+                bDuplicatePos = true;
+            }
+        }
+
+        console.log(bDuplicatePos);
+            
+        if(!bDuplicatePos)
+        {
+            // sphere 좌표만 들고있다가 render 할때마다 만드는건 개 비효율이겠지? 그냥 그때 그때 계속 추가하자.
+            var sphereGeometry = new THREE.SphereBufferGeometry(5, 32, 32);
+            var sphereMaterial = new THREE.MeshBasicMaterial({color: 0xff0000});
+            sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        
+            sphere.position.set(0,0,0);
+            sphere.lookAt(faceNormal);
+            sphere.position.copy(spherePos);
+
+            this.scene.add(sphere);
+
+            let annotation = new Annotation(spherePos, faceNormal, cameraPos);
+            AnnotationList.push(annotation);
+        }
+    }
+
+    onMouseClick( e )
+    {
+        e.preventDefault();
+
+        //1. sets the mouse position with a coordinate system where the center
+        //   of the screen is the origin
+
+        //let canvasBounds = this.renderer.context.canvas.getBoundingClientRect();
+        //mouse.x = ( ( e.clientX - canvasBounds.left ) / ( canvasBounds.right - canvasBounds.left ) ) * 2 - 1;
+        //mouse.y = - ( ( e.clientY - canvasBounds.top ) / ( canvasBounds.bottom - canvasBounds.top) ) * 2 + 1;
+
+        mouse.x = 0;
+        mouse.y = 0;
+
+        if (this.zrest.matMeshList !== undefined)
+        {
+            raycaster.setFromCamera(mouse, this.camera);
+            var intersects = raycaster.intersectObjects(this.zrest.matMeshList);
+        
+            var length = intersects.length;
+            console.log(mouse);
+            console.log(length);
+        
+            if ( intersects.length > 0 )
+            {
+                this.createAnnotation(intersects[0].point, intersects[0].face.normal, this.camera.position);
+            }
+            else
+            {
+                // 여기서 평면에다 다시 쏴야 함.
+                let spherePos = this.computeSpherePosition();
+                this.createAnnotation(spherePos, this.camera.getWorldDirection().normalize(), this.camera.position);
+            }
+
+            /*
+            if ( intersects.length > 0 )
+            {
+    
+                //if ( INTERSECTED != intersects[ 0 ].object )
+                {
+                    if ( INTERSECTED ) 
+                    {
+                        //INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+                        //INTERSECTED.material.color.setHex( INTERSECTED.currentHex );
+                    }
+    
+                    INTERSECTED = intersects[ 0 ].object;
+                    //INTERSECTED.currentHex = INTERSECTED.material.color.getHex();
+                    //INTERSECTED.material.color.setHex( 0xff0000 );
+                    //INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+                    //INTERSECTED.material.emissive.setHex( 0xff0000 );
+    
+                    sphere.position.set(0,0,0);
+                    sphere.lookAt(intersects[0].face.normal);
+                    sphere.position.copy(intersects[0].point);
+    
+                    //helper.position.set(0, 0, 0);
+                    //helper.lookAt(intersects[0].face.normal);
+                    //helper.position.copy(intersects[0].point)
+    
+                    console.log(intersects[ 0 ].point);
+    
+                }
+            }
+            else
+            {
+                if ( INTERSECTED )
+                {
+                    //INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+                    //INTERSECTED.material.color.setHex( INTERSECTED.currentHex );
+                }
+    
+                INTERSECTED = null;
+            }
+            */
+        }
+    }
+
+    computeSpherePosition()
+    {
+        // 1. 카메라 포지션 - center 포지션 dot product 카메라 디렉션의 반대 방향 
+        var cameraPos = new THREE.Vector3();
+        cameraPos.copy(this.camera.position);
+        
+        var centerPos = new THREE.Vector3(0.0, 0.0, 0.0);
+        
+        var dirVector = new THREE.Vector3();
+        dirVector.copy(this.camera.getWorldDirection());
+        
+        var normalizedCameraDirVector = new THREE.Vector3();
+        normalizedCameraDirVector.copy(this.camera.getWorldDirection().normalize());
+
+        var sub = cameraPos.sub(centerPos);
+        var distance = Math.abs(sub.dot(normalizedCameraDirVector));
+
+        var transformVector = normalizedCameraDirVector.multiplyScalar(distance);
+
+        var intersectPos = cameraPos.add(transformVector);
+
+        return intersectPos;
+    }
+
+    setVisibleAllGarment(visibility)
+    {
+        for(var i=0; i<this.zrest.matMeshList.length; i++)
+        {
+            if(this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.PATTERN_MATMESH)
+            {
+                this.zrest.matMeshList[i].visible = visibility;
+            }
+        }
+    }
+
+    isExistGarment()
+    {
+        for(var i=0; i<this.zrest.matMeshList.length; i++)
+        {
+            if(this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.PATTERN_MATMESH)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    setVisibleAllAvatar(visibility)
+    {
+        for(var i=0; i<this.zrest.matMeshList.length; i++)
+        {
+            if(this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.AVATAR_MATMESH)
+            {
+                this.zrest.matMeshList[i].visible = visibility;
+            }
+        }
+    }
+
+    isExistAvatar()
+    {
+        for(var i=0; i<this.zrest.matMeshList.length; i++)
+        {
+            if(this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.AVATAR_MATMESH)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     getCameraMatrix() {
@@ -215,12 +552,14 @@ export default class ClosetViewer {
 
     setWindowSize(w, h) {
 
-      windowHalfX = w / 2;
-      windowHalfY = h / 2;
+        windowHalfX = w / 2;
+        windowHalfY = h / 2;
 
-      this.renderer.setSize(w, h);
-      this.camera.aspect = w / h;
-      this.camera.updateProjectionMatrix();
+        this.renderer.setSize(w, h);
+
+        this.camera.aspect = w / h;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(w, h);
     }
 
     onWindowResize(datas) {
@@ -269,11 +608,13 @@ export default class ClosetViewer {
     }
 
     render() {
+        //
         this.renderer.autoClear = false;
         this.renderer.clear();
-        this.renderer.render(this.background_scene, this.background_camera);
-        this.renderer.render(this.scene, this.camera);
-      if(!PRODUCTION) rendererStats.update(this.renderer);
+
+        this.renderer.render(this.background_scene, this.background_camera); // draw background
+        this.renderer.render(this.scene, this.camera); // draw object
+        if(!PRODUCTION) rendererStats.update(this.renderer);
     }
 
     stopRender() {

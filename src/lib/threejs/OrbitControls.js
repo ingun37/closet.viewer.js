@@ -551,53 +551,68 @@ THREE.OrbitControls = function ( object, domElement ) {
 				scope.update();
 				break;
 
-			case scope.keys.NUM0:
+		    case 48: // bottom
+            case 96:
 				scope.target = new THREE.Vector3(0,920,0);
 				scope.object.position.x = 0;
-				scope.object.position.y = -2080;
+				scope.object.position.y = -8000 * 0.5;
 				scope.object.position.z = 0;
 				break;
 
-			case scope.keys.NUM1:
+		    case 49: // left front
+		    case 97:
 				scope.target = new THREE.Vector3(0,920,0);
-				scope.object.position.x = -2121;
+				scope.object.position.x = -8000 * Math.sin(Math.PI * 45.0/180.0);
 				scope.object.position.y = 920;
-				scope.object.position.z = 2121;
+				scope.object.position.z = 8000 *  Math.sin(Math.PI * 45.0/180.0);
 				break;
 
-			case scope.keys.NUM2:
+		    case 50: // front
+		    case 98:
 				scope.target = new THREE.Vector3(0,920,0);
 				scope.object.position.x = 0;
 				scope.object.position.y = 920;
-				scope.object.position.z = 3000;
+				scope.object.position.z = 8000;
 				break;
+		    
+		    case 51: // rigth front
+		    case 99:
+		        scope.target = new THREE.Vector3(0,920,0);
+		        scope.object.position.x = 8000 * Math.sin(Math.PI * 45.0/180.0);
+		        scope.object.position.y = 920;
+		        scope.object.position.z = 8000 *  Math.sin(Math.PI * 45.0/180.0);
+		        break;
 
-			case scope.keys.NUM4:
+		    case 52: //left
+		    case 100:
 				scope.target = new THREE.Vector3(0,920,0);
-				scope.object.position.x = -3000;
+				scope.object.position.x = -8000;
 				scope.object.position.y = 920;
 				scope.object.position.z = 0;
 				break;
 
-			case scope.keys.NUM5:
+		    case 53: // top
+		    case 101:
 				scope.target = new THREE.Vector3(0,920,0);
 				scope.object.position.x = 0;
-				scope.object.position.y = 3000;
+				scope.object.position.y = 8000;
 				scope.object.position.z = 0;
 				break;
 
-			case scope.keys.NUM6:
+		    case 54: // right
+		    case 102:
 				scope.target = new THREE.Vector3(0,920,0);
-				scope.object.position.x = 3000;
+				scope.object.position.x = 8000;
 				scope.object.position.y = 920;
 				scope.object.position.z = 0;
 				break;
 
-			case scope.keys.NUM8:
+		    case 56: // back
+		    case 104:
 				scope.target = new THREE.Vector3(0,920,0);
 				scope.object.position.x = 0;
 				scope.object.position.y = 920;
-				scope.object.position.z = -3000;
+				scope.object.position.z = -8000;
 				break;
 		}
 

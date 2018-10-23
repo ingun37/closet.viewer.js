@@ -60,6 +60,16 @@ export default function ZRestLoader({ scene, camera, controls, cameraPosition },
     this.currentColorwayIndex = 0
     this.colorwaySize = 0
     this.jsZip = null
+
+    this.MatMeshType =
+    {
+        PATTERN_MATMESH:  0,
+        TRIM_MATMESH: 1,
+        PRINTOVERLAY_MATMESH: 2,
+        BUTTONHEAD_MATMESH: 3,
+        NORMAL_MATMESH: 4,
+        AVATAR_MATMESH: 5
+    };
 };
 
 ZRestLoader.prototype = {
@@ -613,20 +623,34 @@ ZRestLoader.prototype = {
 
                 // var material = new THREE.MeshLambertMaterial({ color: 0xffffff, envMap: envDiffuseMap });
 
-
                 var threeMesh = new THREE.Mesh(bufferGeometry, material);
-                threeMesh.userData = matMeshID;
+                
+                //
+                var matMeshType = listMatMeshIDOnIndexedMesh[m].get("enType");
+                if (matMeshType === undefined || matMeshType === null)
+                {
+                    threeMesh.userData = {MATMESH_ID: matMeshID, TYPE: this.MatMeshType.PATTERN_MATMESH};
+                }
+                else
+                {
+                    threeMesh.userData = {MATMESH_ID: matMeshID, TYPE: matMeshType};
+                }
+                
                 threeMesh.castShadow = true;
                 threeMesh.receiveShadow = true;
                 tf.add(threeMesh);
                 // Global._globalMatMeshInformationList.push(threeMesh);
                 this.matMeshList.push(threeMesh);
 
+                console.log(threeMesh);
+
                 //indexOffset = indexOffset - listIndexCount[m + 1];
 
                 //console.log(indexOffset);
             }
         }
+
+        var matMeshLength = this.matMeshList.length;
     },
 
 
