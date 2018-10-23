@@ -82,6 +82,7 @@ export default class ClosetViewer {
         this.GetGarmentShowHideStatus = this.GetGarmentShowHideStatus.bind(this)
         this.GetAvatarShowHideStatus = this.GetAvatarShowHideStatus.bind(this)
         this.computeSpherePosition = this.computeSpherePosition.bind(this)
+        this.isAvailableShowHide = this.isAvailableShowHide.bind(this)
 
         this.object3D = null
     }
@@ -537,6 +538,14 @@ export default class ClosetViewer {
         }
 
         return false;
+    }
+
+    isAvailableShowHide()
+    {
+        if (this.zrest.gVersion >= 4)
+            return true;
+        else
+            return false;
     }
 
     getCameraMatrix() {
