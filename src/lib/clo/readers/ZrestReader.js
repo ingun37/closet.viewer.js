@@ -285,6 +285,7 @@ ZRestLoader.prototype = {
                 var zRestColorwayMaterials = {
                     bpattern: false, // 이제 사용하지 않는다. 기존 버전 호환을 위해 사용할 뿐
                     bPolygonOffset: false,
+                    zOffset: 0.0,
                     colorwayMaterials: [],
                     colorwayObjectTextureTransformation: [],
                 };
@@ -294,6 +295,12 @@ ZRestLoader.prototype = {
                 zRestColorwayMaterials.bPolygonOffset = zRestMatMeshArray[i].get("bPolygonOffset");
                 if (zRestColorwayMaterials.bPolygonOffset === undefined)
                     zRestColorwayMaterials.bPolygonOffset = (zRestColorwayMaterials.bpattern === 0); // 이전 버전에서는 이렇게 설정해 주고 있었다.. bPattern은 이제 사용하지 않는다.
+
+                zRestColorwayMaterials.zOffset = zRestMatMeshArray[i].get("fZOffset");
+                if (zRestColorwayMaterials.zOffset === undefined)
+                    zRestColorwayMaterials.zOffset = 0.0;
+                else
+                    zRestColorwayMaterials.bPolygonOffset = false; // zOffset 사용하는 버전에서는 bPolygonOffset 사용하지 않는다.
 
                 var listTexInfo = zRestMatMeshArray[i].get("listTexInfo");
                 if (listTexInfo !== undefined) {
@@ -732,7 +739,7 @@ ZRestLoader.prototype = {
                 matNormal: { type: "m4", value: new THREE.Matrix4().identity() },
                 matTransparent: { type: "m4", value: new THREE.Matrix4().identity() },
                 gRotMatrix: { type: "m4", value: new THREE.Matrix4().identity() },
-                gTransMatrix: { type: "m4", value: new THREE.Matrix4().identity() },
+                gTransMatrix: { type: "m4", value: new THREE.Matrix4().identity() },                
                 sGlobal: { type: 't', value: null },
                 sAmbient: { type: 't', value: null },
                 sDiffuse: { type: 't', value: null },
@@ -757,7 +764,7 @@ ZRestLoader.prototype = {
         }
         // version == 3
         else
-        {
+        {   
             uniforms = {
                 m_bUseMetalnessRoughnessPBR: { type: 'i', value:  zRestColorwayMaterialArray[colorwayIndex].bUseMetalnessRoughnessPBR},
                 m_Metalness: { type: 'f', value: zRestColorwayMaterialArray[colorwayIndex].metalness },
@@ -795,6 +802,10 @@ ZRestLoader.prototype = {
                 gRotMatrix: { type: "m4", value: new THREE.Matrix4().identity() },
                 gTransMatrix: { type: "m4", value: new THREE.Matrix4().identity() },
 
+                positionOffset: {type: 'f', value: property.zOffset},
+                cameraNear: {type: 'f', value: this.camera.near},
+                cameraFar: {type: 'f', value: this.camera.far},
+
                 sGlobal: { type: 't', value: null },
                 sNormal: { type: 't', value: null },
                 sSeamPuckeringNormal: { type: 't', value: null },
@@ -816,7 +827,7 @@ ZRestLoader.prototype = {
             side: rFace, // double side로 하면 zfighting이 생각보다 심해진다. 나중에 이문제 해결 필요
             wireframe: drawMode.wireframe.pattern,
             lights: true,
-            polygonOffset: property.bPolygonOffset,
+            polygonOffset: property.bPolygonOffset, // zOffset 이전 버전에서는 bPolygonOffset 사용, zOffset 사용 버전부터는 bPolygonOffset = false 로 설정됨
             polygonOffsetFactor: -0.5,
             polygonOffsetUnits: -2.0,
 
