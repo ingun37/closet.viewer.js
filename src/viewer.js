@@ -517,7 +517,7 @@ export default class ClosetViewer {
         {
             if(this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.PATTERN_MATMESH)
             {
-                if(this.zrest.matMeshList[i].visible.equals(true))
+                if(this.zrest.matMeshList[i].visible === true)
                     return true;
             }
         }
@@ -531,7 +531,7 @@ export default class ClosetViewer {
         {
             if(this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.AVATAR_MATMESH)
             {
-                if(this.zrest.matMeshList[i].visible.equals(true))
+                if(this.zrest.matMeshList[i].visible === true)
                     return true;
             }
         }
