@@ -68,7 +68,8 @@ export default function ZRestLoader({ scene, camera, controls, cameraPosition },
         PRINTOVERLAY_MATMESH: 2,
         BUTTONHEAD_MATMESH: 3,
         NORMAL_MATMESH: 4,
-        AVATAR_MATMESH: 5
+        AVATAR_MATMESH: 5,
+        STITCH_MATMESH: 6
     };
 };
 

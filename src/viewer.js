@@ -468,7 +468,11 @@ export default class ClosetViewer {
     {
         for(var i=0; i<this.zrest.matMeshList.length; i++)
         {
-            if(this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.PATTERN_MATMESH)
+            if(this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.PATTERN_MATMESH || 
+               this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.TRIM_MATMESH ||
+               this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.PRINTOVERLAY_MATMESH || 
+               this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.BUTTONHEAD_MATMESH ||
+               this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.STITCH_MATMESH )
             {
                 this.zrest.matMeshList[i].visible = visibility;
             }
