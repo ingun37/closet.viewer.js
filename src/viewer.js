@@ -79,8 +79,10 @@ export default class ClosetViewer {
         this.setVisibleAllAvatar = this.setVisibleAllAvatar.bind(this)
         this.isExistGarment = this.isExistGarment.bind(this)
         this.isExistAvatar = this.isExistAvatar.bind(this)
-
+        this.GetGarmentShowHideStatus = this.GetGarmentShowHideStatus.bind(this)
+        this.GetAvatarShowHideStatus = this.GetAvatarShowHideStatus.bind(this)
         this.computeSpherePosition = this.computeSpherePosition.bind(this)
+        this.isAvailableShowHide = this.isAvailableShowHide.bind(this)
 
         this.object3D = null
     }
@@ -187,12 +189,12 @@ export default class ClosetViewer {
         //sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
         //this.scene.add(sphere);
         
-        var geometryCone = new THREE.ConeBufferGeometry( 20, 100, 3 ); 
-        geometryCone.translate( 0, 50, 0 ); 
-        geometryCone.rotateX( Math.PI / 2 ); 
-        helper = new THREE.Mesh( geometryCone, new THREE.MeshNormalMaterial() ); 
-        this.scene.add( helper ); 
-        helper.visible = false;
+        //var geometryCone = new THREE.ConeBufferGeometry( 20, 100, 3 ); 
+        //geometryCone.translate( 0, 50, 0 ); 
+        //geometryCone.rotateX( Math.PI / 2 ); 
+        //helper = new THREE.Mesh( geometryCone, new THREE.MeshNormalMaterial() ); 
+        //this.scene.add( helper ); 
+        //helper.visible = false;
         
         // floor
         /*var planeGeometry = new THREE.PlaneBufferGeometry(10000, 10000, 2, 2);
@@ -214,8 +216,8 @@ export default class ClosetViewer {
         var canvas = document.getElementById(this.setter);
         canvas.addEventListener("mouseout", () => this.controls.noPan = true, false);
         canvas.addEventListener("mouseover", () => this.controls.noPan = false, false);
-        canvas.addEventListener("click", this.onMouseClick, false);
-        canvas.addEventListener('mousemove', this.onDocumentMouseMove, false);
+        //canvas.addEventListener("click", this.onMouseClick, false);
+        //canvas.addEventListener('mousemove', this.onDocumentMouseMove, false);
 
         if(!PRODUCTION){
           rendererStats.domElement.style.position	= 'absolute'
@@ -466,7 +468,11 @@ export default class ClosetViewer {
     {
         for(var i=0; i<this.zrest.matMeshList.length; i++)
         {
-            if(this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.PATTERN_MATMESH)
+            if(this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.PATTERN_MATMESH || 
+               this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.TRIM_MATMESH ||
+               this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.PRINTOVERLAY_MATMESH || 
+               this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.BUTTONHEAD_MATMESH ||
+               this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.STITCH_MATMESH )
             {
                 this.zrest.matMeshList[i].visible = visibility;
             }
@@ -508,6 +514,42 @@ export default class ClosetViewer {
         }
 
         return false;
+    }
+
+    GetGarmentShowHideStatus()
+    {
+        for(var i=0; i<this.zrest.matMeshList.length; i++)
+        {
+            if(this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.PATTERN_MATMESH)
+            {
+                if(this.zrest.matMeshList[i].visible === true)
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    GetAvatarShowHideStatus()
+    {
+        for(var i=0; i<this.zrest.matMeshList.length; i++)
+        {
+            if(this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.AVATAR_MATMESH)
+            {
+                if(this.zrest.matMeshList[i].visible === true)
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    isAvailableShowHide()
+    {
+        if (this.zrest.gVersion >= 4)
+            return true;
+        else
+            return false;
     }
 
     getCameraMatrix() {
@@ -742,7 +784,7 @@ export default class ClosetViewer {
 
             this.SafeDeallocation(prevMaterial, THREE.ShaderMaterial, function () {/*console.log("success deallocation");*/ }, function () {/*console.log("unsuccess deallocation");*/ });
 
-            var id = matMeshList[i].userData;
+            var id = matMeshList[i].userData.MATMESH_ID;
             matMeshList[i].material = this.zrest.makeMaterialForZrest(this.zrest.jsZip, this.zrest.materialInformationMap.get(id), number, preUseSeamPuckeringMap, this.zrest.gVersion);
         }
     }
