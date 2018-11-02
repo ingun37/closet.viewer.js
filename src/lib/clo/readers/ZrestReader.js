@@ -123,61 +123,66 @@ ZRestLoader.prototype = {
         var bthNameList = [];
 
         reader.onload = (e) => {
-            this.jsZip = new JSZip(e.target.result);
-            var keyList = Object.keys(this.jsZip.files);
+            this.jsZip = new JSZip();
+            this.jsZip.loadAsync(e.target.result).then( (zip) => {
+                var keyList = Object.keys(zip.files);
 
-            keyList.forEach(value => {
-                var list = value.split('.');
-                var extension = list[list.length - 1];
+                keyList.forEach(value => {
+                    var list = value.split('.');
+                    var extension = list[list.length - 1];
 
-                switch (extension) {
-                    case 'rest':
-                        restName = value;
-                        break;
-                    case 'btn':
-                        btnNameList.push(value);
-                        break;
-                    case 'bth':
-                        bthNameList.push(value);
-                        break;
-                    case 'png':
-                    case 'jpg':
+                    switch (extension) {
+                        case 'rest':
+                            restName = value;
+                            break;
+                        case 'btn':
+                            btnNameList.push(value);
+                            break;
+                        case 'bth':
+                            bthNameList.push(value);
+                            break;
+                        case 'png':
+                        case 'jpg':
 
-                        break;
-                    case 'pos':
+                            break;
+                        case 'pos':
 
-                        break;
-                    default:
-                };
-            });
+                            break;
+                        default:
+                    };
+                });
 
-            var fileOffset = { Offset: 0 };
-            var dataView = new DataView(this.jsZip.file(restName).asArrayBuffer());
-            console.log("pac file size = " + dataView.byteLength);
+                var fileOffset = { Offset: 0 };
+                //var dataView = new DataView(zip.file(restName).asArrayBuffer());
+                zip.file(restName).async("arrayBuffer").then( async (restContent) => {
+                    var dataView = new DataView(restContent);
 
-            rootMap = readMap(dataView, fileOffset);
+                    console.log("pac file size = " + dataView.byteLength);
 
-            // seam puckering normal map 로드
-            gSeamPuckeringNormalMap = this.LoadTexture(this.jsZip, "seam_puckering_2ol97pf293f2sdk98.png");
+                    rootMap = readMap(dataView, fileOffset);
 
-            let loadedCamera =
-                {
-                    ltow : new THREE.Matrix4(),
-                    bLoaded : false
-                }
-            this.meshFactory(rootMap, this.jsZip, object3D, loadedCamera);
+                    // seam puckering normal map 로드
+                    gSeamPuckeringNormalMap = await this.LoadTexture(zip, "seam_puckering_2ol97pf293f2sdk98.png");
 
-            // 여기가 실질적으로 Zrest 로드 완료되는 시점
-            // scene.add(object3D);
-            this.onLoad(object3D)
-            this.ZoomToObjects(loadedCamera, scene);
-            // add 할때 cameraPosition 이 있으면 설정해준다.
-            if(this.cameraPosition) this.camera.position.copy(this.cameraPosition)
+                    let loadedCamera =
+                    {
+                        ltow : new THREE.Matrix4(),
+                        bLoaded : false
+                    }
+                    
+                    await this.meshFactory(rootMap, zip, object3D, loadedCamera);
 
-            // 임시 데이터 clear
-            _gNameToTextureMap.clear();
+                    // 여기가 실질적으로 Zrest 로드 완료되는 시점
+                    // scene.add(object3D);
+                    this.onLoad(object3D)
+                    this.ZoomToObjects(loadedCamera, scene);
+                    // add 할때 cameraPosition 이 있으면 설정해준다.
+                    if(this.cameraPosition) this.camera.position.copy(this.cameraPosition)
 
-
+                    // 임시 데이터 clear
+                    _gNameToTextureMap.clear();
+                });
+            })
         }
 
         reader.readAsArrayBuffer(contentBlob);
@@ -230,12 +235,12 @@ ZRestLoader.prototype = {
 
     },
 
-    LoadTexture(zip, textureFileName) {
+    async LoadTexture(zip, textureFileName) {
         let file = zip.file(textureFileName);
         if (file === undefined || file === null)
             return null;
 
-        var arraybuffer = file.asArrayBuffer();
+        var arraybuffer = await file.async("arrayBuffer");
         var bytes = new Uint8Array(arraybuffer);
         var blob = new Blob([bytes.buffer]);
         var url = URL.createObjectURL(blob);
@@ -244,7 +249,7 @@ ZRestLoader.prototype = {
         return loader.load(url);
     },
 
-    meshFactory(map, zip, retObject, loadedCamera) {
+    async meshFactory(map, zip, retObject, loadedCamera) {
 
         let version = map.get("uiVersion");
 
@@ -475,18 +480,18 @@ ZRestLoader.prototype = {
             return false;
         }
 
-        // 불투명 부터 추가해서 불투명 object 부터 그리기
-        var tf = this.GetMatMeshs(geometry, zip, false, version);
+            // 불투명 부터 추가해서 불투명 object 부터 그리기
+        var tf = await this.GetMatMeshs(geometry, zip, false, version);
         retObject.add(tf);
 
-        // 투명한것 추가
-        tf = this.GetMatMeshs(geometry, zip, true, version);
+            // 투명한것 추가
+        tf = await this.GetMatMeshs(geometry, zip, true, version);
         retObject.add(tf);
 
         return retObject;
     },
 
-    AddMatMeshList(zip, listMatShape, tf, bLoadTransparentObject, version) {
+    async AddMatMeshList(zip, listMatShape, tf, bLoadTransparentObject, version) {
 
         for (let i = 0 ; i < listMatShape.length ; ++i) {
 
@@ -512,8 +517,9 @@ ZRestLoader.prototype = {
                 return false;
             }
 
-            var drcArrayBuffer = zip.file(dracoMeshFilename).asArrayBuffer();
-
+            //var drcArrayBuffer = zip.file(dracoMeshFilename).asArrayBuffer();
+            var drcArrayBuffer = await zip.file(dracoMeshFilename).async("arrayBuffer");
+                
             const dracoLoader = new THREE.DRACOLoader();
             //dracoLoader.setVerbosity(1); // log 나오게 하려면 주석 풀자
             const dracoGeometry = dracoLoader.decodeDracoFile(drcArrayBuffer);
@@ -623,7 +629,7 @@ ZRestLoader.prototype = {
                     bufferGeometry.computeVertexNormals();
                 }
 
-                var material = this.makeMaterialForZrest(zip, matProperty, this.currentColorwayIndex, dracoGeometry.numUVs >= 2, version);
+                var material = await this.makeMaterialForZrest(zip, matProperty, this.currentColorwayIndex, dracoGeometry.numUVs >= 2, version);
                 //  var material = new THREE.MeshPhongMaterial();
                 //material.color = new THREE.Color(0xAAAAAA);
                 //material.side = THREE.DoubleSide;
@@ -682,7 +688,7 @@ ZRestLoader.prototype = {
     },
 
 
-    GetMatMeshs(map, zip, bLoadTransparentObject, version) {
+    async GetMatMeshs(map, zip, bLoadTransparentObject, version) {
         //var matMeshArray = new Array();
         var tf = new THREE.Object3D();
 
@@ -690,14 +696,14 @@ ZRestLoader.prototype = {
         if (listChildrenTransformer3D !== undefined && listChildrenTransformer3D !== null) {
             for (let i = 0; i < listChildrenTransformer3D.length; ++i) {
                 var childTF3D = listChildrenTransformer3D[i];
-                var childTF = this.GetMatMeshs(childTF3D, zip, bLoadTransparentObject, version);
+                var childTF = await this.GetMatMeshs(childTF3D, zip, bLoadTransparentObject, version);
                 tf.add(childTF);
             }
         }
 
         var mapTransformer3D = map.get("mapTransformer3D");
         if (mapTransformer3D !== undefined && mapTransformer3D !== null) {
-            var childTF = this.GetMatMeshs(mapTransformer3D, zip, bLoadTransparentObject, version);
+            var childTF = await this.GetMatMeshs(mapTransformer3D, zip, bLoadTransparentObject, version);
             //tf.add(childTF);
             tf = childTF;
         }
@@ -727,14 +733,14 @@ ZRestLoader.prototype = {
 
         var listMatShape = map.get("listMatShape");
         if (listMatShape !== undefined && listMatShape !== null) {
-            this.AddMatMeshList(zip, listMatShape, tf, bLoadTransparentObject, version);
+            await this.AddMatMeshList(zip, listMatShape, tf, bLoadTransparentObject, version);
         }
 
         return tf;
     },
 
 
-    makeMaterialForZrest(zip, property, colorwayIndex, bUseSeamPuckeringNormalMap, version) {
+    async makeMaterialForZrest(zip, property, colorwayIndex, bUseSeamPuckeringNormalMap, version) {
 
         var zRestColorwayMaterialArray = property.colorwayMaterials;
         let material = zRestColorwayMaterialArray[colorwayIndex];
@@ -783,7 +789,7 @@ ZRestLoader.prototype = {
                 normalMapIntensityInPercentage: { type: 'f', value: zRestColorwayMaterialArray[colorwayIndex].normalMapIntensityInPercentage }
             }
         }
-        // version == 3
+            // version == 3
         else
         {   
             uniforms = {
@@ -906,7 +912,7 @@ ZRestLoader.prototype = {
                     var texture = _gNameToTextureMap.get(textureFileName);
                     if (!texture) {
 
-                        texture = this.LoadTexture(zip, textureFileName);
+                        texture = await this.LoadTexture(zip, textureFileName);
 
                         _gNameToTextureMap.set(textureFileName, texture);
 
