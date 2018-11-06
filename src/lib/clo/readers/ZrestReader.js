@@ -174,9 +174,10 @@ ZRestLoader.prototype = {
 
                     // 여기가 실질적으로 Zrest 로드 완료되는 시점
                     // scene.add(object3D);
-                    this.onLoad(object3D)
-                    this.ZoomToObjects(loadedCamera, scene);
+                    this.onLoad(object3D, loadedCamera)
+
                     // add 할때 cameraPosition 이 있으면 설정해준다.
+
                     if(this.cameraPosition) this.camera.position.copy(this.cameraPosition)
 
                     // 임시 데이터 clear

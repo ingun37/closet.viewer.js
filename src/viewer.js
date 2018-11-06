@@ -230,7 +230,11 @@ export default class ClosetViewer {
         raycaster = new THREE.Raycaster();
         //raycaster.params.Points.threshold = threshold;
 
-        this.animate()
+        // this.animate()
+      setTimeout(() => {
+        this.controls.update();
+        this.render()
+      }, 10)
     }
     
     onDocumentMouseMove( e )
@@ -362,9 +366,78 @@ export default class ClosetViewer {
         }
     }
 
+  intersectObject(mouse = { x: 0, y: 0 }) {
+    mouse.x = 0;
+    mouse.y = 0;
+
+    if (this.zrest.matMeshList !== undefined)
+    {
+      raycaster.setFromCamera(mouse, this.camera);
+      var intersects = raycaster.intersectObjects(this.zrest.matMeshList);
+
+      var length = intersects.length;
+      console.log(mouse);
+      console.log(length);
+
+      if ( intersects.length > 0 )
+      {
+        this.createAnnotation(intersects[0].point, intersects[0].face.normal, this.camera.position);
+      }
+      else
+      {
+        // 여기서 평면에다 다시 쏴야 함.
+        let spherePos = this.computeSpherePosition();
+        this.createAnnotation(spherePos, this.camera.getWorldDirection().normalize(), this.camera.position);
+      }
+
+      /*
+      if ( intersects.length > 0 )
+      {
+
+          //if ( INTERSECTED != intersects[ 0 ].object )
+          {
+              if ( INTERSECTED )
+              {
+                  //INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+                  //INTERSECTED.material.color.setHex( INTERSECTED.currentHex );
+              }
+
+              INTERSECTED = intersects[ 0 ].object;
+              //INTERSECTED.currentHex = INTERSECTED.material.color.getHex();
+              //INTERSECTED.material.color.setHex( 0xff0000 );
+              //INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+              //INTERSECTED.material.emissive.setHex( 0xff0000 );
+
+              sphere.position.set(0,0,0);
+              sphere.lookAt(intersects[0].face.normal);
+              sphere.position.copy(intersects[0].point);
+
+              //helper.position.set(0, 0, 0);
+              //helper.lookAt(intersects[0].face.normal);
+              //helper.position.copy(intersects[0].point)
+
+              console.log(intersects[ 0 ].point);
+
+          }
+      }
+      else
+      {
+          if ( INTERSECTED )
+          {
+              //INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+              //INTERSECTED.material.color.setHex( INTERSECTED.currentHex );
+          }
+
+          INTERSECTED = null;
+      }
+      */
+    }
+  }
+
     onMouseClick( e )
     {
         e.preventDefault();
+
 
         //1. sets the mouse position with a coordinate system where the center
         //   of the screen is the origin
@@ -372,85 +445,21 @@ export default class ClosetViewer {
         //let canvasBounds = this.renderer.context.canvas.getBoundingClientRect();
         //mouse.x = ( ( e.clientX - canvasBounds.left ) / ( canvasBounds.right - canvasBounds.left ) ) * 2 - 1;
         //mouse.y = - ( ( e.clientY - canvasBounds.top ) / ( canvasBounds.bottom - canvasBounds.top) ) * 2 + 1;
+      this.intersectObject(mouse)
 
-        mouse.x = 0;
-        mouse.y = 0;
-
-        if (this.zrest.matMeshList !== undefined)
-        {
-            raycaster.setFromCamera(mouse, this.camera);
-            var intersects = raycaster.intersectObjects(this.zrest.matMeshList);
-        
-            var length = intersects.length;
-            console.log(mouse);
-            console.log(length);
-        
-            if ( intersects.length > 0 )
-            {
-                this.createAnnotation(intersects[0].point, intersects[0].face.normal, this.camera.position);
-            }
-            else
-            {
-                // 여기서 평면에다 다시 쏴야 함.
-                let spherePos = this.computeSpherePosition();
-                this.createAnnotation(spherePos, this.camera.getWorldDirection().normalize(), this.camera.position);
-            }
-
-            /*
-            if ( intersects.length > 0 )
-            {
-    
-                //if ( INTERSECTED != intersects[ 0 ].object )
-                {
-                    if ( INTERSECTED ) 
-                    {
-                        //INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
-                        //INTERSECTED.material.color.setHex( INTERSECTED.currentHex );
-                    }
-    
-                    INTERSECTED = intersects[ 0 ].object;
-                    //INTERSECTED.currentHex = INTERSECTED.material.color.getHex();
-                    //INTERSECTED.material.color.setHex( 0xff0000 );
-                    //INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
-                    //INTERSECTED.material.emissive.setHex( 0xff0000 );
-    
-                    sphere.position.set(0,0,0);
-                    sphere.lookAt(intersects[0].face.normal);
-                    sphere.position.copy(intersects[0].point);
-    
-                    //helper.position.set(0, 0, 0);
-                    //helper.lookAt(intersects[0].face.normal);
-                    //helper.position.copy(intersects[0].point)
-    
-                    console.log(intersects[ 0 ].point);
-    
-                }
-            }
-            else
-            {
-                if ( INTERSECTED )
-                {
-                    //INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
-                    //INTERSECTED.material.color.setHex( INTERSECTED.currentHex );
-                }
-    
-                INTERSECTED = null;
-            }
-            */
-        }
     }
 
     computeSpherePosition()
     {
-        // 1. 카메라 포지션 - center 포지션 dot product 카메라 디렉션의 반대 방향 
+        // 1. 카메라 포지션 - center 포지션 dot product 카메라 디렉션의 반대 방향
         var cameraPos = new THREE.Vector3();
         cameraPos.copy(this.camera.position);
-        
+
         var centerPos = new THREE.Vector3(0.0, 0.0, 0.0);
-        
+
         var dirVector = new THREE.Vector3();
         dirVector.copy(this.camera.getWorldDirection());
-        
+
         var normalizedCameraDirVector = new THREE.Vector3();
         normalizedCameraDirVector.copy(this.camera.getWorldDirection().normalize());
 
@@ -468,9 +477,9 @@ export default class ClosetViewer {
     {
         for(var i=0; i<this.zrest.matMeshList.length; i++)
         {
-            if(this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.PATTERN_MATMESH || 
+            if(this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.PATTERN_MATMESH ||
                this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.TRIM_MATMESH ||
-               this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.PRINTOVERLAY_MATMESH || 
+               this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.PRINTOVERLAY_MATMESH ||
                this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.BUTTONHEAD_MATMESH ||
                this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.STITCH_MATMESH )
             {
@@ -716,8 +725,8 @@ export default class ClosetViewer {
 
 
         this.zrest = new ZRestLoader({ scene: this.scene, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition });
-        this.zrest.load(url, (object) => {
-            console.log('------------------ loaded object', object)
+        this.zrest.load(url, (object, loadedCamera) => {
+            console.log('------------------ this.cameraPosition', this.cameraPosition)
             // progress-bar remove
             // $el.find('.closet-progress').animate({
             //     opacity: 0.5,
@@ -737,20 +746,35 @@ export default class ClosetViewer {
             if(this.object3D) this.scene.remove( this.object3D )
             this.scene.add(object)
             this.object3D = object
+            this.zrest.ZoomToObjects(loadedCamera, this.scene);
 
             if(onLoad) onLoad(this)
 
             // this.setCameraMatrix(cameraMatrix, false);
             this.changeColorway(colorwayIndex);
 
+          this.updateRender()
+
         }, progress, error);
+    }
+
+    setCameraPosition({ x, y, z }) {
+      this.camera.position.copy({ x, y, z })
+      this.updateRender()
+    }
+
+    updateRender() {
+      setTimeout(() => {
+        this.controls.update();
+        this.render()
+      }, 10)
     }
 
     getColorwaySize() {
         return this.zrest.colorwaySize
     }
 
-    changeColorway(number) {
+    async changeColorway(number) {
 
         if(number === undefined)
             return;
@@ -785,8 +809,13 @@ export default class ClosetViewer {
             this.SafeDeallocation(prevMaterial, THREE.ShaderMaterial, function () {/*console.log("success deallocation");*/ }, function () {/*console.log("unsuccess deallocation");*/ });
 
             var id = matMeshList[i].userData.MATMESH_ID;
-            matMeshList[i].material = this.zrest.makeMaterialForZrest(this.zrest.jsZip, this.zrest.materialInformationMap.get(id), number, preUseSeamPuckeringMap, this.zrest.gVersion);
+            matMeshList[i].material = await this.zrest.makeMaterialForZrest(this.zrest.jsZip, this.zrest.materialInformationMap.get(id), number, preUseSeamPuckeringMap, this.zrest.gVersion);
         }
+
+      setTimeout(() => {
+        this.controls.update();
+        this.render()
+      }, 10)
     }
 
 
