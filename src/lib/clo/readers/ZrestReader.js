@@ -181,6 +181,12 @@ ZRestLoader.prototype = {
                     if(this.cameraPosition) this.camera.position.copy(this.cameraPosition)
 
                     // 임시 데이터 clear
+
+                  // _gNameToTextureMap.forEach((value, key) => {
+                  //   value.dispose()
+                  //
+                  // })
+
                     _gNameToTextureMap.clear();
                 });
             })
@@ -677,7 +683,7 @@ ZRestLoader.prototype = {
                 // Global._globalMatMeshInformationList.push(threeMesh);
                 this.matMeshList.push(threeMesh);
 
-                console.log(threeMesh);
+                // console.log(threeMesh);
 
                 //indexOffset = indexOffset - listIndexCount[m + 1];
 
@@ -917,7 +923,7 @@ ZRestLoader.prototype = {
 
                         _gNameToTextureMap.set(textureFileName, texture);
 
-                        console.log("texture name" + textureFileName);
+                        console.log("texture name", texture);
                     }
 
                     // wrap type 외에는 기본값을 그대로 사용하면 된다.

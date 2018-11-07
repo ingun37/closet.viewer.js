@@ -4,8 +4,10 @@ import ClosetViewer from './viewer'
 global._babelPolyfill = false;
 
 const closet = window.closet || {
-    viewer: new ClosetViewer()
+    viewer: new ClosetViewer(),
 }
+
+closet.ClosetViewer = ClosetViewer
 
 exports.closet = closet
 
@@ -21,8 +23,6 @@ exports.closet = closet
 // }
 //
 // ClosetViewer.prototype = require('./viewer')
-
-exports.ClosetViewer = ClosetViewer
 
 //
 // window.closet = window.closet || (function () {

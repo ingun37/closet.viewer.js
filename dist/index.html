@@ -169,7 +169,7 @@
         for(var i = 0;i<closetViewerArray.length;i++){
             const viewer = closetViewerArray[i].viewer
             if(viewer.id !== data.id && ischecked) {
-                viewer.camera.position.copy(cameraPosition)
+                viewer.setCameraPosition(cameraPosition)
             }
         }
     }
@@ -247,7 +247,7 @@
     }
 
     function createClosetViewer(id) {
-        var cv = new ClosetViewer()
+        var cv = new closet.ClosetViewer()
         cv.init({
             element: id,
             width: 320,

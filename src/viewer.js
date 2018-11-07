@@ -221,8 +221,8 @@ export default class ClosetViewer {
 
         if(!PRODUCTION){
           rendererStats.domElement.style.position	= 'absolute'
-          rendererStats.domElement.style.left	= '0px'
-          rendererStats.domElement.style.bottom	= '0px'
+          rendererStats.domElement.style.left	= '-100px'
+          rendererStats.domElement.style.top	= '0px'
           document.getElementById(this.setter).appendChild( rendererStats.domElement )
         }
 
@@ -736,17 +736,19 @@ export default class ClosetViewer {
 
             // loading 이 실제로 마무리되는 곳은 ZRestLoader 의 file reader 쪽에서이므로 scene 에 추가하는 것은 그쪽으로 변경한다. 이곳에서는 실제로 scene 에 object 가 add 되긴 하지만 로딩이 끝나기 전 빈 Object3D 만 추가된다.
 
-            // if(this.object3D){
-            //
-            //
-            // }
-            // var selectedObject = this.scene.getObjectByName('object3D');
-            // console.log('selectedObject', selectedObject)
-            //
-            if(this.object3D) this.scene.remove( this.object3D )
+
+
+          // delete object3D, geometry, material dispose
+          for (var i = 0 ; i < this.scene.children.length; i++) {
+            if(this.scene.children[i].name === 'object3D') {
+              clearThree(this.scene.children[i])
+            }
+          }
+
             this.scene.add(object)
             this.object3D = object
             this.zrest.ZoomToObjects(loadedCamera, this.scene);
+
 
             if(onLoad) onLoad(this)
 
@@ -823,4 +825,13 @@ export default class ClosetViewer {
         if(object instanceof type){type_cb(object);}
         else{nontype_cb(object);}
     }
+}
+function clearThree(obj){
+  while(obj.children.length > 0){
+    clearThree(obj.children[0])
+    obj.remove(obj.children[0]);
+  }
+  if(obj.geometry) obj.geometry.dispose()
+  if(obj.material) obj.material.dispose()
+  if(obj.texture) obj.texture.dispose()
 }
