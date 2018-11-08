@@ -611,6 +611,8 @@ export default class ClosetViewer {
         this.camera.aspect = w / h;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(w, h);
+
+        this.updateRender(0)
     }
 
     onWindowResize(datas) {
@@ -765,11 +767,17 @@ export default class ClosetViewer {
       this.updateRender()
     }
 
-    updateRender() {
+    updateRender(t = 10) {
+      if(t === 0){
+        this.controls.update()
+        this.render()
+        return
+      }
+
       setTimeout(() => {
         this.controls.update();
         this.render()
-      }, 10)
+      }, t)
     }
 
     getColorwaySize() {
