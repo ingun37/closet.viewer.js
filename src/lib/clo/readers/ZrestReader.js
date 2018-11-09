@@ -85,7 +85,7 @@ ZRestLoader.prototype = {
         //loader.setPath(this.path);
         loader.setResponseType('arraybuffer');
         loader.load(url, (data) => {
-
+          this.data = data
             this.parse(data)
 
         }, onProgress, onError);
@@ -93,9 +93,7 @@ ZRestLoader.prototype = {
     },
 
     setPath(value) {
-
         this.path = value;
-
     },
 
     parse(data) {
@@ -174,19 +172,13 @@ ZRestLoader.prototype = {
 
                     // 여기가 실질적으로 Zrest 로드 완료되는 시점
                     // scene.add(object3D);
-                    this.onLoad(object3D, loadedCamera)
+                    this.onLoad(object3D, loadedCamera, this.data)
 
                     // add 할때 cameraPosition 이 있으면 설정해준다.
 
                     if(this.cameraPosition) this.camera.position.copy(this.cameraPosition)
 
                     // 임시 데이터 clear
-
-                  // _gNameToTextureMap.forEach((value, key) => {
-                  //   value.dispose()
-                  //
-                  // })
-
                     _gNameToTextureMap.clear();
                 });
             })
@@ -923,7 +915,7 @@ ZRestLoader.prototype = {
 
                         _gNameToTextureMap.set(textureFileName, texture);
 
-                        console.log("texture name", texture);
+                        // console.log("texture name", texture);
                     }
 
                     // wrap type 외에는 기본값을 그대로 사용하면 된다.

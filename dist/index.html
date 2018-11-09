@@ -162,14 +162,17 @@
 <script>
 
     var cameraPosition = null
+    var targetPosition = null
     var progressItem = document.getElementById('progresstest')
 
     var updated = function(data) {
         cameraPosition = data.position
+        targetPosition = data.target
         for(var i = 0;i<closetViewerArray.length;i++){
             const viewer = closetViewerArray[i].viewer
             if(viewer.id !== data.id && ischecked) {
-                viewer.setCameraPosition(cameraPosition)
+                viewer.setCameraPosition(cameraPosition, targetPosition)
+              viewer.updateRender()
             }
         }
     }

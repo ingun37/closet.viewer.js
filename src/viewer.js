@@ -125,7 +125,7 @@ export default class ClosetViewer {
     this.controls.target = new THREE.Vector3(0, cameraHeight, 0);
     this.controls.update();
     this.controls.addEventListener('change', () => {
-      if(this.updateCamera) this.updateCamera({ position: this.camera.position, id: this.id })
+      if(this.updateCameraFunction) this.updateCameraFunction({ target: this.controls.target, position: this.camera.position, id: this.id })
       this.render()
     });
 
@@ -218,6 +218,8 @@ export default class ClosetViewer {
     var canvas = document.getElementById(this.setter);
     canvas.addEventListener("mouseout", () => this.controls.noPan = true, false);
     canvas.addEventListener("mouseover", () => this.controls.noPan = false, false);
+    canvas.addEventListener("mousedown", () => this.updateCameraFunction = this.updateCamera, false);
+    canvas.addEventListener("mouseup", () => this.updateCameraFunction = null, false);
     //canvas.addEventListener("click", this.onMouseClick, false);
     //canvas.addEventListener('mousemove', this.onDocumentMouseMove, false);
 
@@ -233,10 +235,8 @@ export default class ClosetViewer {
     //raycaster.params.Points.threshold = threshold;
 
     // this.animate()
-    setTimeout(() => {
-      this.controls.update();
-      this.render()
-    }, 10)
+
+    this.updateRender()
   }
 
   onDocumentMouseMove( e )
@@ -671,7 +671,7 @@ export default class ClosetViewer {
     if(!PRODUCTION) rendererStats.update(this.renderer);
   }
 
-  updateRender(t = 100){
+  updateRender(t = 100, isUpdate = false){
     this.controls.update()
     setTimeout(this.render, t)
   }
@@ -703,15 +703,6 @@ export default class ClosetViewer {
   }
 
   loadZrestUrlWithParameters(url, cameraMatrix, colorwayIndex, onProgress, onLoad) {
-    // var $el = $('#detail_viewer');
-    // // progress bar -- by terry
-    // $el.append('<div class="closet-progress" style="position:absolute; top:50%;left:50%; margin-left:-100px; margin-top:-5px;">\
-    //             <span class="progressGif"></span>\
-    //             <span class="progressNumber">0%</span></div>');
-    //
-    // var $progressGif = $('.closet-progress').find('.progressGif');
-    // var $progressNumber = $('.closet-progress').find('.progressNumber');
-
     if(url === ''){
       return
     }
@@ -720,12 +711,7 @@ export default class ClosetViewer {
       if (xhr.lengthComputable) {
         var percentComplete = xhr.loaded / xhr.total * 100;
         var percent = Math.round(percentComplete, 2);
-        //console.log(Math.round(percentComplete, 2) + '% downloaded');
-
         if(onProgress) onProgress(percent)
-        // var percentValue = Math.round(percentComplete, 2) + "%";
-        // $progressGif.css({ width: percentValue });
-        // $progressNumber.html(percentValue);
       }
     };
 
@@ -733,8 +719,8 @@ export default class ClosetViewer {
 
 
     this.zrest = new ZRestLoader({ scene: this.scene, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition });
-    this.zrest.load(url, (object, loadedCamera) => {
-      console.log('------------------ this.cameraPosition', this.cameraPosition)
+    this.zrest.load(url, (object, loadedCamera, data) => {
+      console.log('------------------ this.data', data)
       // progress-bar remove
       // $el.find('.closet-progress').animate({
       //     opacity: 0.5,
