@@ -85,6 +85,7 @@ export default class ClosetViewer {
     this.isAvailableShowHide = this.isAvailableShowHide.bind(this)
     this.setCameraPosition = this.setCameraPosition.bind(this)
     this.updateRender = this.updateRender.bind(this)
+    this.loadZrestData = this.loadZrestData.bind(this)
 
     this.object3D = null
   }
@@ -702,36 +703,29 @@ export default class ClosetViewer {
 
   }
 
+  loadZrestData(data, onLoad) {
+    this.zrest = new ZRestLoader({ scene: this.scene, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition });
+    this.zrest.parse(data, () => {
+      if(onLoad) onLoad(this)
+    })
+  }
+
   loadZrestUrlWithParameters(url, cameraMatrix, colorwayIndex, onProgress, onLoad) {
     if(url === ''){
       return
     }
 
-    var progress = function (xhr) {
+    const progress = function (xhr) {
       if (xhr.lengthComputable) {
-        var percentComplete = xhr.loaded / xhr.total * 100;
-        var percent = Math.round(percentComplete, 2);
+        const percentComplete = xhr.loaded / xhr.total * 100;
+        const percent = Math.round(percentComplete, 2);
         if(onProgress) onProgress(percent)
       }
     };
 
-    var error = function (xhr) { };
+    const error = function (xhr) { };
 
-
-    this.zrest = new ZRestLoader({ scene: this.scene, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition });
-    this.zrest.load(url, (object, loadedCamera, data) => {
-      console.log('------------------ this.data', data)
-      // progress-bar remove
-      // $el.find('.closet-progress').animate({
-      //     opacity: 0.5,
-      // }, 1500, function () {
-      //     $el.find('.closet-progress').remove();
-      // });
-
-      // loading 이 실제로 마무리되는 곳은 ZRestLoader 의 file reader 쪽에서이므로 scene 에 추가하는 것은 그쪽으로 변경한다. 이곳에서는 실제로 scene 에 object 가 add 되긴 하지만 로딩이 끝나기 전 빈 Object3D 만 추가된다.
-
-
-
+    const loaded = (object, loadedCamera, data) => {
       // delete object3D, geometry, material dispose
       for (var i = 0 ; i < this.scene.children.length; i++) {
         if(this.scene.children[i].name === 'object3D') {
@@ -751,7 +745,11 @@ export default class ClosetViewer {
 
       this.updateRender()
 
-    }, progress, error);
+    }
+
+
+    this.zrest = new ZRestLoader({ scene: this.scene, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition });
+    this.zrest.load(url, loaded, progress, error);
   }
 
   setCameraPosition(position, target) {

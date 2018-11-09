@@ -79,25 +79,25 @@ ZRestLoader.prototype = {
 
     load(url, onLoad, onProgress, onError) {
 
-        this.onLoad = onLoad
-
         var loader = new THREE.FileLoader(this.manager);
         //loader.setPath(this.path);
         loader.setResponseType('arraybuffer');
         loader.load(url, (data) => {
-          this.data = data
-            this.parse(data)
+            this.parse(data, onLoad)
 
         }, onProgress, onError);
 
     },
 
     setPath(value) {
+
         this.path = value;
+
     },
 
-    parse(data) {
-
+    parse(data, onLoad) {
+      this.data = data
+      this.onLoad = onLoad
         var headerOffset = { Offset: 0 };
         var blob = new Blob([data]);
         var dataView = new DataView(data);
