@@ -126,7 +126,7 @@ export default class ClosetViewer {
     this.controls.target = new THREE.Vector3(0, cameraHeight, 0);
     this.controls.update();
     this.controls.addEventListener('change', () => {
-      if(this.updateCameraFunction) this.updateCameraFunction({ target: this.controls.target, position: this.camera.position, id: this.id })
+      if(this.updateCamera) this.updateCamera({ target: this.controls.target, position: this.camera.position, id: this.id })
       this.render()
     });
 
@@ -219,8 +219,6 @@ export default class ClosetViewer {
     var canvas = document.getElementById(this.setter);
     canvas.addEventListener("mouseout", () => this.controls.noPan = true, false);
     canvas.addEventListener("mouseover", () => this.controls.noPan = false, false);
-    canvas.addEventListener("mousedown", () => this.updateCameraFunction = this.updateCamera, false);
-    canvas.addEventListener("mouseup", () => this.updateCameraFunction = null, false);
     //canvas.addEventListener("click", this.onMouseClick, false);
     //canvas.addEventListener('mousemove', this.onDocumentMouseMove, false);
 
@@ -237,7 +235,8 @@ export default class ClosetViewer {
 
     // this.animate()
 
-    this.updateRender()
+    // this.render()
+    this.updateRender(1)
   }
 
   onDocumentMouseMove( e )
@@ -699,21 +698,23 @@ export default class ClosetViewer {
 
     let tmpCameraMatrix;
     let tmpColorwayIndex;
-    this.loadZrestUrlWithParameters(url, tmpCameraMatrix, tmpColorwayIndex, onProgress, onLoad);
+    this.loadZrestUrlWithParameters(url,  onLoad, onProgress, tmpCameraMatrix, tmpColorwayIndex);
 
   }
 
   loadZrestData(data, onLoad) {
-    this.zrest = new ZRestLoader({ scene: this.scene, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition });
-    this.zrest.parse(data, () => {
-      if(onLoad) onLoad(this)
-    })
+    let tmpCameraMatrix;
+    let tmpColorwayIndex;
+    this.loadZrestUrlWithParameters(data,  onLoad);
+
+    // this.zrest = new ZRestLoader({ scene: this.scene, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition });
+    // this.zrest.parse(data, () => {
+    //   if(onLoad) onLoad(this)
+    // })
   }
 
-  loadZrestUrlWithParameters(url, cameraMatrix, colorwayIndex, onProgress, onLoad) {
-    if(url === ''){
-      return
-    }
+  loadZrestUrlWithParameters(url, onLoad, onProgress, cameraMatrix, colorwayIndex) {
+
 
     const progress = function (xhr) {
       if (xhr.lengthComputable) {
@@ -747,9 +748,18 @@ export default class ClosetViewer {
 
     }
 
+    if(url.constructor === ArrayBuffer){
+      this.zrest = new ZRestLoader({ scene: this.scene, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition });
+      this.zrest.parse(url, loaded);
+      return
+    }
 
-    this.zrest = new ZRestLoader({ scene: this.scene, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition });
-    this.zrest.load(url, loaded, progress, error);
+
+    if(url.constructor === String){
+      this.zrest = new ZRestLoader({ scene: this.scene, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition });
+      this.zrest.load(url, loaded, progress, error);
+    }
+
   }
 
   setCameraPosition(position, target) {

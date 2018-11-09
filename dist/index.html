@@ -160,10 +160,12 @@
     })
 </script>
 <script>
-
+  var closetViewerArray = []
+  var currentURL = ''
     var cameraPosition = null
     var targetPosition = null
     var progressItem = document.getElementById('progresstest')
+
 
     var updated = function(data) {
         cameraPosition = data.position
@@ -171,8 +173,10 @@
         for(var i = 0;i<closetViewerArray.length;i++){
             const viewer = closetViewerArray[i].viewer
             if(viewer.id !== data.id && ischecked) {
-                viewer.setCameraPosition(cameraPosition, targetPosition)
+              viewer.setCameraPosition(cameraPosition, targetPosition)
+              viewer.onUpdateCamera(null)
               viewer.updateRender()
+              viewer.onUpdateCamera(updated)
             }
         }
     }
@@ -204,8 +208,7 @@
         document.getElementById('getAvatarStatus').innerText = closet.viewer.GetAvatarShowHideStatus();
     }
 
-    var closetViewerArray = []
-    var currentURL = ''
+
 
     closet.viewer.init({
         element: 'detail_viewer',
