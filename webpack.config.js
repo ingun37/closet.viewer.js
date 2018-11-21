@@ -6,6 +6,12 @@ function resolve(dir) {
 }
 
 module.exports = {
+  entry: {
+    'main': [
+      'babel-polyfill',
+      './src/index.js'
+    ]
+  },
   output: {
     filename: './closet.viewer.js',
     libraryTarget: "umd"
