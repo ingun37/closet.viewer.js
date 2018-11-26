@@ -187,12 +187,20 @@ ZRestLoader.prototype = {
         reader.readAsArrayBuffer(contentBlob);
     },
 
-    ZoomToObjects(loadedCamera, scene) {
-        // scene 의 모든 geometry 방문하면서 bounding cube 계산해서 전체 scene bounding cube 계산
+    GetObjectsCenter(scene) {
         let box = new THREE.Box3();
         box.expandByObject(scene);
         var center = new THREE.Vector3(0.5 * (box.min.x + box.max.x), 0.5 * (box.min.y + box.max.y), 0.5 * (box.min.z + box.max.z));
 
+        console.log(center);
+        return center;
+    },
+
+    ZoomToObjects(loadedCamera, scene) {
+        // scene 의 모든 geometry 방문하면서 bounding cube 계산해서 전체 scene bounding cube 계산
+        var center = new THREE.Vector3();
+        center.copy(this.GetObjectsCenter(scene));
+        
         if(loadedCamera.bLoaded === true)
         {
             this.camera.position.copy(new THREE.Vector3(loadedCamera.ltow.elements[12], loadedCamera.ltow.elements[13], loadedCamera.ltow.elements[14]))
@@ -212,6 +220,9 @@ ZRestLoader.prototype = {
         }
         else
         {
+            let box = new THREE.Box3();
+            box.expandByObject(scene);
+
             // trim이나 이상한 점 하나가 너무 동떨어진 경우에는 정해진 center 바라보게 하자
             let maxDistance = 10000.0;
             if (box.min.x < -maxDistance || box.min.y < -1000.0 || box.min.z < -maxDistance || box.max.x > maxDistance || box.max.y > maxDistance || box.max.z > maxDistance) {
@@ -230,8 +241,6 @@ ZRestLoader.prototype = {
                 this.controls.target.copy(center);
             }
         }
-
-
     },
 
     async LoadTexture(zip, textureFileName) {
