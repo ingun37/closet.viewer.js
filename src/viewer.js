@@ -47,22 +47,22 @@ var pointerScaleFactor = 35;
 
 function Annotation(pointer_position, normal, camera_position, camera_target, camera_quaternion, _message, _sprite)
 {
-  this.pointerPos = new THREE.Vector3();
+  this.pointerPos = new THREE.Vector3(); // DB
   this.pointerPos.copy(pointer_position);
 
-  this.faceNormal = new THREE.Vector3();
+  this.faceNormal = new THREE.Vector3(); // DB
   this.faceNormal.copy(normal);
 
-  this.cameraPos = new THREE.Vector3();
+  this.cameraPos = new THREE.Vector3(); // DB
   this.cameraPos.copy(camera_position);
 
-  this.cameraTarget = new THREE.Vector3();
+  this.cameraTarget = new THREE.Vector3(); // DB
   this.cameraTarget.copy(camera_target);
 
-  this.cameraQuaternion = new THREE.Quaternion();
+  this.cameraQuaternion = new THREE.Quaternion(); // DB
   this.cameraQuaternion.copy(camera_quaternion);
 
-  this.message = _message;
+  this.message = _message; // DB
   this.sprite = _sprite;
 }
 
@@ -479,7 +479,7 @@ export default class ClosetViewer {
     //}
   }
 
-  createAnnotation( pointerPos, faceNormal, cameraPos, message )
+  createAnnotation( pointerPos, faceNormal, cameraPos, cameraTarget, cameraQuaternion, message )
   {
     // 여기서 현재 화면 기준 가운데에 sphere 만들자.
     //let cameraPos = ;
@@ -505,8 +505,7 @@ export default class ClosetViewer {
     if(!bDuplicatePos)
     {
         // pointer 좌표만 들고있다가 render 할때마다 만드는건 개 비효율이겠지? 그냥 그때 그때 계속 추가하자.
-        var message = AnnotationList.length;
-        var sprite = makeTextSprite( ++message, 
+        var sprite = makeTextSprite( message, 
             { fontsize: 48, borderColor: {r:255, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:100, b:100, a:0.8} } );
         sprite.position.set(pointerPos.x, pointerPos.y, pointerPos.z);
         //sprite.position.set(0,0,0);
@@ -608,17 +607,36 @@ export default class ClosetViewer {
       console.log("mouse position : " + mouse);
       console.log("intersects length : " + length);
 
+      // 가장 큰 숫자 찾고 걔에서 +1 증가 시켜야 한다.
+      // 지금은 그냥 맨 끝에 있는 녀석 +1 로 하면 된다.
+      var max = -1;
+      for(let i=0; i<AnnotationList.length; i++)
+      {
+          var num = AnnotationList[i].message;
+          
+          if(max < num)
+              max = num;
+      }
+
+      var message = ++max;
+        
       if ( intersects.length > 0 )
       {
-        this.createAnnotation(intersects[0].point, intersects[0].face.normal, this.camera.position);
+        this.createAnnotation(intersects[0].point, intersects[0].face.normal, this.camera.position, this.controls.target, this.camera.quaternion, message);
       }
       else
       {
-        // 여기서 평면에다 다시 쏴야 함.
-          let pointerPos = this.computePointerPosition();
+          // 여기서 평면에다 다시 쏴야 함.
+          var pointerPos = new THREE.Vector3();
+          pointerPos.copy(this.computePointerPosition(mouse));
+
+          
+          
+          
+
           var cameraDirection = new THREE.Vector3();
           cameraDirection.copy(this.GetCameraDirection());
-          this.createAnnotation(pointerPos, cameraDirection.negate(), this.camera.position);
+          this.createAnnotation(pointerPos, cameraDirection.negate(), this.camera.position, this.controls.target, this.camera.quaternion, message);
       }
 
       /*
@@ -692,8 +710,11 @@ export default class ClosetViewer {
       return normalizedCameraDirVector;
   }
 
-  computePointerPosition()
+  computePointerPosition( mouse )
   {
+      // 여기서 마우스 클릭한 지점만큼 이동시켜 줘야 한다.
+      this.camera.updateProjectionMatrix();
+
     // 1. 카메라 포지션 - center 포지션 dot product 카메라 디렉션의 반대 방향
     var cameraPos = new THREE.Vector3();
     cameraPos.copy(this.camera.position);
@@ -711,14 +732,24 @@ export default class ClosetViewer {
     cameraToCenter.z = centerPos.z - cameraPos.z;
     
     var distance = Math.abs(cameraDirection.dot(cameraToCenter));
-
-    var transformVector = cameraDirection.multiplyScalar(distance);
+   // var transformVector = cameraDirection.multiplyScalar(distance);
 
     var intersectPos = new THREE.Vector3();
-    intersectPos.x = cameraPos.x + transformVector.x;
-    intersectPos.y = cameraPos.y + transformVector.y;
-    intersectPos.z = cameraPos.z + transformVector.z;
-    
+
+    // 1. camera와 평면까지의 distance 구하기
+    // 2. distance plane의 width, hight 계산
+    var rad = this.camera.fov * 0.5 * Math.PI/180;
+    var height = distance * Math.tan(rad) * 2;
+    var width = this.camera.aspect * height;
+
+    var localPos = new THREE.Vector3(width * 0.5 * mouse.x, height * 0.5 * mouse.y, -distance);
+    this.camera.updateMatrixWorld();
+
+    var worldPos = new THREE.Vector3();
+    worldPos.copy(localPos);
+    worldPos.applyMatrix4(this.camera.matrixWorld);
+    intersectPos.copy(worldPos);
+      
     return intersectPos;
   }
 
