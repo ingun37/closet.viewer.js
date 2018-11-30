@@ -17,13 +17,19 @@ class AnnotationManager {
 
     this.annotationList = []
     this.annotationPointerList = []
+    this.isCreateAnnotation = false
 
     // raycaster for picking
     this.raycaster = new THREE.Raycaster()
 
     this.getAnnotationList = this.getAnnotationList.bind(this)
     this.setAnnotationList = this.setAnnotationList.bind(this)
-    this.intersectObjectMouseEvent = this.intersectObjectMouseEvent.bind(this)
+    this.deleteAnnotation = this.deleteAnnotation.bind(this)
+    this.deleteAllAnnotation = this.deleteAllAnnotation.bind(this)
+    this.createAnnotation = this.createAnnotation.bind(this)
+    this.showAnnotation = this.showAnnotation.bind(this)
+    this.showAllAnnotation = this.showAllAnnotation.bind(this)
+    this.onMouseClick = this.onMouseClick.bind(this)
   }
 
   getAnnotationList() {
@@ -46,17 +52,7 @@ class AnnotationManager {
     }
   }
 
-  createAnnotation({pointerPos, faceNormal, cameraPos, cameraTarget, cameraQuaternion, message}) {
-    // 여기서 현재 화면 기준 가운데에 sphere 만들자.
-    //let cameraPos = ;
-    //let spherePos = ;
-
-    //let mouse = new THREE.Vector2();
-    //mouse.x = 0.0;
-    //mouse.y = 0.0;
-    //mouse.x = x;
-    //mouse.y = y;
-
+  createAnnotation({pointerPos, faceNormal, cameraPos, cameraTarget, cameraQuaternion, message}, isVisible = true) {
     // 여기서 이미 있으면 안만들기. 검사하자.
     let bDuplicatePos = false
     for (var i = 0; i < this.annotationList.length; i++) {
@@ -71,144 +67,93 @@ class AnnotationManager {
       var sprite = makeTextSprite(message,
         {fontsize: 48, borderColor: {r: 255, g: 255, b: 255, a: 1.0}, backgroundColor: {r: 0, g: 0, b: 0, a: 0.8}})
       sprite.position.set(pointerPos.x, pointerPos.y, pointerPos.z)
-      //sprite.position.set(0,0,0);
+      sprite.visible = isVisible
       this.scene.add(sprite)
-      //this.annotationPointerGroup.add(sprite);
       this.annotationPointerList.push(sprite)
 
-      //var sphereGeometry = new THREE.SphereBufferGeometry(5, 32, 32);
-      //var sphereMaterial = new THREE.MeshBasicMaterial({color: 0xff0000});
-      //var pointer = new THREE.Mesh(sphereGeometry, sphereMaterial);
-
-      //pointer.position.set(0,0,0);
-      //pointer.lookAt(faceNormal);
-      //pointer.position.copy(pointerPos);
-      //this.scene.add(pointer);
-      //var cameraTarget = new THREE.Vector3(0, 0, -1);
-      //cameraTarget.applyQuaternion(this.camera.quaternion);
       let annotation = new Annotation(pointerPos, faceNormal, cameraPos, this.controls.target, this.camera.quaternion, message, sprite)
       this.annotationList.push(annotation)
       this.updateRender()
     }
   }
 
-  intersectObjectMouseEvent(e) {
-    //1. sets the mouse position with a coordinate system where the center
-    //   of the screen is the origin
-    let canvasBounds = this.renderer.context.canvas.getBoundingClientRect()
-    const x = ((e.clientX - canvasBounds.left) / (canvasBounds.right - canvasBounds.left)) * 2 - 1
-    const y = -((e.clientY - canvasBounds.top) / (canvasBounds.bottom - canvasBounds.top)) * 2 + 1
-    const data = this.intersectObject({x, y})
-    this.createAnnotation(data)
+  deleteAnnotation(name) {
+    this.annotationPointerList = this.annotationPointerList.filter(item => item.name !== 'annotation_'+name)
+    this.annotationList = this.annotationList.filter(item => {
+      const sprite = this.scene.getObjectByName('annotation_'+name)
+      if(sprite) this.scene.remove(sprite)
+      return item.message !== name
+    })
+
     this.updateRender()
   }
 
-  intersectObject(mouse = {x: 0, y: 0}) {
+  deleteAllAnnotation() {
+    this.annotationPointerList = []
+    this.annotationList.map(item => {
+      const sprite = this.scene.getObjectById(item.id)
+      this.scene.remove(sprite)
+    })
+    this.annotationList = []
+  }
 
-    // test code : annotation pointer부터 검사하자.
-    if (this.annotationPointerList.length) {
-      this.raycaster.setFromCamera(mouse, this.camera)
-      var intersects = this.raycaster.intersectObjects(this.annotationPointerList, true)
+  showAnnotation(name) {
+    this.annotationPointerList.map(item => {
+      const sprite = this.scene.getObjectById(item.id)
+      sprite.visible = false
+    })
 
-      if (intersects.length > 0) {
-        // 처리할거 하고 return;
-        //for(var i=0; i<this.annotationPointerList.length; i++)
-        for (let i = 0; i < this.annotationList.length; i++) {
-          if (intersects[0].object === this.annotationList[i].sprite) {
-            var to = {
-              x: this.annotationList[i].cameraPos.x,
-              y: this.annotationList[i].cameraPos.y,
-              z: this.annotationList[i].cameraPos.z
-            }
-
-            // 여기서 interpolation 해야할게, camera position, camera upVector
-            if (this.camera.position.x !== to.x || this.camera.position.y !== to.y || this.camera.position.z !== to.z) {
-              var startQuaternion = new THREE.Quaternion()
-              startQuaternion.copy(this.camera.quaternion)
-              startQuaternion.normalize()
-
-              var endQuaternion = new THREE.Quaternion()
-              endQuaternion.copy(this.annotationList[i].cameraQuaternion)
-              endQuaternion.normalize()
-
-              var target = new THREE.Vector3()
-              target.copy(this.annotationList[i].cameraTarget)
-
-              var onUpdate = () => {
-                //console.log(this.camera.position);
-                //console.log(TweenMax);
-                //console.log(tween.currentProgress());
-                console.log(tween.progress())
-
-                // camera quaternion update
-                var q = new THREE.Quaternion()
-
-                var t = tween.progress()
-
-                THREE.Quaternion.slerp(startQuaternion, endQuaternion, q, t)
-
-                q.normalize()
-                this.camera.quaternion.copy(q)
-
-                //this.camera.lookAt(target);
-
-                this.updateRender()
-              }
-
-              var tween = TweenMax.to(this.camera.position, 3, {
-                x: to.x,
-                y: to.y,
-                z: to.z,
-                ease: Circ.easeInOutQuad,
-                onUpdate: onUpdate
-              })
-            }
-          }
-        }
-
-        return
+    if(name){
+      if(name.constructor === Array){
+        name.map(o => (this.scene.getObjectByName('annotation_'+o).visible = true))
+      }else{
+        this.scene.getObjectByName('annotation_'+name).visible = true
       }
     }
 
+
+    this.updateRender()
+  }
+
+  showAllAnnotation() {
+    this.annotationPointerList.map(item => {
+      const sprite = this.scene.getObjectByName(item.name)
+      sprite.visible = true
+    })
+    this.updateRender()
+  }
+
+  // viewer에서 canvas 클릭시 실행
+  onMouseClick(e) {
+    const annotationItem = this.checkIntersectObject(e)
+    if(annotationItem){
+      this.animateCamera(annotationItem)
+    }else if(this.isCreateAnnotation){
+      const position = this.createIntersectPosition(e)
+      this.createAnnotation({ ...position, message: '1' })
+    }
+  }
+
+  createIntersectPosition({ clientX, clientY }) {
     if (this.zrest.matMeshList !== undefined) {
-      //mouse.x = 0;
-      //mouse.y = 0;
+
+      const mouse = this.getMousePosition({ clientX, clientY })
 
       this.raycaster.setFromCamera(mouse, this.camera)
       var intersects = this.raycaster.intersectObjects(this.zrest.matMeshList)
 
-      var length = intersects.length
-      console.log("mouse position : " + mouse)
-      console.log("intersects length : " + length)
-
-      // 가장 큰 숫자 찾고 걔에서 +1 증가 시켜야 한다.
-      // 지금은 그냥 맨 끝에 있는 녀석 +1 로 하면 된다.
-      var max = -1
-      for (let i = 0; i < this.annotationList.length; i++) {
-        var num = this.annotationList[i].message
-
-        if (max < num)
-          max = num
-      }
-
-      var message = ++max
-
       if (intersects.length > 0) {
-
         return {
           pointerPos: intersects[0].point,
           faceNormal: intersects[0].face.normal,
           cameraPos: this.camera.position,
           cameraTarget: this.controls.target,
-          cameraQuaternion: this.camera.quaternion,
-          message
+          cameraQuaternion: this.camera.quaternion
         }
-      }
-      else {
+      } else {
         // 여기서 평면에다 다시 쏴야 함.
         var pointerPos = new THREE.Vector3()
         pointerPos.copy(this.computePointerPosition(mouse))
-
 
         var cameraDirection = new THREE.Vector3()
         cameraDirection.copy(this.GetCameraDirection())
@@ -218,12 +163,82 @@ class AnnotationManager {
           faceNormal: cameraDirection.negate(),
           cameraPos: this.camera.position,
           cameraTarget: this.controls.target,
-          cameraQuaternion: this.camera.quaternion,
-          message
+          cameraQuaternion: this.camera.quaternion
         }
       }
 
     }
+  }
+
+  checkIntersectObject({ clientX, clientY }) {
+
+    // test code : annotation pointer부터 검사하자.
+    if (this.annotationPointerList.length) {
+
+      const mouse = this.getMousePosition({ clientX, clientY })
+
+      this.raycaster.setFromCamera(mouse, this.camera)
+      var intersects = this.raycaster.intersectObjects(this.annotationPointerList, true)
+
+      if (intersects.length > 0) {
+        // 처리할거 하고 return;
+        //for(var i=0; i<this.annotationPointerList.length; i++)
+        for (let i = 0; i < this.annotationList.length; i++) {
+          if (intersects[0].object === this.annotationList[i].sprite) {
+            return this.annotationList[i]
+            // this.animateCamera(this.annotationList[i].cameraPos)
+          }
+        }
+      }
+    }
+  }
+
+  animateCamera(annotationItem) {
+    var to = {
+      x: annotationItem.cameraPos.x,
+      y: annotationItem.cameraPos.y,
+      z: annotationItem.cameraPos.z
+    }
+
+    // 여기서 interpolation 해야할게, camera position, camera upVector
+    if (this.camera.position.x !== to.x || this.camera.position.y !== to.y || this.camera.position.z !== to.z) {
+      var startQuaternion = new THREE.Quaternion()
+      startQuaternion.copy(this.camera.quaternion)
+      startQuaternion.normalize()
+
+      var endQuaternion = new THREE.Quaternion()
+      endQuaternion.copy(annotationItem.cameraQuaternion)
+      endQuaternion.normalize()
+
+      var target = new THREE.Vector3()
+      target.copy(annotationItem.cameraTarget)
+
+      var onUpdate = () => {
+        // camera quaternion update
+        var q = new THREE.Quaternion()
+        var t = tween.progress()
+        THREE.Quaternion.slerp(startQuaternion, endQuaternion, q, t)
+        q.normalize()
+        this.camera.quaternion.copy(q)
+        this.updateRender()
+      }
+
+      var tween = TweenMax.to(this.camera.position, 1.6, {
+        x: to.x,
+        y: to.y,
+        z: to.z,
+        ease: Power1.easeInOut,
+        onUpdate: onUpdate
+      })
+    }
+  }
+
+  getMousePosition({ clientX, clientY }) {
+    let canvasBounds = this.renderer.context.canvas.getBoundingClientRect()
+    const x = ((clientX - canvasBounds.left) / (canvasBounds.right - canvasBounds.left)) * 2 - 1
+    const y = -((clientY - canvasBounds.top) / (canvasBounds.bottom - canvasBounds.top)) * 2 + 1
+    return { x, y }
+    // return this.createIntersectPosition({x, y})
   }
 
   GetCameraDirection() {
@@ -365,6 +380,7 @@ function makeTextSprite(message, parameters) {
 
   var sprite = new THREE.Sprite(spriteMaterial)
   sprite.scale.set(50, 50, 1.0)
+  sprite.name = 'annotation_' + message
   return sprite
 }
 

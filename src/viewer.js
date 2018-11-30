@@ -364,8 +364,9 @@ export default class ClosetViewer {
 
   onMouseClick( e )
   {
+    console.log(e)
     e.preventDefault();
-    this.annotation.intersectObjectMouseEvent(e)
+    if(this.annotation) this.annotation.onMouseClick(e)
   }
 
   setVisibleAllGarment(visibility)
