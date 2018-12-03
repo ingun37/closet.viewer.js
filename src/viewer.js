@@ -594,31 +594,17 @@ export default class ClosetViewer {
     this.updateCamera = callback
   }
 
-  loadZrestUrl(url, onProgress, onLoad) {
-    if(url === ''){
-      return
-    }
-
-    let tmpCameraMatrix;
-    let tmpColorwayIndex;
-    this.loadZrestUrlWithParameters(url,  onLoad, onProgress, tmpCameraMatrix, tmpColorwayIndex);
-
+  loadZrestUrl(url, onProgress, onLoad, colorwayIndex) {
+    if(!url) return
+    this.loadZrestUrlWithParameters(url, onProgress, onLoad, colorwayIndex);
   }
 
-  loadZrestData(data, onLoad) {
-    let tmpCameraMatrix;
-    let tmpColorwayIndex;
-    this.loadZrestUrlWithParameters(data,  onLoad);
-
-    // this.zrest = new ZRestLoader({ scene: this.scene, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition });
-    // this.zrest.parse(data, () => {
-    //   if(onLoad) onLoad(this)
-    // })
+  loadZrestData(data, onLoad, colorwayIndex) {
+    if(!data) return
+    this.loadZrestUrlWithParameters(data, null, onLoad, colorwayIndex);
   }
 
-  loadZrestUrlWithParameters(url, onLoad, onProgress, cameraMatrix, colorwayIndex) {
-
-
+  loadZrestUrlWithParameters(url, onProgress, onLoad, colorwayIndex) {
     const progress = function (xhr) {
       if (xhr.lengthComputable) {
         const percentComplete = xhr.loaded / xhr.total * 100;
@@ -629,22 +615,31 @@ export default class ClosetViewer {
 
     const error = function (xhr) { };
 
-    const loaded = (object, loadedCamera, data) => {
+    const loaded = async (object, loadedCamera, data) => {
+
+      this.annotation = new AnnotationManager({
+        scene: this.scene,
+        camera: this.camera,
+        renderer: this.renderer,
+        controls: this.controls,
+        zrest: this.zrest,
+        updateRender: this.updateRender
+      })
+
       // delete object3D, geometry, material dispose
       for (var i = 0 ; i < this.scene.children.length; i++) {
         if(this.scene.children[i].name === 'object3D') {
           clearThree(this.scene.children[i])
         }
       }
-
+      if(colorwayIndex > -1) await this.changeColorway(colorwayIndex);
       this.scene.add(object)
       this.object3D = object
       this.zrest.ZoomToObjects(loadedCamera, this.scene);
 
+
       if(onLoad) onLoad(this)
 
-      // this.setCameraMatrix(cameraMatrix, false);
-      if(colorwayIndex) this.changeColorway(colorwayIndex);
 
       this.updateRender()
 
@@ -662,14 +657,7 @@ export default class ClosetViewer {
       this.zrest.load(url, loaded, progress, error);
     }
 
-    this.annotation = new AnnotationManager({
-      scene: this.scene,
-      camera: this.camera,
-      renderer: this.renderer,
-      controls: this.controls,
-      zrest: this.zrest,
-      updateRender: this.updateRender
-    })
+
 
 
   }
@@ -677,6 +665,7 @@ export default class ClosetViewer {
   setCameraPosition(position, target) {
     this.camera.position.copy(position)
     if(target) this.controls.target.copy(target)
+    this.updateRender()
   }
 
   getColorwaySize() {
