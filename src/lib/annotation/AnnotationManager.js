@@ -29,12 +29,7 @@ class AnnotationManager {
     this.createAnnotation = this.createAnnotation.bind(this)
     this.showAnnotation = this.showAnnotation.bind(this)
     this.showAllAnnotation = this.showAllAnnotation.bind(this)
-    this.onMouseDown = this.onMouseDown.bind(this)
-    this.onMouseMove = this.onMouseMove.bind(this)
-    this.onMouseUp = this.onMouseUp.bind(this)
-
-    this.pickedAnnotation = null;
-    this.mouseButtonDown = false;
+    this.onMouseClick = this.onMouseClick.bind(this)
   }
 
   getAnnotationList() {
@@ -129,41 +124,14 @@ class AnnotationManager {
   }
 
   // viewer에서 canvas 클릭시 실행
-  onMouseDown(e)
-  {
-    this.mouseButtonDown = true;
+  onMouseClick(e) {
     const annotationItem = this.checkIntersectObject(e)
-    if(annotationItem)
-    {
-        this.pickedAnnotation = annotationItem;
-        this.animateCamera(annotationItem)
+    if(annotationItem){
+      this.animateCamera(annotationItem)
+    }else if(this.isCreateAnnotation){
+      const position = this.createIntersectPosition(e)
+      this.createAnnotation({ ...position, message: '1' })
     }
-    else
-    {
-        this.pickedAnnotation = null;
-        if(this.isCreateAnnotation)
-        {
-            const position = this.createIntersectPosition(e)
-            this.createAnnotation({ ...position, message: '1' })
-        }
-    }
-  }
-
-  onMouseMove(e)
-  {
-      if(this.mouseButtonDown === true && this.pickedAnnotation !== null)
-      {
-          this.controls.enabled = false;
-          const position = this.createIntersectPosition(e)
-          this.pickedAnnotation.sprite.position.copy(position.pointerPos);
-          this.updateRender();
-      }
-  }
-
-  onMouseUp(e)
-  {
-      this.mouseButtonDown = false;
-      this.controls.enabled = true;
   }
 
   createIntersectPosition({ clientX, clientY }) {

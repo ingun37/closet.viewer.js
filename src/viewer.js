@@ -42,6 +42,12 @@ var mouse = new THREE.Vector2(), INTERSECTED;
 var helper;
 
 
+
+
+
+
+
+
 export default class ClosetViewer {
   constructor() {
     this.init = this.init.bind(this)
@@ -57,9 +63,8 @@ export default class ClosetViewer {
     this.getColorwaySize = this.getColorwaySize.bind(this)
     this.onUpdateCamera = this.onUpdateCamera.bind(this)
     this.stopRender = this.stopRender.bind(this)
-    this.onMouseDown = this.onMouseDown.bind(this)
-    this.onMouseMove = this.onMouseMove.bind(this)
-    this.onMouseUp = this.onMouseUp.bind(this)
+    this.onMouseClick = this.onMouseClick.bind(this)
+    this.onDocumentMouseMove = this.onDocumentMouseMove.bind(this)
     this.setVisibleAllGarment = this.setVisibleAllGarment.bind(this)
     this.setVisibleAllAvatar = this.setVisibleAllAvatar.bind(this)
     this.isExistGarment = this.isExistGarment.bind(this)
@@ -73,6 +78,7 @@ export default class ClosetViewer {
 
     this.object3D = null
     //this.annotationPointerGroup = new THREE.Object3D();
+
   }
 
   init({ width, height, element, cameraPosition = null }) {
@@ -206,9 +212,8 @@ export default class ClosetViewer {
     var canvas = document.getElementById(this.setter);
     canvas.addEventListener("mouseout", () => this.controls.noPan = true, false);
     canvas.addEventListener("mouseover", () => this.controls.noPan = false, false);
-    canvas.addEventListener("mousedown", this.onMouseDown, false);
-    canvas.addEventListener('mousemove', this.onMouseMove, false);
-    canvas.addEventListener('mouseup', this.onMouseUp, false);
+    canvas.addEventListener("click", this.onMouseClick, false);
+    //canvas.addEventListener('mousemove', this.onDocumentMouseMove, false);
 
     if(!PRODUCTION){
       rendererStats.domElement.style.position	= 'absolute'
@@ -230,11 +235,9 @@ export default class ClosetViewer {
     this.updateRender(1)
   }
 
-  onMouseMove( e )
+  onDocumentMouseMove( e )
   {
-      console.log(e)
       e.preventDefault();
-      if(this.annotation) this.annotation.onMouseMove(e)
       return;
       //
       // test code
@@ -359,18 +362,11 @@ export default class ClosetViewer {
 
 
 
-  onMouseDown( e )
+  onMouseClick( e )
   {
     console.log(e)
     e.preventDefault();
-    if(this.annotation) this.annotation.onMouseDown(e)
-  }
-
-  onMouseUp( e )
-  {
-      console.log(e)
-      e.preventDefault();
-      if(this.annotation) this.annotation.onMouseUp(e)
+    if(this.annotation) this.annotation.onMouseClick(e)
   }
 
   setVisibleAllGarment(visibility)
