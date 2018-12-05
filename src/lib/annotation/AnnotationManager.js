@@ -62,6 +62,7 @@ class AnnotationManager {
       }
     }
 
+    let id = undefined
     if (!bDuplicatePos) {
       // pointer 좌표만 들고있다가 render 할때마다 만드는건 개 비효율이겠지? 그냥 그때 그때 계속 추가하자.
       var sprite = makeTextSprite(message,
@@ -70,11 +71,13 @@ class AnnotationManager {
       sprite.visible = isVisible
       this.scene.add(sprite)
       this.annotationPointerList.push(sprite)
+      id = sprite.id
 
       let annotation = new Annotation(pointerPos, faceNormal, cameraPos, this.controls.target, this.camera.quaternion, message, sprite)
       this.annotationList.push(annotation)
       this.updateRender()
     }
+    return id
   }
 
   deleteAnnotation(name) {
@@ -97,20 +100,17 @@ class AnnotationManager {
     this.annotationList = []
   }
 
-  showAnnotation(name) {
+  showAnnotation(arr) {
+
     this.annotationPointerList.map(item => {
-      const sprite = this.scene.getObjectById(item.id)
-      sprite.visible = false
-    })
 
-    if(name){
-      if(name.constructor === Array){
-        name.map(o => (this.scene.getObjectByName('annotation_'+o).visible = true))
+      const names = arr ? arr.filter(o => 'annotation_'+o === item.name) : []
+      if(names.length){
+        this.scene.getObjectByName('annotation_'+names[0]).visible = true
       }else{
-        this.scene.getObjectByName('annotation_'+name).visible = true
+        this.scene.getObjectByName(item.name).visible = false
       }
-    }
-
+    })
 
     this.updateRender()
   }
