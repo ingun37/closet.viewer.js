@@ -162,6 +162,15 @@ export default class ClosetViewer {
     this.background_scene.add(this.background_camera);
     this.background_scene.add(this.backgroundMesh);
 
+
+    this.annotation = new AnnotationManager({
+      scene: this.scene,
+      camera: this.camera,
+      renderer: this.renderer,
+      controls: this.controls,
+      updateRender: this.updateRender
+    })
+
     //var sprite = makeTextSprite( "2", 
 	//	{ fontsize: 32, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0} } );
     //sprite.position.set(0,0,0);
@@ -232,7 +241,7 @@ export default class ClosetViewer {
 
   onMouseMove( e )
   {
-      console.log(e)
+      // console.log(e)
       e.preventDefault();
       if(this.annotation) this.annotation.onMouseMove(e)
       return;
@@ -361,14 +370,14 @@ export default class ClosetViewer {
 
   onMouseDown( e )
   {
-    console.log(e)
+    //console.log(e)
     e.preventDefault();
     if(this.annotation) this.annotation.onMouseDown(e)
   }
 
   onMouseUp( e )
   {
-      console.log(e)
+      //console.log(e)
       e.preventDefault();
       if(this.annotation) this.annotation.onMouseUp(e)
   }
@@ -621,13 +630,8 @@ export default class ClosetViewer {
 
     const loaded = async (object, loadedCamera, data) => {
 
-      this.annotation = new AnnotationManager({
-        scene: this.scene,
-        camera: this.camera,
-        renderer: this.renderer,
-        controls: this.controls,
-        zrest: this.zrest,
-        updateRender: this.updateRender
+      this.annotation.init({
+        zrest: this.zrest
       })
 
       // delete object3D, geometry, material dispose

@@ -7,12 +7,13 @@ const pointerScaleFactor = 65
 
 
 class AnnotationManager {
-  constructor({scene, camera, renderer, controls, zrest, updateRender}) {
+  constructor({scene, camera, renderer, controls, updateRender}) {
+
     this.scene = scene
     this.camera = camera
     this.renderer = renderer
     this.controls = controls
-    this.zrest = zrest
+
     this.updateRender = updateRender
 
     this.annotationList = []
@@ -32,9 +33,23 @@ class AnnotationManager {
     this.onMouseDown = this.onMouseDown.bind(this)
     this.onMouseMove = this.onMouseMove.bind(this)
     this.onMouseUp = this.onMouseUp.bind(this)
+    this.bindEventListener = this.bindEventListener.bind(this)
 
     this.pickedAnnotation = null;
     this.mouseButtonDown = false;
+    this.isMouseMoved = false
+
+    this.onCompleteAnnotationMove = () => {}
+    this.onCompleteAnimation = () => {}
+  }
+
+  init({ zrest }) {
+    this.zrest = zrest
+  }
+
+  bindEventListener({ onCompleteAnnotationMove, onCompleteAnimation }) {
+    this.onCompleteAnnotationMove = onCompleteAnnotationMove
+    this.onCompleteAnimation = onCompleteAnimation
   }
 
   getAnnotationList() {
@@ -71,7 +86,7 @@ class AnnotationManager {
     if (!bDuplicatePos) {
       // pointer 좌표만 들고있다가 render 할때마다 만드는건 개 비효율이겠지? 그냥 그때 그때 계속 추가하자.
       var sprite = makeTextSprite(message,
-        {fontsize: 48, borderColor: {r: 255, g: 255, b: 255, a: 1.0}, backgroundColor: {r: 0, g: 0, b: 0, a: 0.8}})
+        {fontsize: 48, borderColor: {r: 255, g: 255, b: 255, a: 0.5}, backgroundColor: {r: 0, g: 0, b: 0, a: 0.5}})
       sprite.position.set(pointerPos.x, pointerPos.y, pointerPos.z)
       sprite.visible = isVisible
       this.scene.add(sprite)
@@ -136,7 +151,8 @@ class AnnotationManager {
     if(annotationItem)
     {
         this.pickedAnnotation = annotationItem;
-        this.animateCamera(annotationItem)
+        this.isMouseMoved = false
+        // this.animateCamera(annotationItem)
     }
     else
     {
@@ -153,6 +169,7 @@ class AnnotationManager {
   {
       if(this.mouseButtonDown === true && this.pickedAnnotation !== null)
       {
+        this.isMouseMoved = true
           this.controls.enabled = false;
           const position = this.createIntersectPosition(e)
           this.pickedAnnotation.sprite.position.copy(position.pointerPos);
@@ -164,6 +181,20 @@ class AnnotationManager {
   {
       this.mouseButtonDown = false;
       this.controls.enabled = true;
+
+      if(this.isMouseMoved){
+        this.onCompleteAnnotationMove(this.pickedAnnotation)
+
+      }else{
+        const annotationItem = this.checkIntersectObject(e)
+        if(annotationItem)
+        {
+          this.pickedAnnotation = annotationItem;
+          this.animateCamera(annotationItem)
+        }
+        this.isMouseMoved = false
+      }
+
   }
 
   createIntersectPosition({ clientX, clientY }) {
@@ -255,12 +286,17 @@ class AnnotationManager {
         this.updateRender()
       }
 
+      var onComplete = () => {
+        this.onCompleteAnimation(this.pickedAnnotation)
+      }
+
       var tween = TweenMax.to(this.camera.position, 1.6, {
         x: to.x,
         y: to.y,
         z: to.z,
         ease: Power1.easeInOut,
-        onUpdate: onUpdate
+        onUpdate: onUpdate,
+        onComplete: onComplete
       })
     }
   }
@@ -360,7 +396,7 @@ function makeTextSprite(message, parameters) {
     parameters["fontsize"] : 18
 
   var borderThickness = parameters.hasOwnProperty("borderThickness") ?
-    parameters["borderThickness"] : 4
+    parameters["borderThickness"] : 8
 
   var borderColor = parameters.hasOwnProperty("borderColor") ?
     parameters["borderColor"] : {r: 0, g: 0, b: 0, a: 1.0}
