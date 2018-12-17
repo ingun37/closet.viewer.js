@@ -7,7 +7,7 @@ const pointerScaleFactor = 65
 
 
 class AnnotationManager {
-  constructor({scene, camera, renderer, controls, updateRender}) {
+  constructor({scene, camera, renderer, controls, updateRender, setter}) {
 
     this.scene = scene
     this.camera = camera
@@ -15,10 +15,13 @@ class AnnotationManager {
     this.controls = controls
 
     this.updateRender = updateRender
+    this.setter = setter
 
     this.annotationList = []
     this.annotationPointerList = []
     this.isCreateAnnotation = false
+
+    this.mousePosition = {}
 
     // raycaster for picking
     this.raycaster = new THREE.Raycaster()
@@ -35,19 +38,21 @@ class AnnotationManager {
     this.onMouseUp = this.onMouseUp.bind(this)
     this.bindEventListener = this.bindEventListener.bind(this)
 
-    this.pickedAnnotation = null;
-    this.mouseButtonDown = false;
+    this.pickedAnnotation = null
+    this.mouseButtonDown = false
     this.isMouseMoved = false
 
-    this.onCompleteAnnotationMove = () => {}
-    this.onCompleteAnimation = () => {}
+    this.onCompleteAnnotationMove = () => {
+    }
+    this.onCompleteAnimation = () => {
+    }
   }
 
-  init({ zrest }) {
+  init({zrest}) {
     this.zrest = zrest
   }
 
-  bindEventListener({ onCompleteAnnotationMove, onCompleteAnimation }) {
+  bindEventListener({onCompleteAnnotationMove, onCompleteAnimation}) {
     this.onCompleteAnnotationMove = onCompleteAnnotationMove
     this.onCompleteAnimation = onCompleteAnimation
   }
@@ -101,10 +106,10 @@ class AnnotationManager {
   }
 
   deleteAnnotation(name) {
-    this.annotationPointerList = this.annotationPointerList.filter(item => item.name !== 'annotation_'+name)
+    this.annotationPointerList = this.annotationPointerList.filter(item => item.name !== 'annotation_' + name)
     this.annotationList = this.annotationList.filter(item => {
-      const sprite = this.scene.getObjectByName('annotation_'+name)
-      if(sprite) this.scene.remove(sprite)
+      const sprite = this.scene.getObjectByName('annotation_' + name)
+      if (sprite) this.scene.remove(sprite)
       return item.message !== name
     })
 
@@ -124,10 +129,10 @@ class AnnotationManager {
 
     this.annotationPointerList.map(item => {
 
-      const names = arr ? arr.filter(o => 'annotation_'+o === item.name) : []
-      if(names.length){
-        this.scene.getObjectByName('annotation_'+names[0]).visible = true
-      }else{
+      const names = arr ? arr.filter(o => 'annotation_' + o === item.name) : []
+      if (names.length) {
+        this.scene.getObjectByName('annotation_' + names[0]).visible = true
+      } else {
         this.scene.getObjectByName(item.name).visible = false
       }
     })
@@ -144,63 +149,67 @@ class AnnotationManager {
   }
 
   // viewer에서 canvas 클릭시 실행
-  onMouseDown(e)
-  {
-    this.mouseButtonDown = true;
+  onMouseDown(e) {
+    this.mousePosition = {x: e.clientX, y: e.clientY}
+    this.pickedAnnotation = this.checkIntersectObject(e)
+    if (this.pickedAnnotation) {
+      this.controls.enabled = false
+    }
+
+  }
+
+  onMouseMove(e) {
     const annotationItem = this.checkIntersectObject(e)
-    if(annotationItem)
-    {
-        this.pickedAnnotation = annotationItem;
-        this.isMouseMoved = false
-        // this.animateCamera(annotationItem)
+    if (annotationItem) {
+      this.setter.style.cursor = "pointer"
+    } else if (!annotationItem && this.setter.style.cursor === "pointer") {
+      this.setter.style.cursor = "default"
     }
-    else
-    {
-        this.pickedAnnotation = null;
-        if(this.isCreateAnnotation)
-        {
-            const position = this.createIntersectPosition(e)
-            this.createAnnotation({ ...position, message: '1' })
-        }
-    }
-  }
 
-  onMouseMove(e)
-  {
-      if(this.mouseButtonDown === true && this.pickedAnnotation !== null)
-      {
+    if (this.pickedAnnotation) {
+      if (Math.abs(e.clientX - this.mousePosition.x) > 5 || Math.abs(e.clientY - this.mousePosition.y) > 5) {
         this.isMouseMoved = true
-          this.controls.enabled = false;
-          const position = this.createIntersectPosition(e)
-          this.pickedAnnotation.sprite.position.copy(position.pointerPos);
-          this.updateRender();
+        const position = this.createIntersectPosition(e)
+        this.pickedAnnotation.sprite.position.copy(position.pointerPos)
+        this.updateRender()
       }
-  }
-
-  onMouseUp(e)
-  {
-      this.mouseButtonDown = false;
-      this.controls.enabled = true;
-
-      if(this.isMouseMoved){
-        this.onCompleteAnnotationMove(this.pickedAnnotation)
-
-      }else{
-        const annotationItem = this.checkIntersectObject(e)
-        if(annotationItem)
-        {
-          this.pickedAnnotation = annotationItem;
-          this.animateCamera(annotationItem)
-        }
-        this.isMouseMoved = false
-      }
+    }
 
   }
 
-  createIntersectPosition({ clientX, clientY }) {
+  onMouseUp(e) {
+    this.controls.enabled = true
+  }
+
+  onMouseClick(e) {
+    if(this.isMouseMoved){
+      this.onCompleteAnnotationMove(this.pickedAnnotation)
+      this.isMouseMoved = false
+      this.pickedAnnotation = undefined
+      return
+    }
+
+    const annotationItem = this.checkIntersectObject(e)
+    if (annotationItem) {
+      if (!this.isMouseMoved) {
+        this.animateCamera(annotationItem)
+      }
+    } else {
+      if (Math.abs(e.clientX - this.mousePosition.x) < 5 && Math.abs(e.clientY - this.mousePosition.y) < 5) {
+        const position = this.createIntersectPosition(e)
+        if(this.isCreateAnnotation) this.createAnnotation({...position, message: '1'})
+      }
+
+    }
+    this.isMouseMoved = false
+    this.pickedAnnotation = undefined
+
+  }
+
+  createIntersectPosition({clientX, clientY}) {
     if (this.zrest.matMeshList !== undefined) {
 
-      const mouse = this.getMousePosition({ clientX, clientY })
+      const mouse = this.getMousePosition({clientX, clientY})
 
       this.raycaster.setFromCamera(mouse, this.camera)
       var intersects = this.raycaster.intersectObjects(this.zrest.matMeshList)
@@ -233,12 +242,12 @@ class AnnotationManager {
     }
   }
 
-  checkIntersectObject({ clientX, clientY }) {
+  checkIntersectObject({clientX, clientY}) {
 
     // test code : annotation pointer부터 검사하자.
     if (this.annotationPointerList.length) {
 
-      const mouse = this.getMousePosition({ clientX, clientY })
+      const mouse = this.getMousePosition({clientX, clientY})
 
       this.raycaster.setFromCamera(mouse, this.camera)
       var intersects = this.raycaster.intersectObjects(this.annotationPointerList, true)
@@ -257,6 +266,9 @@ class AnnotationManager {
   }
 
   animateCamera(annotationItem) {
+
+    this.controls.enabled = false
+
     var to = {
       x: annotationItem.cameraPos.x,
       y: annotationItem.cameraPos.y,
@@ -287,7 +299,8 @@ class AnnotationManager {
       }
 
       var onComplete = () => {
-        this.onCompleteAnimation(this.pickedAnnotation)
+        this.onCompleteAnimation(annotationItem)
+        this.controls.enabled = true
       }
 
       var tween = TweenMax.to(this.camera.position, 1.6, {
@@ -301,11 +314,11 @@ class AnnotationManager {
     }
   }
 
-  getMousePosition({ clientX, clientY }) {
+  getMousePosition({clientX, clientY}) {
     let canvasBounds = this.renderer.context.canvas.getBoundingClientRect()
     const x = ((clientX - canvasBounds.left) / (canvasBounds.right - canvasBounds.left)) * 2 - 1
     const y = -((clientY - canvasBounds.top) / (canvasBounds.bottom - canvasBounds.top)) * 2 + 1
-    return { x, y }
+    return {x, y}
     // return this.createIntersectPosition({x, y})
   }
 

@@ -186,7 +186,7 @@
     onUnchecked: function () {
       window[this.name] = false
 
-      if(isAnnotation) closet.viewer.annotation.isCreateAnnotation = false
+      if(!isAnnotation) closet.viewer.annotation.isCreateAnnotation = false
     }
   })
 </script>
@@ -249,9 +249,9 @@
   closetViewerArray.push({viewer: closet.viewer, id: 'detail_viewer'})
 
 
-  document.querySelector('#detail_viewer').addEventListener("click", function(e) {
-    closet.viewer.annotation.onMouseClick({ clientX: e.clientX, clientY: e.clientY }, window.isAnnotation)
-  }, false)
+  // document.querySelector('#detail_viewer').addEventListener("click", function(e) {
+  //   closet.viewer.annotation.onMouseClick({ clientX: e.clientX, clientY: e.clientY }, window.isAnnotation)
+  // }, false)
 
 
   function add() {
