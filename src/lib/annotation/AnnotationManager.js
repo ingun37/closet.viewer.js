@@ -39,6 +39,7 @@ class AnnotationManager {
     this.bindEventListener = this.bindEventListener.bind(this)
 
     this.pickedAnnotation = null
+    this.hoverAnnotation = null
     this.mouseButtonDown = false
     this.isMouseMoved = false
 
@@ -162,9 +163,20 @@ class AnnotationManager {
     const annotationItem = this.checkIntersectObject(e)
     if (annotationItem) {
       this.setter.style.cursor = "pointer"
-      // annotationItem.sprite.material.color.r = 0.5
+      if(!this.hoverAnnotation) {
+        annotationItem.sprite.material.color.r = 0.5
+        this.hoverAnnotation = annotationItem
+        this.updateRender()
+      }
+
     } else if (!annotationItem && this.setter.style.cursor === "pointer") {
       this.setter.style.cursor = "default"
+      if(this.hoverAnnotation){
+        this.hoverAnnotation.sprite.material.color.r = 1
+        this.updateRender()
+        this.hoverAnnotation = undefined
+      }
+
     }
 
     if (this.pickedAnnotation) {
@@ -172,6 +184,7 @@ class AnnotationManager {
         this.isMouseMoved = true
         const position = this.createIntersectPosition(e)
         this.pickedAnnotation.sprite.position.copy(position.pointerPos)
+        this.pickedAnnotation.sprite.material.color.r = 0.5
         this.updateRender()
       }
     }
@@ -303,6 +316,7 @@ class AnnotationManager {
 
       var onComplete = () => {
         this.onCompleteAnimation(annotationItem)
+        annotationItem.sprite.material.color.r = 1
         this.controls.enabled = true
       }
 
