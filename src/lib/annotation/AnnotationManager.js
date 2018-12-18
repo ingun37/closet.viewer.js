@@ -197,7 +197,7 @@ class AnnotationManager {
     } else {
       if (Math.abs(e.clientX - this.mousePosition.x) < 5 && Math.abs(e.clientY - this.mousePosition.y) < 5) {
         const position = this.createIntersectPosition(e)
-        if(this.isCreateAnnotation) this.createAnnotation({...position, message: '1'})
+        if(this.isCreateAnnotation) this.createAnnotation({...position, message: '12'})
       }
 
     }
@@ -450,7 +450,7 @@ function makeTextSprite(message, parameters) {
 
   context.textAlign = "center"
   context.textBaseline = "middle"
-  context.fillText(message, canvas.width / 2, canvas.height / 2)
+  context.fillText(message, canvas.width / 2 - 2, canvas.height / 2 + 4)
 
   // canvas contents will be used for a texture
   var texture = new THREE.Texture(canvas)
