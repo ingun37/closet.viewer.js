@@ -162,6 +162,7 @@ class AnnotationManager {
     const annotationItem = this.checkIntersectObject(e)
     if (annotationItem) {
       this.setter.style.cursor = "pointer"
+      // annotationItem.sprite.material.color.r = 0.5
     } else if (!annotationItem && this.setter.style.cursor === "pointer") {
       this.setter.style.cursor = "default"
     }
@@ -192,9 +193,11 @@ class AnnotationManager {
     const annotationItem = this.checkIntersectObject(e)
     if (annotationItem) {
       if (!this.isMouseMoved) {
+        // animation
         this.animateCamera(annotationItem)
       }
     } else {
+      // create annotation
       if (Math.abs(e.clientX - this.mousePosition.x) < 5 && Math.abs(e.clientY - this.mousePosition.y) < 5) {
         const position = this.createIntersectPosition(e)
         if(this.isCreateAnnotation) this.createAnnotation({...position, message: '12'})
@@ -209,7 +212,7 @@ class AnnotationManager {
   createIntersectPosition({clientX, clientY}) {
     if (this.zrest.matMeshList !== undefined) {
 
-      const mouse = this.getMousePosition({clientX, clientY})
+      const mouse = this.getMousePosition({ clientX: clientX, clientY: clientY - 10})
 
       this.raycaster.setFromCamera(mouse, this.camera)
       var intersects = this.raycaster.intersectObjects(this.zrest.matMeshList)
@@ -303,7 +306,7 @@ class AnnotationManager {
         this.controls.enabled = true
       }
 
-      var tween = TweenMax.to(this.camera.position, 1.6, {
+      var tween = TweenMax.to(this.camera.position, 0.8, {
         x: to.x,
         y: to.y,
         z: to.z,
