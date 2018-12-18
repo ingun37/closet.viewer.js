@@ -183,7 +183,7 @@ class AnnotationManager {
 
   onMouseClick(e) {
     if(this.isMouseMoved){
-      this.onCompleteAnnotationMove(this.pickedAnnotation)
+      this.onCompleteAnnotationMove(this.pickedAnnotation, e)
       this.isMouseMoved = false
       this.pickedAnnotation = undefined
       return
