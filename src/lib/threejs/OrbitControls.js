@@ -557,6 +557,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 				scope.object.position.x = 0;
 				scope.object.position.y = -8000 * 0.5;
 				scope.object.position.z = 0;
+              scope.update();
 				break;
 
 		    case 49: // left front
@@ -565,6 +566,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 				scope.object.position.x = -8000 * Math.sin(Math.PI * 45.0/180.0);
 				scope.object.position.y = 920;
 				scope.object.position.z = 8000 *  Math.sin(Math.PI * 45.0/180.0);
+          scope.update();
 				break;
 
 		    case 50: // front
@@ -573,6 +575,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 				scope.object.position.x = 0;
 				scope.object.position.y = 920;
 				scope.object.position.z = 8000;
+          scope.update();
 				break;
 		    
 		    case 51: // rigth front
@@ -581,6 +584,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 		        scope.object.position.x = 8000 * Math.sin(Math.PI * 45.0/180.0);
 		        scope.object.position.y = 920;
 		        scope.object.position.z = 8000 *  Math.sin(Math.PI * 45.0/180.0);
+          scope.update();
 		        break;
 
 		    case 52: //left
@@ -589,6 +593,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 				scope.object.position.x = -8000;
 				scope.object.position.y = 920;
 				scope.object.position.z = 0;
+          scope.update();
 				break;
 
 		    case 53: // top
@@ -597,6 +602,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 				scope.object.position.x = 0;
 				scope.object.position.y = 8000;
 				scope.object.position.z = 0;
+          scope.update();
 				break;
 
 		    case 54: // right
@@ -605,6 +611,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 				scope.object.position.x = 8000;
 				scope.object.position.y = 920;
 				scope.object.position.z = 0;
+          scope.update();
 				break;
 
 		    case 56: // back
@@ -613,6 +620,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 				scope.object.position.x = 0;
 				scope.object.position.y = 920;
 				scope.object.position.z = -8000;
+          scope.update();
 				break;
 		}
 
