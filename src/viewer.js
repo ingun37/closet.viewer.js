@@ -6,6 +6,7 @@ import '@/lib/draco/DRACOLoader'
 import RendererStats from '@xailabs/three-renderer-stats';
 import {TweenMax } from "gsap/TweenMax";
 import AnnotationManager from "@/lib/annotation/AnnotationManager"
+import screenfull from 'screenfull'
 
 var container, states;
 var camera, scene, renderer, controls;
@@ -70,6 +71,7 @@ export default class ClosetViewer {
     this.setCameraPosition = this.setCameraPosition.bind(this)
     this.updateRender = this.updateRender.bind(this)
     this.loadZrestData = this.loadZrestData.bind(this)
+    this.fullscreen = this.fullscreen.bind(this)
 
     this.object3D = null
     //this.annotationPointerGroup = new THREE.Object3D();
@@ -77,9 +79,9 @@ export default class ClosetViewer {
 
   init({ width, height, element, cameraPosition = null }) {
 
-    var w = width;
-    var h = height;
-    this.setter = element;
+    var w = this.defaultWidth = width;
+    var h = this.defaultHeight = height;
+    this.setter = document.getElementById(element) || document.querySelector(element);
     this.id = element;
     this.cameraPosition = cameraPosition;
 
@@ -95,7 +97,7 @@ export default class ClosetViewer {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    document.getElementById(this.setter).appendChild(this.renderer.domElement);
+    this.setter.appendChild(this.renderer.domElement);
 
     //create camera
     this.camera = new THREE.PerspectiveCamera(15, w / h, 100, 100000);
@@ -212,7 +214,7 @@ export default class ClosetViewer {
     //scene.add(helper);
 
     // canvas event
-    var canvas = document.getElementById(this.setter);
+    var canvas = this.setter;
     canvas.addEventListener("mouseout", () => this.controls.noPan = true, false);
     canvas.addEventListener("mouseover", () => this.controls.noPan = false, false);
     canvas.addEventListener("mousedown", this.onMouseDown, false);
@@ -223,10 +225,8 @@ export default class ClosetViewer {
       rendererStats.domElement.style.position	= 'absolute'
       rendererStats.domElement.style.left	= '-100px'
       rendererStats.domElement.style.top	= '0px'
-      document.getElementById(this.setter).appendChild( rendererStats.domElement )
+      this.setter.appendChild( rendererStats.domElement )
     }
-
-
 
     //raycaster.params.Points.threshold = threshold;
 
@@ -514,7 +514,30 @@ export default class ClosetViewer {
     }
   }
 
-  setWindowSize(w, h) {
+  fullscreen = () => {
+
+    if(!screenfull.isFullscreen){
+      this.lastWidth = this.setter.clientWidth
+      this.lastHeight = this.setter.clientHeight
+    }
+
+    const elem = this.setter
+    if (screenfull.enabled) {
+      screenfull.toggle(elem)
+
+      screenfull.on('change', () => {
+        if(screenfull.isFullscreen){
+          this.setWindowSize(screen.width, screen.height)
+        }else{
+          this.setWindowSize(this.lastWidth, this.lastHeight)
+        }
+      });
+
+    }
+
+  }
+
+  setWindowSize = (w, h) => {
 
     windowHalfX = w / 2;
     windowHalfY = h / 2;
@@ -524,6 +547,7 @@ export default class ClosetViewer {
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
+    this.render()
 
   }
 
