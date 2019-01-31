@@ -173,7 +173,7 @@ export default class ClosetViewer {
       renderer: this.renderer,
       controls: this.controls,
       updateRender: this.updateRender,
-      setter: document.getElementById(this.setter)
+      setter: this.setter
     })
 
     //var sprite = makeTextSprite( "2", 
@@ -247,147 +247,26 @@ export default class ClosetViewer {
   {
       // console.log(e)
       e.preventDefault();
-      if(this.annotation) this.annotation.onMouseMove(e)
-      return;
-      //
-      // test code
+      if(this.annotation && this.object3D) this.annotation.onMouseMove(e)
 
-
-    var from = {
-        x: 0,
-        y: 0,
-        z: 10000
-    };
-
-    var to = {
-        x: 0,
-        y: 0,
-        z: 1000
-    };
-
-    var self = this;
-
-    return;
-    var tween = new TWEEN.Tween(from)
-        .to(to, 1000)
-        .easing(TWEEN.Easing.Linear.None)
-        .onUpdate(function () {
-            self.camera.position.set(this.x, this.y, this.z);
-            self.camera.lookAt(new THREE.Vector3(0, cameraHeight, 0));
-            self.updateRender();
-        })
-        .onComplete(function () {
-            self.controls.target.copy(self.scene.position);
-            //self.controls.target.copy(self.scene.position);
-            //self.camera.lookAt(new THREE.Vector3(0, cameraHeight, 0));
-        })
-        .start();
-
-    return;
-    
-
-    //1. sets the mouse position with a coordinate system where the center
-    //   of the screen is the origin
-    // canvas full screen
-    //mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
-    //mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
-
-    let canvasBounds = this.renderer.context.canvas.getBoundingClientRect();
-    mouse.x = ( ( e.clientX - canvasBounds.left ) / ( canvasBounds.right - canvasBounds.left ) ) * 2 - 1;
-    mouse.y = - ( ( e.clientY - canvasBounds.top ) / ( canvasBounds.bottom - canvasBounds.top) ) * 2 + 1;
-
-
-    //2. set the picking ray from the camera position and mouse coordinates
-    raycaster.setFromCamera(mouse, this.camera);
-
-    //console.log(this.object3D);
-    //3. compute intersections
-    if (this.zrest.matMeshList !== undefined)
-    {
-      var intersects = raycaster.intersectObjects(this.zrest.matMeshList, true);
-      if(intersects.length > 0)
-      {
-        helper.position.set(0, 0, 0);
-        helper.lookAt(intersects[0].face.normal);
-        helper.position.copy(intersects[0].point);
-      }
-    }
-
-    /*
-    if ( intersects.length > 0 )
-    {
-
-        //if ( INTERSECTED != intersects[ 0 ].object )
-        {
-            if ( INTERSECTED )
-            {
-                //INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
-                //INTERSECTED.material.color.setHex( INTERSECTED.currentHex );
-            }
-
-            INTERSECTED = intersects[ 0 ].object;
-            //INTERSECTED.currentHex = INTERSECTED.material.color.getHex();
-            //INTERSECTED.material.color.setHex( 0xff0000 );
-            //INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
-            //INTERSECTED.material.emissive.setHex( 0xff0000 );
-
-            sphere.position.set(0,0,0);
-            sphere.lookAt(intersects[0].face.normal);
-            sphere.position.copy(intersects[0].point);
-
-            console.log(intersects[ 0 ].point);
-
-        }
-    }
-    else
-    {
-        if ( INTERSECTED )
-        {
-            //INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
-            //INTERSECTED.material.color.setHex( INTERSECTED.currentHex );
-        }
-
-        INTERSECTED = null;
-    }
-    */
-
-
-    //console.log(this.object3D);
-    //for ( var i = 0; i < intersects.length; i++ )
-    //{
-    //    console.log( intersects[ i ] );
-    /*
-        An intersection has the following properties :
-            - object : intersected object (THREE.Mesh)
-            - distance : distance from camera to intersection (number)
-            - face : intersected face (THREE.Face3)
-            - faceIndex : intersected face index (number)
-            - point : intersection point (THREE.Vector3)
-            - uv : intersection point in the object's UV coordinates (THREE.Vector2)
-    */
-    //}
   }
-
-
-
-
 
   onMouseDown( e )
   {
     e.preventDefault();
-    if(this.annotation) this.annotation.onMouseDown(e)
+    if(this.annotation && this.object3D) this.annotation.onMouseDown(e)
   }
 
   onMouseUp( e )
   {
       e.preventDefault();
-      if(this.annotation) this.annotation.onMouseUp(e)
+      if(this.annotation && this.object3D) this.annotation.onMouseUp(e)
   }
 
   onMouseClick( e )
   {
       e.preventDefault();
-      if(this.annotation) this.annotation.onMouseClick(e)
+      if(this.annotation && this.object3D) this.annotation.onMouseClick(e)
   }
 
   setVisibleAllGarment(visibility)
