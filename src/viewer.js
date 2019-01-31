@@ -410,8 +410,6 @@ export default class ClosetViewer {
 
     const elem = this.setter
     if (screenfull.enabled) {
-      screenfull.toggle(elem)
-
       screenfull.on('change', () => {
         if(screenfull.isFullscreen){
           this.setWindowSize(screen.width, screen.height)
@@ -419,7 +417,7 @@ export default class ClosetViewer {
           this.setWindowSize(this.lastWidth, this.lastHeight)
         }
       });
-
+      screenfull.toggle(elem)
     }
 
   }
