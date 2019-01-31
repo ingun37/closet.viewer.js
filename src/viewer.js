@@ -6,6 +6,7 @@ import '@/lib/draco/DRACOLoader'
 import RendererStats from '@xailabs/three-renderer-stats';
 import {TweenMax } from "gsap/TweenMax";
 import AnnotationManager from "@/lib/annotation/AnnotationManager"
+import screenfull from 'screenfull'
 
 var container, states;
 var camera, scene, renderer, controls;
@@ -71,18 +72,20 @@ export default class ClosetViewer {
     this.setCameraPosition = this.setCameraPosition.bind(this)
     this.updateRender = this.updateRender.bind(this)
     this.loadZrestData = this.loadZrestData.bind(this)
+    this.fullscreen = this.fullscreen.bind(this)
 
     this.object3D = null
     //this.annotationPointerGroup = new THREE.Object3D();
   }
 
-  init({ width, height, element, cameraPosition = null }) {
+  init({ width, height, element, cameraPosition = null, stats }) {
 
-    var w = width;
-    var h = height;
-    this.setter = element;
+    var w = this.defaultWidth = width;
+    var h = this.defaultHeight = height;
+    this.setter = document.getElementById(element) || document.querySelector(element);
     this.id = element;
     this.cameraPosition = cameraPosition;
+    this.stats = stats
 
     windowHalfX = w / 2;
     windowHalfY = h / 2;
@@ -96,7 +99,7 @@ export default class ClosetViewer {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    document.getElementById(this.setter).appendChild(this.renderer.domElement);
+    this.setter.appendChild(this.renderer.domElement);
 
     //create camera
     this.camera = new THREE.PerspectiveCamera(15, w / h, 100, 100000);
@@ -170,7 +173,7 @@ export default class ClosetViewer {
       renderer: this.renderer,
       controls: this.controls,
       updateRender: this.updateRender,
-      setter: document.getElementById(this.setter)
+      setter: this.setter
     })
 
     //var sprite = makeTextSprite( "2", 
@@ -214,7 +217,7 @@ export default class ClosetViewer {
     //scene.add(helper);
 
     // canvas event
-    var canvas = document.getElementById(this.setter);
+    var canvas = this.setter;
     canvas.addEventListener("mouseout", () => this.controls.noPan = true, false);
     canvas.addEventListener("mouseover", () => this.controls.noPan = false, false);
     canvas.addEventListener("mousedown", this.onMouseDown, false);
@@ -222,14 +225,12 @@ export default class ClosetViewer {
     canvas.addEventListener('mouseup', this.onMouseUp, false);
     canvas.addEventListener('click', this.onMouseClick, false);
 
-    if(!PRODUCTION){
+    if(!PRODUCTION && this.stats){
       rendererStats.domElement.style.position	= 'absolute'
       rendererStats.domElement.style.left	= '-100px'
       rendererStats.domElement.style.top	= '0px'
-      document.getElementById(this.setter).appendChild( rendererStats.domElement )
+      this.setter.appendChild( rendererStats.domElement )
     }
-
-
 
     //raycaster.params.Points.threshold = threshold;
 
@@ -246,147 +247,26 @@ export default class ClosetViewer {
   {
       // console.log(e)
       e.preventDefault();
-      if(this.annotation) this.annotation.onMouseMove(e)
-      return;
-      //
-      // test code
+      if(this.annotation && this.object3D) this.annotation.onMouseMove(e)
 
-
-    var from = {
-        x: 0,
-        y: 0,
-        z: 10000
-    };
-
-    var to = {
-        x: 0,
-        y: 0,
-        z: 1000
-    };
-
-    var self = this;
-
-    return;
-    var tween = new TWEEN.Tween(from)
-        .to(to, 1000)
-        .easing(TWEEN.Easing.Linear.None)
-        .onUpdate(function () {
-            self.camera.position.set(this.x, this.y, this.z);
-            self.camera.lookAt(new THREE.Vector3(0, cameraHeight, 0));
-            self.updateRender();
-        })
-        .onComplete(function () {
-            self.controls.target.copy(self.scene.position);
-            //self.controls.target.copy(self.scene.position);
-            //self.camera.lookAt(new THREE.Vector3(0, cameraHeight, 0));
-        })
-        .start();
-
-    return;
-    
-
-    //1. sets the mouse position with a coordinate system where the center
-    //   of the screen is the origin
-    // canvas full screen
-    //mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
-    //mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
-
-    let canvasBounds = this.renderer.context.canvas.getBoundingClientRect();
-    mouse.x = ( ( e.clientX - canvasBounds.left ) / ( canvasBounds.right - canvasBounds.left ) ) * 2 - 1;
-    mouse.y = - ( ( e.clientY - canvasBounds.top ) / ( canvasBounds.bottom - canvasBounds.top) ) * 2 + 1;
-
-
-    //2. set the picking ray from the camera position and mouse coordinates
-    raycaster.setFromCamera(mouse, this.camera);
-
-    //console.log(this.object3D);
-    //3. compute intersections
-    if (this.zrest.matMeshList !== undefined)
-    {
-      var intersects = raycaster.intersectObjects(this.zrest.matMeshList, true);
-      if(intersects.length > 0)
-      {
-        helper.position.set(0, 0, 0);
-        helper.lookAt(intersects[0].face.normal);
-        helper.position.copy(intersects[0].point);
-      }
-    }
-
-    /*
-    if ( intersects.length > 0 )
-    {
-
-        //if ( INTERSECTED != intersects[ 0 ].object )
-        {
-            if ( INTERSECTED )
-            {
-                //INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
-                //INTERSECTED.material.color.setHex( INTERSECTED.currentHex );
-            }
-
-            INTERSECTED = intersects[ 0 ].object;
-            //INTERSECTED.currentHex = INTERSECTED.material.color.getHex();
-            //INTERSECTED.material.color.setHex( 0xff0000 );
-            //INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
-            //INTERSECTED.material.emissive.setHex( 0xff0000 );
-
-            sphere.position.set(0,0,0);
-            sphere.lookAt(intersects[0].face.normal);
-            sphere.position.copy(intersects[0].point);
-
-            console.log(intersects[ 0 ].point);
-
-        }
-    }
-    else
-    {
-        if ( INTERSECTED )
-        {
-            //INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
-            //INTERSECTED.material.color.setHex( INTERSECTED.currentHex );
-        }
-
-        INTERSECTED = null;
-    }
-    */
-
-
-    //console.log(this.object3D);
-    //for ( var i = 0; i < intersects.length; i++ )
-    //{
-    //    console.log( intersects[ i ] );
-    /*
-        An intersection has the following properties :
-            - object : intersected object (THREE.Mesh)
-            - distance : distance from camera to intersection (number)
-            - face : intersected face (THREE.Face3)
-            - faceIndex : intersected face index (number)
-            - point : intersection point (THREE.Vector3)
-            - uv : intersection point in the object's UV coordinates (THREE.Vector2)
-    */
-    //}
   }
-
-
-
-
 
   onMouseDown( e )
   {
     e.preventDefault();
-    if(this.annotation) this.annotation.onMouseDown(e)
+    if(this.annotation && this.object3D) this.annotation.onMouseDown(e)
   }
 
   onMouseUp( e )
   {
       e.preventDefault();
-      if(this.annotation) this.annotation.onMouseUp(e)
+      if(this.annotation && this.object3D) this.annotation.onMouseUp(e)
   }
 
   onMouseClick( e )
   {
       e.preventDefault();
-      if(this.annotation) this.annotation.onMouseClick(e)
+      if(this.annotation && this.object3D) this.annotation.onMouseClick(e)
   }
 
   setVisibleAllGarment(visibility)
@@ -521,7 +401,30 @@ export default class ClosetViewer {
     }
   }
 
-  setWindowSize(w, h) {
+  fullscreen = () => {
+
+    if(!screenfull.isFullscreen){
+      this.lastWidth = this.setter.clientWidth
+      this.lastHeight = this.setter.clientHeight
+    }
+
+    const elem = this.setter
+    if (screenfull.enabled) {
+      screenfull.toggle(elem)
+
+      screenfull.on('change', () => {
+        if(screenfull.isFullscreen){
+          this.setWindowSize(screen.width, screen.height)
+        }else{
+          this.setWindowSize(this.lastWidth, this.lastHeight)
+        }
+      });
+
+    }
+
+  }
+
+  setWindowSize = (w, h) => {
 
     windowHalfX = w / 2;
     windowHalfY = h / 2;
@@ -531,6 +434,7 @@ export default class ClosetViewer {
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
+    this.render()
 
   }
 
