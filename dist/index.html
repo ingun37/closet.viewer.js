@@ -43,7 +43,9 @@
         }
         .colorwayBtn {
             margin-right: 5px;
-
+        }
+        .viewer {
+            position: relative;
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
@@ -220,9 +222,8 @@
     for (var i = 0; i < closetViewerArray.length; i++) {
       const viewer = closetViewerArray[i].viewer
       if (viewer.id !== data.id && window.isLock) {
-        viewer.setCameraPosition(cameraPosition, targetPosition)
         viewer.onUpdateCamera(null)
-        viewer.updateRender()
+        viewer.setCameraPosition(cameraPosition, targetPosition)
         viewer.onUpdateCamera(updated)
       }
     }
@@ -260,7 +261,8 @@
   closet.viewer.init({
     element: 'detail_viewer',
     width: 500,
-    height: 660
+    height: 660,
+    stats: true
   })
 
   $('#detail_viewer').append('<i class="toggleFullscreen expand icon"></i>')

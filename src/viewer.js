@@ -77,13 +77,14 @@ export default class ClosetViewer {
     //this.annotationPointerGroup = new THREE.Object3D();
   }
 
-  init({ width, height, element, cameraPosition = null }) {
+  init({ width, height, element, cameraPosition = null, stats }) {
 
     var w = this.defaultWidth = width;
     var h = this.defaultHeight = height;
     this.setter = document.getElementById(element) || document.querySelector(element);
     this.id = element;
     this.cameraPosition = cameraPosition;
+    this.stats = stats
 
     windowHalfX = w / 2;
     windowHalfY = h / 2;
@@ -221,7 +222,7 @@ export default class ClosetViewer {
     canvas.addEventListener('mousemove', this.onMouseMove, false);
     canvas.addEventListener('mouseup', this.onMouseUp, false);
 
-    if(!PRODUCTION){
+    if(!PRODUCTION && this.stats){
       rendererStats.domElement.style.position	= 'absolute'
       rendererStats.domElement.style.left	= '-100px'
       rendererStats.domElement.style.top	= '0px'
