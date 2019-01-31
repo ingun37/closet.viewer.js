@@ -30,8 +30,22 @@
             margin-right: 20px;
         }
 
+        .colorwayBtns {
+            position: absolute;
+            bottom: 10px;
+            left: 5px;
+        }
+        .toggleFullscreen {
+            position: absolute;
+            bottom: 15px;
+            right: 5px;
+            cursor: pointer;
+        }
         .colorwayBtn {
             margin-right: 5px;
+        }
+        .viewer {
+            position: relative;
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
@@ -98,7 +112,7 @@
                 </div>
                 <div class="field">
                     <button type="button" onclick="cameraMatrix()" id="getMatrix" class="ui button">Matrix</button>
-                    <button id="fullscreen" type="button" class="ui button">fullscreen</button>
+                    <button onclick="fullscreen()" id="fullscreen" type="button" class="ui button">fullscreen</button>
                 </div>
                 <div class="field">
                     getGarmentStatus : <span id="getGarmentStatus"></span><br/>
@@ -197,6 +211,10 @@
   var targetPosition = null
   var progressItem = document.getElementById('progresstest')
 
+  function fullscreen() {
+    closet.viewer.fullscreen()
+  }
+
 
   var updated = function (data) {
     cameraPosition = data.position
@@ -204,9 +222,8 @@
     for (var i = 0; i < closetViewerArray.length; i++) {
       const viewer = closetViewerArray[i].viewer
       if (viewer.id !== data.id && window.isLock) {
-        viewer.setCameraPosition(cameraPosition, targetPosition)
         viewer.onUpdateCamera(null)
-        viewer.updateRender()
+        viewer.setCameraPosition(cameraPosition, targetPosition)
         viewer.onUpdateCamera(updated)
       }
     }
@@ -218,11 +235,12 @@
 
   var loaded = function (viewer) {
     console.log('viewer.getColorwaySize()', viewer.getColorwaySize())
-    var setter = document.getElementById(viewer.setter)
+    var setter = viewer.setter
     var colorwaySize = viewer.getColorwaySize()
 
     $(setter).find('.colorwayBtns').remove()
     var btns = $(setter).append('<div class="colorwayBtns"></div>').find('.colorwayBtns')
+
 
     for (var i = 0; i < colorwaySize; i++) {
       var btn = document.createElement('button')
@@ -243,8 +261,15 @@
   closet.viewer.init({
     element: 'detail_viewer',
     width: 500,
-    height: 660
+    height: 660,
+    stats: true
   })
+
+  $('#detail_viewer').append('<i class="toggleFullscreen expand icon"></i>')
+  $('.toggleFullscreen').click(function() {
+    closet.viewer.fullscreen()
+  })
+
   closet.viewer.onUpdateCamera(updated)
   closetViewerArray.push({viewer: closet.viewer, id: 'detail_viewer'})
 
@@ -328,18 +353,6 @@
   function cameraMatrix() {
     closet.viewer.getCameraMatrix()
     console.log(closet.viewer.getCameraMatrix())
-  }
-
-  window.onresize = function (event) {
-    if (window.innerWidth > 2000) {
-      closet.viewer.onWindowResize({
-        fullscreen: true
-      })
-    } else {
-      closet.viewer.onWindowResize({
-        fullscreen: false
-      })
-    }
   }
 
   // (function(d, s, id) {
