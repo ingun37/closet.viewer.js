@@ -61,6 +61,7 @@ export default class ClosetViewer {
     this.onMouseDown = this.onMouseDown.bind(this)
     this.onMouseMove = this.onMouseMove.bind(this)
     this.onMouseUp = this.onMouseUp.bind(this)
+    this.onMouseClick = this.onMouseClick.bind(this)
     this.setVisibleAllGarment = this.setVisibleAllGarment.bind(this)
     this.setVisibleAllAvatar = this.setVisibleAllAvatar.bind(this)
     this.isExistGarment = this.isExistGarment.bind(this)
@@ -171,7 +172,8 @@ export default class ClosetViewer {
       camera: this.camera,
       renderer: this.renderer,
       controls: this.controls,
-      updateRender: this.updateRender
+      updateRender: this.updateRender,
+      setter: document.getElementById(this.setter)
     })
 
     //var sprite = makeTextSprite( "2", 
@@ -221,6 +223,7 @@ export default class ClosetViewer {
     canvas.addEventListener("mousedown", this.onMouseDown, false);
     canvas.addEventListener('mousemove', this.onMouseMove, false);
     canvas.addEventListener('mouseup', this.onMouseUp, false);
+    canvas.addEventListener('click', this.onMouseClick, false);
 
     if(!PRODUCTION && this.stats){
       rendererStats.domElement.style.position	= 'absolute'
@@ -371,16 +374,20 @@ export default class ClosetViewer {
 
   onMouseDown( e )
   {
-    //console.log(e)
     e.preventDefault();
     if(this.annotation) this.annotation.onMouseDown(e)
   }
 
   onMouseUp( e )
   {
-      //console.log(e)
       e.preventDefault();
       if(this.annotation) this.annotation.onMouseUp(e)
+  }
+
+  onMouseClick( e )
+  {
+      e.preventDefault();
+      if(this.annotation) this.annotation.onMouseClick(e)
   }
 
   setVisibleAllGarment(visibility)

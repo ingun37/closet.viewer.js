@@ -191,8 +191,6 @@ ZRestLoader.prototype = {
         let box = new THREE.Box3();
         box.expandByObject(scene);
         var center = new THREE.Vector3(0.5 * (box.min.x + box.max.x), 0.5 * (box.min.y + box.max.y), 0.5 * (box.min.z + box.max.z));
-
-        console.log(center);
         return center;
     },
 

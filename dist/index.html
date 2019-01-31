@@ -200,7 +200,7 @@
     onUnchecked: function () {
       window[this.name] = false
 
-      if(isAnnotation) closet.viewer.annotation.isCreateAnnotation = false
+      if(!isAnnotation) closet.viewer.annotation.isCreateAnnotation = false
     }
   })
 </script>
