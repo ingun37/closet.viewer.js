@@ -21,6 +21,10 @@ class AnnotationManager {
     this.annotationPointerList = []
     this.isCreateAnnotation = false
 
+    this.annotationContainer = new THREE.Object3D()
+    this.annotationContainer.name = 'annotationContainer'
+    this.scene.add(this.annotationContainer)
+
     this.mousePosition = {}
 
     // raycaster for picking
@@ -37,6 +41,7 @@ class AnnotationManager {
     this.onMouseMove = this.onMouseMove.bind(this)
     this.onMouseUp = this.onMouseUp.bind(this)
     this.bindEventListener = this.bindEventListener.bind(this)
+    this.setVisibleContainer = this.setVisibleContainer.bind(this)
 
     this.pickedAnnotation = null
     this.hoverAnnotation = null
@@ -95,7 +100,7 @@ class AnnotationManager {
         {fontsize: 48, borderColor: {r: 255, g: 255, b: 255, a: 0.5}, backgroundColor: {r: 0, g: 0, b: 0, a: 0.5}})
       sprite.position.set(pointerPos.x, pointerPos.y, pointerPos.z)
       sprite.visible = isVisible
-      this.scene.add(sprite)
+      this.annotationContainer.add(sprite)
       this.annotationPointerList.push(sprite)
       id = sprite.id
 
@@ -109,8 +114,8 @@ class AnnotationManager {
   deleteAnnotation(name) {
     this.annotationPointerList = this.annotationPointerList.filter(item => item.name !== 'annotation_' + name)
     this.annotationList = this.annotationList.filter(item => {
-      const sprite = this.scene.getObjectByName('annotation_' + name)
-      if (sprite) this.scene.remove(sprite)
+      const sprite = this.annotationContainer.getObjectByName('annotation_' + name)
+      if (sprite) this.annotationContainer.remove(sprite)
       return item.message !== name
     })
 
@@ -120,8 +125,8 @@ class AnnotationManager {
   deleteAllAnnotation() {
     this.annotationPointerList = []
     this.annotationList.map(item => {
-      const sprite = this.scene.getObjectById(item.id)
-      this.scene.remove(sprite)
+      const sprite = this.annotationContainer.getObjectById(item.id)
+      this.annotationContainer.remove(sprite)
     })
     this.annotationList = []
   }
@@ -132,9 +137,9 @@ class AnnotationManager {
 
       const names = arr ? arr.filter(o => 'annotation_' + o === item.name) : []
       if (names.length) {
-        this.scene.getObjectByName('annotation_' + names[0]).visible = true
+        this.annotationContainer.getObjectByName('annotation_' + names[0]).visible = true
       } else {
-        this.scene.getObjectByName(item.name).visible = false
+        this.annotationContainer.getObjectByName(item.name).visible = false
       }
     })
 
@@ -143,7 +148,7 @@ class AnnotationManager {
 
   showAllAnnotation() {
     this.annotationPointerList.map(item => {
-      const sprite = this.scene.getObjectByName(item.name)
+      const sprite = this.annotationContainer.getObjectByName(item.name)
       sprite.visible = true
     })
     this.updateRender()
@@ -329,6 +334,12 @@ class AnnotationManager {
         onComplete: onComplete
       })
     }
+  }
+
+  setVisibleContainer(visible) {
+    console.log('visible', visible)
+    this.annotationContainer.visible = visible
+    this.updateRender()
   }
 
   getMousePosition({clientX, clientY}) {
