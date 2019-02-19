@@ -296,6 +296,22 @@ class AnnotationManager {
       z: annotationItem.cameraPos.z
     }
 
+    var onUpdate = () => {
+      // camera quaternion update
+      var q = new THREE.Quaternion()
+      var t = tween.progress()
+      THREE.Quaternion.slerp(startQuaternion, endQuaternion, q, t)
+      q.normalize()
+      this.camera.quaternion.copy(q)
+      this.updateRender()
+    }
+
+    var onComplete = () => {
+      this.onCompleteAnimation(annotationItem)
+      annotationItem.sprite.material.color.r = 1
+      this.controls.enabled = true
+    }
+
     // 여기서 interpolation 해야할게, camera position, camera upVector
     if (this.camera.position.x !== to.x || this.camera.position.y !== to.y || this.camera.position.z !== to.z) {
       var startQuaternion = new THREE.Quaternion()
@@ -309,22 +325,6 @@ class AnnotationManager {
       var target = new THREE.Vector3()
       target.copy(annotationItem.cameraTarget)
 
-      var onUpdate = () => {
-        // camera quaternion update
-        var q = new THREE.Quaternion()
-        var t = tween.progress()
-        THREE.Quaternion.slerp(startQuaternion, endQuaternion, q, t)
-        q.normalize()
-        this.camera.quaternion.copy(q)
-        this.updateRender()
-      }
-
-      var onComplete = () => {
-        this.onCompleteAnimation(annotationItem)
-        annotationItem.sprite.material.color.r = 1
-        this.controls.enabled = true
-      }
-
       var tween = TweenMax.to(this.camera.position, 0.8, {
         x: to.x,
         y: to.y,
@@ -333,6 +333,8 @@ class AnnotationManager {
         onUpdate: onUpdate,
         onComplete: onComplete
       })
+    }else{
+      onComplete()
     }
   }
 
