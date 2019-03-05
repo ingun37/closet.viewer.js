@@ -350,7 +350,7 @@
             vec4 specular = vec4(0.0);
 
             vec3 diffuseColor = materialBaseColor.rgb; // albedo/baseColor
-            vec3 specularColor = materialSpecular;
+            vec3 specularColor = materialSpecular.rgb;
             float texAlpha = 1.0;
             float glossiness = 0.0;
             float metalness = m_Metalness;

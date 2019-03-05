@@ -390,11 +390,7 @@ ZRestLoader.prototype = {
 
                         material.base = new THREE.Vector3(listMaterial[j].get("v3BaseColor").x, listMaterial[j].get("v3BaseColor").y, listMaterial[j].get("v3BaseColor").z);
 
-                        let reflectionColor = listMaterial[j].get("v3ReflectionColor");
-                        if (reflectionColor !== undefined && reflectionColor !== null)
-                            material.reflectionColor = new THREE.Vector3(listMaterial[j].get("v3ReflectionColor").x, listMaterial[j].get("v3ReflectionColor").y, listMaterial[j].get("v3ReflectionColor").z);
-                        else
-                            material.reflectionColor = new THREE.Vector3(59.0, 59.0, 59.0); // 실제로는 사용되지 않는 값이지만 초기화하자
+                        
 
                         material.blendFuncSrc = listMaterial[j].get("uiBlendFuncSrc");
                         material.blendFuncDst = listMaterial[j].get("uiBlendFuncDst");
@@ -425,6 +421,7 @@ ZRestLoader.prototype = {
                         material.environmentLightIntensity = listMaterial[j].get("fEnvironmentLightIntensity");
                         material.cameraLightIntensity = listMaterial[j].get("fCameraLightIntensity");
 
+
                         if (material.materialType == 6) // velvet
                         {
                             material.environmentLightIntensity = 0.0;
@@ -442,6 +439,23 @@ ZRestLoader.prototype = {
                         material.roughnessUIType = listMaterial[j].get("iRoughnessUIType");
                         material.reflectionIntensity = listMaterial[j].get("fReflectionIntensity");
 
+                        // 다음(v3ReflectionColor)은 사용되고 있지 않은 코드같다.. 
+                        let reflectionColor = listMaterial[j].get("v3ReflectionColor");
+                        if (reflectionColor !== undefined && reflectionColor !== null)
+                            material.reflectionColor = new THREE.Vector3(listMaterial[j].get("v3ReflectionColor").x, listMaterial[j].get("v3ReflectionColor").y, listMaterial[j].get("v3ReflectionColor").z);
+                        else
+                            material.reflectionColor = new THREE.Vector3(59.0, 59.0, 59.0); // 실제로는 사용되지 않는 값이지만 초기화하자
+
+                        // silk satin 의 specular color(여기서는 reflection color) 적용하기. 여기 바뀌면 CLO에서도 바꿔 줘야 한다. 
+                        if (material.bUseMetalnessRoughnessPBR == false && material.materialType == 5) // silk & satin
+                        {
+                            material.reflectionColor.x = material.reflectionIntensity * (material.base.x + 0.1); // 하얀색 하이라이트가 약하니 0.1 더해준다.
+                            material.reflectionColor.y = material.reflectionIntensity * (material.base.y + 0.1);
+                            material.reflectionColor.z = material.reflectionIntensity * (material.base.z + 0.1);
+                        }
+                        else
+                            material.reflectionColor = new THREE.Vector3(59.0, 59.0, 59.0); // linear 0.04 에 해당하는 sRGB 값 59 리턴
+                        
                         var tex = listMaterial[j].get("listTexture");
                         if (tex !== undefined && tex !== null) {
                             for (var k = 0 ; k < tex.length ; ++k) {
