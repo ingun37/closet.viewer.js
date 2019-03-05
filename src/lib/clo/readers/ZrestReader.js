@@ -410,7 +410,7 @@ ZRestLoader.prototype = {
                         if (material.materialType === undefined)
                             material.materialType = 0;
 
-                        let bUseMetalnessRoughnessPBR = listMaterial[j].get("m_bUseMetalnessRoughnessPBR");
+                        let bUseMetalnessRoughnessPBR = listMaterial[j].get("bUseMetalnessRoughnessPBR");
                         if (bUseMetalnessRoughnessPBR !== undefined)
                             material.bUseMetalnessRoughnessPBR = bUseMetalnessRoughnessPBR;
                         else
