@@ -444,7 +444,7 @@ ZRestLoader.prototype = {
                         if (reflectionColor !== undefined && reflectionColor !== null)
                             material.reflectionColor = new THREE.Vector3(listMaterial[j].get("v3ReflectionColor").x, listMaterial[j].get("v3ReflectionColor").y, listMaterial[j].get("v3ReflectionColor").z);
                         else
-                            material.reflectionColor = new THREE.Vector3(59.0, 59.0, 59.0); // 실제로는 사용되지 않는 값이지만 초기화하자
+                            material.reflectionColor = new THREE.Vector3(0.04, 0.04, 0.04); // 실제로는 사용되지 않는 값이지만 초기화하자
 
                         // silk satin 의 specular color(여기서는 reflection color) 적용하기. 여기 바뀌면 CLO에서도 바꿔 줘야 한다. 
                         if (material.bUseMetalnessRoughnessPBR == false && material.materialType == 5) // silk & satin
@@ -452,9 +452,13 @@ ZRestLoader.prototype = {
                             material.reflectionColor.x = material.reflectionIntensity * (material.base.x + 0.1); // 하얀색 하이라이트가 약하니 0.1 더해준다.
                             material.reflectionColor.y = material.reflectionIntensity * (material.base.y + 0.1);
                             material.reflectionColor.z = material.reflectionIntensity * (material.base.z + 0.1);
+
+                            material.base.x = 0.8 * material.base.x; // CLO쪽과 동일한 코드로 만들기 위해 0.8 곱해준다. 
+                            material.base.y = 0.8 * material.base.y;
+                            material.base.z = 0.8 * material.base.z;
                         }
                         else
-                            material.reflectionColor = new THREE.Vector3(59.0, 59.0, 59.0); // linear 0.04 에 해당하는 sRGB 값 59 리턴
+                            material.reflectionColor = new THREE.Vector3(0.04, 0.04, 0.04); // linear 0.04 에 해당하는 sRGB 값 59 리턴 -> linear 값이 사용된다. 
                         
                         var tex = listMaterial[j].get("listTexture");
                         if (tex !== undefined && tex !== null) {
