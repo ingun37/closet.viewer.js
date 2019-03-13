@@ -125,6 +125,8 @@
                     <button type="button" onclick="setVisibleAllAvatar()" data-on="false" id="setAvatar"
                             class="ui button">Avatar Visible
                     </button>
+                    <button type="button" onclick="setVisibleAnnotation()" data-on="false" id="setAnnotation" class="ui button">Annotation Visible
+                    </button>
                 </div>
 
                 <div>Loaded: <span id="progresstest">0</span></div>
@@ -186,6 +188,7 @@
 
   var isLock = false
   var isAnnotation = false
+  var isVisibleAnnotation = false
 
   $('.ui.dropdown').dropdown()
 
@@ -312,6 +315,11 @@
     }
 
     closet.viewer.setVisibleAllAvatar(avatarBool)
+  }
+
+  function setVisibleAnnotation() {
+    isVisibleAnnotation = !isVisibleAnnotation
+    closet.viewer.annotation.setVisibleContainer(isVisibleAnnotation)
   }
 
   function createClosetViewer(id) {
