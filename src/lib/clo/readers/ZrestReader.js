@@ -567,20 +567,20 @@ ZRestLoader.prototype = {
 
                 if (matProperty.colorwayMaterials[this.currentColorwayIndex].bPerfectTransparent) {
                     //indexOffset = indexOffset - listIndexCount[m+1];
-                    continue;
+                    //continue;
                 }
 
                 if (bLoadTransparentObject)
                 {
                     if (!matProperty.colorwayMaterials[this.currentColorwayIndex].bTransparent) {
                         //  indexOffset = indexOffset - listIndexCount[m + 1];
-                        continue;
+                        //continue;
                     }
                 }
                 else {
                     if (matProperty.colorwayMaterials[this.currentColorwayIndex].bTransparent) {
                         //indexOffset = indexOffset - listIndexCount[m + 1];
-                        continue;
+                        //continue;
                     }
                 }
 
