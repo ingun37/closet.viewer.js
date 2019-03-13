@@ -6,6 +6,7 @@ import '@/lib/draco/DRACOLoader'
 import RendererStats from '@xailabs/three-renderer-stats';
 import {TweenMax } from "gsap/TweenMax";
 import AnnotationManager from "@/lib/annotation/AnnotationManager"
+import MarkerManager from "@/lib/Marker/MarkerManager"
 
 var container, states;
 var camera, scene, renderer, controls;
@@ -72,7 +73,7 @@ export default class ClosetViewer {
     this.loadZrestData = this.loadZrestData.bind(this)
 
     this.object3D = null
-    //this.annotationPointerGroup = new THREE.Object3D();
+      //this.annotationPointerGroup = new THREE.Object3D();
   }
 
   init({ width, height, element, cameraPosition = null }) {
@@ -171,6 +172,28 @@ export default class ClosetViewer {
       updateRender: this.updateRender
     })
 
+    this.marker = new MarkerManager({
+        scene: this.scene,
+        camera: this.camera,
+        renderer: this.renderer,
+        controls: this.controls,
+        updateRender: this.updateRender
+    })
+
+    var lineMaterial = new THREE.LineBasicMaterial({
+        color: 0x0000ff
+    });
+
+    var lineGeometry = new THREE.Geometry();
+    lineGeometry.vertices.push(
+        new THREE.Vector3( -10, 0, 0 ),
+        new THREE.Vector3( 0, 10, 0 ),
+        new THREE.Vector3( 10, 0, 0 )
+    );
+
+    var line = new THREE.Line( lineGeometry, lineMaterial );
+    this.scene.add( line );
+
     //var sprite = makeTextSprite( "2", 
 	//	{ fontsize: 32, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0} } );
     //sprite.position.set(0,0,0);
@@ -181,6 +204,7 @@ export default class ClosetViewer {
     //var material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
     //var cube = new THREE.Mesh( geometry, material );
     //this.scene.add( cube );
+    //cube.position.set(0, 0, 500)
 
     // sphere
     //var sphereGeometry = new THREE.SphereBufferGeometry(50, 32, 32);
@@ -244,6 +268,9 @@ export default class ClosetViewer {
       // console.log(e)
       e.preventDefault();
       if(this.annotation) this.annotation.onMouseMove(e)
+
+      if(this.marker) this.marker.onMouseMove(e)
+
       return;
       //
       // test code
@@ -373,6 +400,8 @@ export default class ClosetViewer {
     //console.log(e)
     e.preventDefault();
     if(this.annotation) this.annotation.onMouseDown(e)
+
+    if(this.marker) this.marker.onMouseDown(e)
   }
 
   onMouseUp( e )
@@ -380,6 +409,8 @@ export default class ClosetViewer {
       //console.log(e)
       e.preventDefault();
       if(this.annotation) this.annotation.onMouseUp(e)
+
+      if(this.marker) this.marker.onMouseUp(e)
   }
 
   setVisibleAllGarment(visibility)
@@ -577,6 +608,8 @@ export default class ClosetViewer {
   render() {
     
     if(this.annotation) this.annotation.updateAnnotationPointerSize() // update annotation pointer size
+    
+    if(this.marker) this.marker.updatePointerSize() // update pointer size
     //
     this.renderer.autoClear = false;
     this.renderer.clear();
@@ -634,6 +667,10 @@ export default class ClosetViewer {
         zrest: this.zrest
       })
 
+      this.marker.init({
+          zrest: this.zrest
+      })
+
       // delete object3D, geometry, material dispose
       for (var i = 0 ; i < this.scene.children.length; i++) {
         if(this.scene.children[i].name === 'object3D') {
@@ -654,14 +691,14 @@ export default class ClosetViewer {
     }
 
     if(url.constructor === ArrayBuffer){
-      this.zrest = new ZRestLoader({ scene: this.scene, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition });
+      this.zrest = new ZRestLoader({ scene: this.scene, marker: this.marker, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition });
       this.zrest.parse(url, loaded);
       return
     }
 
 
     if(url.constructor === String){
-      this.zrest = new ZRestLoader({ scene: this.scene, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition });
+      this.zrest = new ZRestLoader({ scene: this.scene, marker: this.marker, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition });
       this.zrest.load(url, loaded, progress, error);
     }
 

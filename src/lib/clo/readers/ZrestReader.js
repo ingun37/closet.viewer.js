@@ -48,13 +48,15 @@ var RenderFace =
         MV_BACK_FACE: 2
     };
 
-export default function ZRestLoader({ scene, camera, controls, cameraPosition }, manager) {
+export default function ZRestLoader({ scene, marker, camera, controls, cameraPosition }, manager) {
     this.scene = scene
+    this.markerManager = marker
     this.camera = camera
     this.controls = controls
     this.cameraPosition = cameraPosition
     this.manager = (manager !== undefined) ? manager : THREE.DefaultLoadingManager;
 
+    this.materialList = []
     this.matMeshList = []
     this.materialInformationMap = null
     this.currentColorwayIndex = 0
@@ -69,7 +71,8 @@ export default function ZRestLoader({ scene, camera, controls, cameraPosition },
         BUTTONHEAD_MATMESH: 3,
         NORMAL_MATMESH: 4,
         AVATAR_MATMESH: 5,
-        STITCH_MATMESH: 6
+        STITCH_MATMESH: 6,
+        BUTTONHOLE_MATMESH: 7
     };
 };
 
@@ -264,6 +267,12 @@ ZRestLoader.prototype = {
         if (version === undefined)
             version = 1;
 
+        if(version > 4)
+        {
+            await this.meshFactory2(map, zip, retObject, loadedCamera);
+            return;
+        }
+        
         this.gVersion = version;
 
         let mapCameraLtoW = map.get("m4CameraLocalToWorldMatrix");
@@ -412,7 +421,7 @@ ZRestLoader.prototype = {
                         if (material.materialType === undefined)
                             material.materialType = 0;
 
-                        let bUseMetalnessRoughnessPBR = listMaterial[j].get("m_bUseMetalnessRoughnessPBR");
+                        let bUseMetalnessRoughnessPBR = listMaterial[j].get("bUseMetalnessRoughnessPBR");
                         if (bUseMetalnessRoughnessPBR !== undefined)
                             material.bUseMetalnessRoughnessPBR = bUseMetalnessRoughnessPBR;
                         else
@@ -499,6 +508,274 @@ ZRestLoader.prototype = {
         return retObject;
     },
 
+    async meshFactory2(map, zip, retObject, loadedCamera) {
+
+        let version = map.get("uiVersion");
+
+        this.gVersion = version;
+
+        let mapCameraLtoW = map.get("m4CameraLocalToWorldMatrix");
+        if(mapCameraLtoW !== undefined)
+        {
+            loadedCamera.bLoaded = true;
+            loadedCamera.ltow.set(mapCameraLtoW.a00, mapCameraLtoW.a01, mapCameraLtoW.a02, mapCameraLtoW.a03,
+                mapCameraLtoW.a10, mapCameraLtoW.a11, mapCameraLtoW.a12, mapCameraLtoW.a13,
+                mapCameraLtoW.a20, mapCameraLtoW.a21, mapCameraLtoW.a22, mapCameraLtoW.a23,
+                mapCameraLtoW.a30, mapCameraLtoW.a31, mapCameraLtoW.a32, mapCameraLtoW.a33);
+        }
+
+        var colorways = map.get("mapColorWay");
+        if (colorways === undefined) {
+
+        }
+        else {
+            this.currentColorwayIndex = colorways.get("uiCurrentCoordinationIndex");
+            this.colorwaySize = colorways.get("listColorway").length;
+        }
+
+        // load material list
+        var listMaterial = map.get("listMaterial");
+        if (listMaterial !== undefined) {
+            for (var j = 0 ; j < listMaterial.length ; ++j) {
+                var material = {
+                    id: -1,
+                    ambient: null,
+                    diffuse: null,
+                    specular: null,
+                    emission: null,
+                    shininess: 0.0,
+                    alpha: 0.0,
+
+                    base: null,
+                    reflectionColor: null,
+                    blendFuncSrc: 0,
+                    blendFuncDst: 0,
+                    blendColor: 0,
+
+                    opaqueMode: 0,
+                    ambientIntensity: 0.0,
+                    diffuseIntensity: 0.0,
+                    normalMapIntensityInPercentage: 10.0,
+                    zero: 0.0,
+                    bPerfectTransparent: false,
+                    bTransparent: false,
+                    renderFace: RenderFace.MV_FRONT_FACE, // 기본값은 두께보기의상이 기본이므로 front로 하자. double 이 아닌 front로 하면 아바타 헤어 투명도가 CLO와 다르게 나오는 문제가 생기긴 하지만
+
+                    // PBR 쪽 변수
+                    materialType: 0,
+                    bUseMetalnessRoughnessPBR: true,
+                    glossiness: 0.0,
+                    metalness: 0.0,
+                    environmentLightIntensity: 0.0,
+                    cameraLightIntensity: 0.0,
+                    roughnessUIType: 0,
+                    reflectionIntensity: 0.0,
+                    frontColorMult: 1.0,
+                    sideColorMult: 1.0,
+
+                    texture: []
+                };
+
+                var element = listMaterial[j].get("mapElement");
+                if(element !== undefined)
+                {
+                    material.id = element.get("uiID");
+                }
+
+                //material.renderFace = listMaterial[j].get("enRenderFace");
+                material.bTransparent = listMaterial[j].get("bTransparent");
+                material.bPerfectTransparent = listMaterial[j].get("bPerfectTransparent");
+
+                material.ambient = new THREE.Vector3(listMaterial[j].get("v4Ambient").x, listMaterial[j].get("v4Ambient").y, listMaterial[j].get("v4Ambient").z);
+                material.diffuse = new THREE.Vector3(listMaterial[j].get("v4Diffuse").x, listMaterial[j].get("v4Diffuse").y, listMaterial[j].get("v4Diffuse").z);
+                material.specular = new THREE.Vector3(listMaterial[j].get("v4Specular").x, listMaterial[j].get("v4Specular").y, listMaterial[j].get("v4Specular").z);
+                material.emission = new THREE.Vector3(listMaterial[j].get("v4Emission").x, listMaterial[j].get("v4Emission").y, listMaterial[j].get("v4Emission").z);
+                material.shininess = listMaterial[j].get("fShininess");
+                material.alpha = listMaterial[j].get("v4Diffuse").w;
+
+                let normalIntensity = listMaterial[j].get("iNormalIntensity");
+                if (normalIntensity !== undefined && normalIntensity !== null)
+                    material.normalMapIntensityInPercentage = normalIntensity * 10.0; // 기존에 최대 10인 intensity여서 10만 곱해서 최대 100% 로 맞춘다.
+                else
+                    material.normalMapIntensityInPercentage = listMaterial[j].get("iNormalIntensityInPercentage");
+
+                material.base = new THREE.Vector3(listMaterial[j].get("v3BaseColor").x, listMaterial[j].get("v3BaseColor").y, listMaterial[j].get("v3BaseColor").z);
+
+                let reflectionColor = listMaterial[j].get("v3ReflectionColor");
+                if (reflectionColor !== undefined && reflectionColor !== null)
+                    material.reflectionColor = new THREE.Vector3(listMaterial[j].get("v3ReflectionColor").x, listMaterial[j].get("v3ReflectionColor").y, listMaterial[j].get("v3ReflectionColor").z);
+                else
+                    material.reflectionColor = new THREE.Vector3(59.0, 59.0, 59.0); // 실제로는 사용되지 않는 값이지만 초기화하자
+
+                material.blendFuncSrc = listMaterial[j].get("uiBlendFuncSrc");
+                material.blendFuncDst = listMaterial[j].get("uiBlendFuncDst");
+                material.blendColor = new THREE.Vector3(listMaterial[j].get("v4BlendColor").x, listMaterial[j].get("v4BlendColor").y, listMaterial[j].get("v4BlendColor").z);
+
+                material.opaqueMode = listMaterial[j].get("enOpaqueMode");
+                material.ambientIntensity = listMaterial[j].get("fAmbientIntensity");
+                material.diffuseIntensity = listMaterial[j].get("fDiffuseIntensity");
+                material.zero = listMaterial[j].get("fZero");
+
+                // pbr
+                material.materialType = listMaterial[j].get("iMaterialType");
+                if (material.materialType === undefined)
+                    material.materialType = 0;
+
+                let bUseMetalnessRoughnessPBR = listMaterial[j].get("bUseMetalnessRoughnessPBR");
+                if (bUseMetalnessRoughnessPBR !== undefined)
+                    material.bUseMetalnessRoughnessPBR = bUseMetalnessRoughnessPBR;
+                else
+                    material.bUseMetalnessRoughnessPBR = true;
+
+                material.glossiness = listMaterial[j].get("fGlossiness");
+                material.metalness = listMaterial[j].get("fMetalness");
+                let bMetal = listMaterial[j].get("bMetal");
+                if (bMetal !== undefined && bMetal == false) // metalness 는 m_bMetal 에 의해 지배되고 있음. bMetal은 없어졌지만 기존 버전 호환을 위해 필요함.
+                    material.metalness = 0.0;
+
+                material.environmentLightIntensity = listMaterial[j].get("fEnvironmentLightIntensity");
+                material.cameraLightIntensity = listMaterial[j].get("fCameraLightIntensity");
+
+                if (material.materialType == 6) // velvet
+                {
+                    material.environmentLightIntensity = 0.0;
+                    material.cameraLightIntensity = 0.7;
+                }
+
+                material.frontColorMult = listMaterial[j].get("fFrontColorMult");
+                if (material.frontColorMult === undefined)
+                    material.frontColorMult = 1.0;
+
+                material.sideColorMult = listMaterial[j].get("fSideColorMult");
+                if (material.sideColorMult === undefined)
+                    material.sideColorMult = 1.0;
+
+                material.roughnessUIType = listMaterial[j].get("iRoughnessUIType");
+                material.reflectionIntensity = listMaterial[j].get("fReflectionIntensity");
+
+                var tex = listMaterial[j].get("listTexture");
+                if (tex !== undefined && tex !== null) {
+                    for (var k = 0 ; k < tex.length ; ++k) {
+                        var textureProperty = {
+                            file: '',
+                            aifile: '',
+                            uniqfile: '',
+                            type: 0,
+
+                            angle: 0.0,
+                            translate: { x: 0.0, y: 0.0 },
+                            scale: { x: 0.0, y: 0.0 },
+                            colorInverted: false,
+                            intensity: 1.0
+                        };
+
+                        textureProperty.file = readByteArray("String", tex[k].get("qsFileName"));
+                        textureProperty.type = tex[k].get("enType");
+
+                        textureProperty.angle = tex[k].get("fSignedAngle");
+                        textureProperty.translate = tex[k].get("v2Translation");
+                        textureProperty.scale = tex[k].get("v2Size");
+
+                        textureProperty.colorInverted = tex[k].get("bColorInverted");
+                        textureProperty.intensity = tex[k].get("fIntensity");
+
+                        material.texture.push(textureProperty);
+                    }
+                }
+
+                this.materialList.push(material);
+            }
+        }
+        ////
+
+        //
+        var zRestMatMeshArray = map.get("listMatMesh"); // 최신 버전에서 사용한 명확한 이름
+
+        this.materialInformationMap = new Map();
+
+        if (zRestMatMeshArray === undefined) {
+
+        }
+        else {
+            for (var i = 0 ; i < zRestMatMeshArray.length ; ++i) {
+                var zRestColorwayMaterials = {
+                    bpattern: false, // 이제 사용하지 않는다. 기존 버전 호환을 위해 사용할 뿐
+                    bPolygonOffset: false,
+                    zOffset: 0.0,
+                    //colorwayMaterialIndexList: [],
+                    colorwayMaterials: [],
+                    colorwayObjectTextureTransformation: [],
+                };
+
+                var id = zRestMatMeshArray[i].get("uiMatMeshID");
+                zRestColorwayMaterials.bpattern = zRestMatMeshArray[i].get("bPattern"); // 이제 사용하지 않는다. 기존 버전 호환을 위해 사용할 뿐
+                zRestColorwayMaterials.bPolygonOffset = zRestMatMeshArray[i].get("bPolygonOffset");
+                if (zRestColorwayMaterials.bPolygonOffset === undefined)
+                    zRestColorwayMaterials.bPolygonOffset = (zRestColorwayMaterials.bpattern === 0); // 이전 버전에서는 이렇게 설정해 주고 있었다.. bPattern은 이제 사용하지 않는다.
+
+                zRestColorwayMaterials.zOffset = zRestMatMeshArray[i].get("fZOffset");
+                if (zRestColorwayMaterials.zOffset === undefined)
+                    zRestColorwayMaterials.zOffset = 0.0;
+                else
+                    zRestColorwayMaterials.bPolygonOffset = false; // zOffset 사용하는 버전에서는 bPolygonOffset 사용하지 않는다.
+
+                var listTexInfo = zRestMatMeshArray[i].get("listTexInfo");
+                if (listTexInfo !== undefined) {
+                    for (var j = 0 ; j < listTexInfo.length ; ++j) {
+                        var info = {
+                            angle: 0.0,
+                            //scale: null,
+                            translate: { x: 0.0, y: 0.0 }
+                        };
+
+                        info.angle = listTexInfo[j].get("fAngle");
+                        info.translate = listTexInfo[j].get("v2Trans");
+
+                        zRestColorwayMaterials.colorwayObjectTextureTransformation.push(info);
+                    }
+                }
+
+                //
+                var renderFace = zRestMatMeshArray[i].get("enRenderFace");
+
+                //
+                var listMaterialInfo = zRestMatMeshArray[i].get("listMaterialInfo");
+                if (listMaterialInfo !== undefined) {
+                    for (var j = 0 ; j < listMaterialInfo.length ; ++j) {
+                        var mapMaterialInfo = {
+                            index: -1
+                        };
+                        
+                        mapMaterialInfo.index = listMaterialInfo[j].get("iMaterialIndex");
+                        if (mapMaterialInfo.index < this.materialList.length)
+                        {
+                            this.materialList[mapMaterialInfo.index].renderFace = renderFace; // 나중에 작성자의 의도를 파악해야 함. 미심쩍다...왜 Material이 renderFace 정보를 가지고 있는지 잘 모르겠음.
+                            zRestColorwayMaterials.colorwayMaterials.push(this.materialList[mapMaterialInfo.index]);
+                        }
+                    }
+                }
+
+                this.materialInformationMap.set(id, zRestColorwayMaterials);
+            }
+        }
+
+        var geometry = map.get("mapGeometry");
+        if (geometry === undefined || geometry === null) {
+
+            return false;
+        }
+
+    // 불투명 부터 추가해서 불투명 object 부터 그리기
+        var tf = await this.GetMatMeshs(geometry, zip, false, version);
+        retObject.add(tf);
+
+    // 투명한것 추가
+        tf = await this.GetMatMeshs(geometry, zip, true, version);
+        retObject.add(tf);
+
+        return retObject;
+    },
+
     async AddMatMeshList(zip, listMatShape, tf, bLoadTransparentObject, version) {
 
         for (let i = 0 ; i < listMatShape.length ; ++i) {
@@ -539,10 +816,26 @@ ZRestLoader.prototype = {
 
             // Split MatShape to MatMesh
             var indexOffset = totalIndexCount;
+            if (version > 4)
+                indexOffset = 0
 
-            for (var m = 0; m < listIndexCount.length; ++m) {
+            // 하... 이거 코드정리 헬이겠는데 땜빵코드 연속이네.
+            var offset = 0
 
-                indexOffset = indexOffset - listIndexCount[m];
+            // 뒷면 그리기용 변수.
+            var frontVertexCount = 0
+
+            for (var m = 0; m < listIndexCount.length; ++m)
+            {
+                if(version > 4)
+                {
+                    indexOffset += offset
+                }
+                else
+                {
+                    indexOffset = indexOffset - listIndexCount[m];
+                }
+                
 
                 // to Rayn 왜 이렇게 index 를 거꾸로 해야 제대로 렌더링되는지 원인을 모르겠음. 일단 이렇게 해서 되는 것 같지만 찜찜.. Jaden 2017.06.25
                 var matMeshID = listMatMeshIDOnIndexedMesh[m].get("uiMatMeshID");
@@ -551,20 +844,20 @@ ZRestLoader.prototype = {
 
                 if (matProperty.colorwayMaterials[this.currentColorwayIndex].bPerfectTransparent) {
                     //indexOffset = indexOffset - listIndexCount[m+1];
-                    continue;
+                    //continue;
                 }
 
                 if (bLoadTransparentObject)
                 {
                     if (!matProperty.colorwayMaterials[this.currentColorwayIndex].bTransparent) {
                         //  indexOffset = indexOffset - listIndexCount[m + 1];
-                        continue;
+                        //continue;
                     }
                 }
                 else {
                     if (matProperty.colorwayMaterials[this.currentColorwayIndex].bTransparent) {
                         //indexOffset = indexOffset - listIndexCount[m + 1];
-                        continue;
+                        //continue;
                     }
                 }
 
@@ -581,9 +874,9 @@ ZRestLoader.prototype = {
                 let uvAttrib = new Array();
                 let uv2Attrib = new Array();
                 let count = 0;
-                for (let j = 0; j < indexSize; j++) {
+                for (let j = 0; j < indexSize; j++)
+                {
                     let index = dracoGeometry.indices[indexOffset + j];
-
                     if (changeVertexIndex[index] === -1) // 방문되지 않은 녀석들만 새로운 mesh vertex 로 추가한다.
                     {
                         changeVertexIndex[index] = count;
@@ -613,6 +906,10 @@ ZRestLoader.prototype = {
                         }
                     }
                 }
+
+                if(m === 0)
+                    frontVertexCount = count
+
                 bufferGeometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(posAttrib), 3));
 
                 if (dracoGeometry.useNormal)
@@ -624,11 +921,27 @@ ZRestLoader.prototype = {
 
                 // Set Indices
                 let indexAttrib = new Array();
-                for (let j = indexSize / 3 - 1; j >= 0; j--) {
-                    indexAttrib.push(changeVertexIndex[dracoGeometry.indices[indexOffset + j*3]]);
-                    indexAttrib.push(changeVertexIndex[dracoGeometry.indices[indexOffset + j*3+1]]);
-                    indexAttrib.push(changeVertexIndex[dracoGeometry.indices[indexOffset + j*3+2]]);
+
+                if(version > 4)
+                {
+                    for (let j = 0; j < indexSize; j++)
+                    {
+                        let index = dracoGeometry.indices[indexOffset + j];
+                        indexAttrib.push(changeVertexIndex[index]);
+                    }
+
+                    offset += indexSize
                 }
+                else
+                {
+                    for (let j = indexSize / 3 - 1; j >= 0; j--)
+                    {
+                        indexAttrib.push(changeVertexIndex[dracoGeometry.indices[indexOffset + j*3]]);
+                        indexAttrib.push(changeVertexIndex[dracoGeometry.indices[indexOffset + j*3+1]]);
+                        indexAttrib.push(changeVertexIndex[dracoGeometry.indices[indexOffset + j*3+2]]);
+                    }
+                }
+                
 
                 bufferGeometry.setIndex(new THREE.BufferAttribute(new Uint32Array(indexAttrib), 1));
 
@@ -649,14 +962,67 @@ ZRestLoader.prototype = {
                 
                 //
                 var matMeshType = listMatMeshIDOnIndexedMesh[m].get("enType");
-                if (matMeshType === undefined || matMeshType === null)
+                // 여기서 center, normal, bounding sphere radius, 
+
+                let type = this.MatMeshType.PATTERN_MATMESH;
+
+                if (matMeshType !== undefined || matMeshType !== null)
                 {
-                    threeMesh.userData = {MATMESH_ID: matMeshID, TYPE: this.MatMeshType.PATTERN_MATMESH};
+                    if (matMeshType === 0)
+                        type = this.MatMeshType.PATTERN_MATMESH;
+                    else if (matMeshType === 1)
+                        type = this.MatMeshType.TRIM_MATMESH;
+                    else if (matMeshType === 2)
+                        type = this.MatMeshType.PRINTOVERLAY_MATMESH;
+                    else if (matMeshType === 3)
+                        type = this.MatMeshType.BUTTONHEAD_MATMESH;
+                    else if (matMeshType === 4)
+                        type = this.MatMeshType.NORMAL_MATMESH;
+                    else if (matMeshType === 5)
+                        type = this.MatMeshType.AVATAR_MATMESH;
+                    else if (matMeshType === 6)
+                        type = this.MatMeshType.STITCH_MATMESH;
+                    else if (matMeshType === 7)
+                        type = this.MatMeshType.BUTTONHOLE_MATMESH;
                 }
-                else
+
+                var center = new THREE.Vector3();
+                center = listMatMeshIDOnIndexedMesh[m].get("v3Center");
+
+                var normal = new THREE.Vector3();
+                normal = listMatMeshIDOnIndexedMesh[m].get("v3Normal");
+                
+                var bounding_sphere_radius = parseFloat(listMatMeshIDOnIndexedMesh[m].get("fBoundingSphereRadius"));
+
+                /*
+                // outline mesh도 만들자.
+                var lineMaterial = new THREE.LineBasicMaterial({color: 0x0000ff})
+                var lineGeometry = new THREE.Geometry()
+                
+                var boundaryPointCount = parseInt(listMatMeshIDOnIndexedMesh[m].get("iBoundaryPointCount"))
+                
+                //for (var v = 0 ; v < threeMesh.geometry.attributes.position.count ; ++v)
+                for (var v = 0 ; v <= boundaryPointCount ; ++v)
                 {
-                    threeMesh.userData = {MATMESH_ID: matMeshID, TYPE: matMeshType};
+                    var newIndex = changeVertexIndex[v]
+
+                    var pos = new THREE.Vector3()
+                    pos.x = threeMesh.geometry.attributes.position.array[newIndex*3]
+                    pos.y = threeMesh.geometry.attributes.position.array[newIndex*3+1]
+                    pos.z = threeMesh.geometry.attributes.position.array[newIndex*3+2]
+
+                    lineGeometry.vertices.push(pos)
                 }
+
+                var line = new THREE.Line(lineGeometry, lineMaterial)
+                this.scene.add(line)
+                */
+
+                //lineGeometry.vertices.push()
+
+                ///
+                // 여기도 version 가지고 나누는게 나을까? center랑 이런거 데이터가 없을텐데.
+                threeMesh.userData = {SELECTED: false, MATMESH_ID: matMeshID, TYPE: type, CENTER: center, NORMAL: normal, BOUNDING_SPHERE_RADIUS: bounding_sphere_radius};
                 
 
                 //
@@ -684,13 +1050,99 @@ ZRestLoader.prototype = {
                 // Global._globalMatMeshInformationList.push(threeMesh);
                 this.matMeshList.push(threeMesh);
 
+                if(this.gVersion > 4)
+                {
+                    // marker 만들자.
+                    //createMarker( {pointerPos, faceNormal, cameraPos, cameraTarget, cameraQuaternion, message}, isVisible = true ) {
+                    var cameraPos = new THREE.Vector3()
+                    cameraPos.copy(center)
+
+                    var distanceVector = new THREE.Vector3()
+                    distanceVector.copy(normal)
+                    distanceVector.normalize()
+
+                    
+                    distanceVector.multiplyScalar(bounding_sphere_radius * 13)
+
+                    cameraPos.add(distanceVector)
+
+                    var cameraQuaternion = new THREE.Quaternion() // 얘는 zrest 만들때 추가해야 한다.
+                
+                    //this.markerManager.createMarker({
+                    //    pointerPos: center,
+                    //    faceNormal: normal,
+                    //    cameraPos: cameraPos,
+                    //    cameraTarget: center,
+                    //    cameraQuaternion: cameraQuaternion,
+                    //    message: type
+                    //})
+                }
+
                 // console.log(threeMesh);
 
                 //indexOffset = indexOffset - listIndexCount[m + 1];
 
                 //console.log(indexOffset);
             }
+
+            // style line
+            var styleLineMaterial = new THREE.LineBasicMaterial({color: 0x0000ff})
+
+            var listLine = listMatShape[i].get("listLine")
+            if (listLine !== undefined && listLine !== null)
+            {
+                for (var k = 0; k < listLine.length; ++k)
+                {
+                    var frontStyleLineGeometry = new THREE.Geometry()
+                    var backStyleLineGeometry = new THREE.Geometry()
+
+                    var listMeshPointIndex = listLine[k].get("listMeshPointIndex")
+                    if(listMeshPointIndex !== undefined && listMeshPointIndex !== null)
+                    {
+                        for(var h=0; h<listMeshPointIndex.length; ++h)
+                        {
+                            var vIndex = listMeshPointIndex[h].get("uiMeshPointIndex")
+                            if(vIndex !== undefined && vIndex !== null)
+                            {
+                                //var newIndex = changeVertexIndex[vIndex]
+                                
+                                var frontStyleLinePos = new THREE.Vector3()
+
+                                //linePos.x = threeMesh.geometry.attributes.position.array[newIndex*3]
+                                //linePos.y = threeMesh.geometry.attributes.position.array[newIndex*3+1]
+                                //linePos.z = threeMesh.geometry.attributes.position.array[newIndex*3+2]
+                                frontStyleLinePos.x = dracoGeometry.vertices[vIndex*3]
+                                frontStyleLinePos.y = dracoGeometry.vertices[vIndex*3+1]
+                                frontStyleLinePos.z = dracoGeometry.vertices[vIndex*3+2]
+
+                                frontStyleLineGeometry.vertices.push(frontStyleLinePos)
+
+                                //
+                                var backStyleLinePos = new THREE.Vector3()
+                                vIndex += frontVertexCount
+                                backStyleLinePos.x = dracoGeometry.vertices[vIndex*3]
+                                backStyleLinePos.y = dracoGeometry.vertices[vIndex*3+1]
+                                backStyleLinePos.z = dracoGeometry.vertices[vIndex*3+2]
+
+                                //backStyleLineGeometry.vertices.push(backStyleLinePos)
+                            }
+                        }
+
+                        frontStyleLineGeometry.computeFaceNormals()
+                        frontStyleLineGeometry.computeVertexNormals()
+                        var frontStyleLine = new THREE.Line(frontStyleLineGeometry, styleLineMaterial)
+                        this.scene.add(frontStyleLine)
+
+                        backStyleLineGeometry.computeFaceNormals()
+                        backStyleLineGeometry.computeVertexNormals()
+                        var backStyleLine = new THREE.Line(backStyleLineGeometry, styleLineMaterial)
+                        this.scene.add(backStyleLine)
+                    }
+                }
+            }
         }
+
+
 
         var matMeshLength = this.matMeshList.length;
     },
