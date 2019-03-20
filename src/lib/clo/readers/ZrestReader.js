@@ -819,19 +819,12 @@ ZRestLoader.prototype = {
             if (version > 4)
                 indexOffset = 0
 
-            // 하... 이거 코드정리 헬이겠는데 땜빵코드 연속이네.
-            var offset = 0
-
             // 뒷면 그리기용 변수.
             var frontVertexCount = 0
 
             for (var m = 0; m < listIndexCount.length; ++m)
             {
-                if(version > 4)
-                {
-                    indexOffset += offset
-                }
-                else
+                if(version <= 4)
                 {
                     indexOffset = indexOffset - listIndexCount[m];
                 }
@@ -851,13 +844,13 @@ ZRestLoader.prototype = {
                 {
                     if (!matProperty.colorwayMaterials[this.currentColorwayIndex].bTransparent) {
                         //  indexOffset = indexOffset - listIndexCount[m + 1];
-                        //continue;
+                        continue;
                     }
                 }
                 else {
                     if (matProperty.colorwayMaterials[this.currentColorwayIndex].bTransparent) {
                         //indexOffset = indexOffset - listIndexCount[m + 1];
-                        //continue;
+                        continue;
                     }
                 }
 
@@ -924,13 +917,13 @@ ZRestLoader.prototype = {
 
                 if(version > 4)
                 {
-                    for (let j = 0; j < indexSize; j++)
+                    for (let k = 0; k < indexSize; k++)
                     {
-                        let index = dracoGeometry.indices[indexOffset + j];
+                        let index = dracoGeometry.indices[indexOffset + k];
                         indexAttrib.push(changeVertexIndex[index]);
                     }
 
-                    offset += indexSize
+                    indexOffset += indexSize
                 }
                 else
                 {
@@ -987,12 +980,13 @@ ZRestLoader.prototype = {
                 }
 
                 var center = new THREE.Vector3();
-                center = listMatMeshIDOnIndexedMesh[m].get("v3Center");
+                //center = listMatMeshIDOnIndexedMesh[m].get("v3Center");
 
                 var normal = new THREE.Vector3();
-                normal = listMatMeshIDOnIndexedMesh[m].get("v3Normal");
+                //normal = listMatMeshIDOnIndexedMesh[m].get("v3Normal");
                 
-                var bounding_sphere_radius = parseFloat(listMatMeshIDOnIndexedMesh[m].get("fBoundingSphereRadius"));
+                //var bounding_sphere_radius = parseFloat(listMatMeshIDOnIndexedMesh[m].get("fBoundingSphereRadius"));
+                var bounding_sphere_radius = .0;
 
                 /*
                 // outline mesh도 만들자.
