@@ -39,6 +39,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="src\index.js" />
+    <Content Include="src\lib\annotation\AnnotationManager.js" />
     <Content Include="src\lib\clo\background\Environment_c00.png" />
     <Content Include="src\lib\clo\background\Environment_c01.png" />
     <Content Include="src\lib\clo\background\Environment_c02.png" />
@@ -119,6 +120,7 @@
     <Content Include="src\lib\jszip\jszip_utils\dist\jszip-utils-ie.min.js" />
     <Content Include="src\lib\jszip\jszip_utils\dist\jszip-utils.js" />
     <Content Include="src\lib\jszip\jszip_utils\dist\jszip-utils.min.js" />
+    <Content Include="src\lib\marker\MarkerManager.js" />
     <Content Include="src\lib\threejs\Detector.js" />
     <Content Include="src\lib\threejs\OrbitControls.js" />
     <Content Include="src\lib\threejs\three.js" />
