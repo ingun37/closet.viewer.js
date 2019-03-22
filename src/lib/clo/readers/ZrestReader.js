@@ -1314,6 +1314,7 @@ ZRestLoader.prototype = {
                 //uniform sampler2D sAmbientOcclusionMap;
             }
         }
+
         //index is one of texture list. this value only zero now.
         let threeJSMaterial = new THREE.ShaderMaterial({
             uniforms: THREE.UniformsUtils.merge([
