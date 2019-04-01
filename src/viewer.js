@@ -189,15 +189,15 @@ export default class ClosetViewer {
         color: 0x0000ff
     });
 
-    var lineGeometry = new THREE.Geometry();
-    lineGeometry.vertices.push(
-        new THREE.Vector3( -10, 0, 0 ),
-        new THREE.Vector3( 0, 10, 0 ),
-        new THREE.Vector3( 10, 0, 0 )
-    );
+    //var lineGeometry = new THREE.Geometry();
+    //lineGeometry.vertices.push(
+    //    new THREE.Vector3( -10, 0, 0 ),
+    //    new THREE.Vector3( 0, 10, 0 ),
+    //    new THREE.Vector3( 10, 0, 0 )
+    //);
 
-    var line = new THREE.Line( lineGeometry, lineMaterial );
-    this.scene.add( line );
+    //var line = new THREE.Line( lineGeometry, lineMaterial );
+    //this.scene.add( line );
 
     //var sprite = makeTextSprite( "2",
 	//	{ fontsize: 32, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0} } );

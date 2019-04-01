@@ -860,12 +860,14 @@ ZRestLoader.prototype = {
                 {
                     if (!matProperty.colorwayMaterials[this.currentColorwayIndex].bTransparent) {
                         //  indexOffset = indexOffset - listIndexCount[m + 1];
+                        indexOffset += indexSize;
                         continue;
                     }
                 }
                 else {
                     if (matProperty.colorwayMaterials[this.currentColorwayIndex].bTransparent) {
                         //indexOffset = indexOffset - listIndexCount[m + 1];
+                        indexOffset += indexSize;
                         continue;
                     }
                 }
@@ -1054,8 +1056,14 @@ ZRestLoader.prototype = {
                 else
                     threeMesh.visible = true;
 
-                threeMesh.castShadow = true;
-                threeMesh.receiveShadow = true;
+                let b = true;
+                if (material.uniforms.materialOpacity.value == 0)
+                {
+                    b = false;
+                }
+
+                threeMesh.castShadow = b;
+                threeMesh.receiveShadow = b;
                 tf.add(threeMesh);
                 // Global._globalMatMeshInformationList.push(threeMesh);
                 this.matMeshList.push(threeMesh);
