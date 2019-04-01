@@ -860,14 +860,16 @@ ZRestLoader.prototype = {
                 {
                     if (!matProperty.colorwayMaterials[this.currentColorwayIndex].bTransparent) {
                         //  indexOffset = indexOffset - listIndexCount[m + 1];
-                        indexOffset += indexSize;
+                        if(version > 4)
+                            indexOffset += indexSize;
                         continue;
                     }
                 }
                 else {
                     if (matProperty.colorwayMaterials[this.currentColorwayIndex].bTransparent) {
                         //indexOffset = indexOffset - listIndexCount[m + 1];
-                        indexOffset += indexSize;
+                        if(version > 4)
+                            indexOffset += indexSize;
                         continue;
                     }
                 }
