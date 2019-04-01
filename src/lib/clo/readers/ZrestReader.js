@@ -391,6 +391,9 @@ ZRestLoader.prototype = {
                         material.shininess = listMaterial[j].get("fShininess");
                         material.alpha = listMaterial[j].get("v4Diffuse").w;
 
+                        if(material.bPerfectTransparent !== undefined && material.bPerfectTransparent === true)
+                            material.alpha = 0.0;
+
                         let normalIntensity = listMaterial[j].get("iNormalIntensity");
                         if (normalIntensity !== undefined && normalIntensity !== null)
                             material.normalMapIntensityInPercentage = normalIntensity * 10.0; // 기존에 최대 10인 intensity여서 10만 곱해서 최대 100% 로 맞춘다.
@@ -608,6 +611,9 @@ ZRestLoader.prototype = {
                 material.emission = new THREE.Vector3(listMaterial[j].get("v4Emission").x, listMaterial[j].get("v4Emission").y, listMaterial[j].get("v4Emission").z);
                 material.shininess = listMaterial[j].get("fShininess");
                 material.alpha = listMaterial[j].get("v4Diffuse").w;
+
+                if(material.bPerfectTransparent !== undefined && material.bPerfectTransparent === true)
+                    material.alpha = 0.0;
 
                 let normalIntensity = listMaterial[j].get("iNormalIntensity");
                 if (normalIntensity !== undefined && normalIntensity !== null)
@@ -851,10 +857,8 @@ ZRestLoader.prototype = {
                 var matProperty = this.materialInformationMap.get(matMeshID);
                 var indexSize = listIndexCount[m];
 
-                if (matProperty.colorwayMaterials[this.currentColorwayIndex].bPerfectTransparent) {
-                    //indexOffset = indexOffset - listIndexCount[m+1];
-                    //continue;
-                }
+                // 이제는 bPerfectTransparent 해도 무조건 그린다. colorway 중 하나만 perfect transparent했을 때 mesh 안그리게 하면 perfect transparent 하지 않는 colorway 로 바꿨을 때도 아예 안그려지는 버그 발생. 그래서 주석처리
+                //if (matProperty.colorwayMaterials[this.currentColorwayIndex].bPerfectTransparent) {             }
 
                 if (bLoadTransparentObject)
                 {
