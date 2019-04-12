@@ -8,6 +8,7 @@ import {TweenMax } from "gsap/TweenMax";
 import AnnotationManager from "@/lib/annotation/AnnotationManager"
 import screenfull from 'screenfull'
 import MarkerManager from "@/lib/Marker/MarkerManager"
+import MobileDetect from 'mobile-detect'
 
 var container, states;
 var camera, scene, renderer, controls;
@@ -189,6 +190,10 @@ export default class ClosetViewer {
         color: 0x0000ff
     });
 
+
+    this.md = new MobileDetect(window.navigator.userAgent)
+
+
     //var lineGeometry = new THREE.Geometry();
     //lineGeometry.vertices.push(
     //    new THREE.Vector3( -10, 0, 0 ),
@@ -266,6 +271,8 @@ export default class ClosetViewer {
     // this.render()
     this.updateRender(1)
   }
+
+
 
   onMouseMove( e )
   {
