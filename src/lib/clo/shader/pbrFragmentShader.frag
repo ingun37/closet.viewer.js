@@ -52,8 +52,8 @@
 
     //uniform vec2 m_ScreenSize; // in pixel
 
-
-    #if NUM_DIR_LIGHTS > 0
+	// 다음 불러줘야 한다. three.js 버전 업 후에 #include <lights_pars_begin> 로 대체하면 됨
+	#if NUM_DIR_LIGHTS > 0
     //uniform vec3 directionalLightColor[NUM_DIR_LIGHTS];
     //uniform vec3 directionalLightDirection[NUM_DIR_LIGHTS];
 
@@ -76,8 +76,7 @@
     varying vec2 vUV;
     varying vec2 vUV2;
 
-
-    #define M_PI 3.1415926535897932384626433832795
+	#define M_PI 3.1415926535897932384626433832795
     #include <packing>
     #include <shadowmap_pars_fragment>
     #include <shadowmask_pars_fragment>
@@ -418,11 +417,11 @@
             {
                 // 비금속일 때는 specular 가 생각보다 강하기 때문에(gamma correction 적용시) glossiness 로 조절해 준다. 그래야 원래 채도 유지한다. glossiness 높을 때는 원래 specular color대로 나오게 하고.
                 if (metalness == 0.0)
-                specularColor = vec3(mix(0.025 * m_ReflectionIntensity, 0.078 * m_ReflectionIntensity, glossiness)); // vray와 맞추기 위해서 specular color 0.04 로 고정하지 않는다.
+					specularColor = vec3(mix(0.025 * m_ReflectionIntensity, 0.078 * m_ReflectionIntensity, glossiness)); // vray와 맞추기 위해서 specular color 0.04 로 고정하지 않는다.
                 else
-                specularColor = mix(vec3(0.04), diffuseColor, metalness);
-
-                diffuseColor = mix(diffuseColor, vec3(0.0), metalness);
+					specularColor = mix(vec3(0.04), diffuseColor, metalness);
+				
+                diffuseColor = mix(diffuseColor, vec3(0.0), metalness);				
             }
 
             // diffuse environment light
@@ -500,10 +499,12 @@
 
                 // 쉐도우 켜져 있고 쉐도우 조명이면
                 float shadowIntensity = 1.0;
-                //if (uShadowMapIndex >= 0 && i == uShadowLightIndex && (bUseDoubleSidedLighting || gl_FrontFacing != false))
-                //shadowIntensity = shadow2DProj(shadowMap, shadowTexCoord).r;
                 if(i!=0)        
-                    shadowIntensity = getShadowMask();
+                {
+					// ios 에서는 shadow map 접근하면 옷이 메탈처럼 보이고 아바타가 사라져 버리는 버그 생긴다. shadow map 과 sSpecularEnvironmentMap 을 같이 쓸때 버그 생긴다. ios에서는 shadow 끄는 식으로 처리하자. 2019.04.12
+					shadowIntensity = getShadowMask();
+				    //shadowIntensity = texture2DProj(directionalShadowMap[i], vDirectionalShadowCoord[i]).r;
+				}
 
                 vec3 H = normalize(L + E);
                 float dotNL = max(dot(N, L), 0.0);
