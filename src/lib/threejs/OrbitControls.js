@@ -528,6 +528,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 	function onKeyDown( event ) {
 
 		if ( scope.enabled === false || scope.noKeys === true || scope.noPan === true ) return;
+		if(document.activeElement !== document.body) return
 
 		switch ( event.keyCode ) {
 
