@@ -215,6 +215,15 @@ ZRestLoader.prototype = {
 
             center.sub(this.camera.position);
             let dotProd = center.dot(zAxis);
+            if(dotProd < 0.0) // center가 이상하게 들어오는 경우 예외 처리. trim이 아주 먼 위치 로드된 경우 center가 이상하게 들어온다. 제대로 해결하려면 dll에서 convert시 camera target 도 읽어들이는게 좋을 듯. 
+            {
+                center.x = center.y = center.z = 0.0; // 맨 처음에는 center를 원점으로 해서. 그래야 무조건 8000.0 떨어뜨리는 것보다 view 회전이 좀 더 잘 된다. 
+                center.sub(this.camera.position);
+                dotProd = center.dot(zAxis);
+                if(dotProd < 0.0) // 그래도 이상하면. 
+                    dotProd = 8000.0;
+            }
+
             zAxis.multiplyScalar(dotProd);
             zAxis.add(this.camera.position);
             this.controls.target.copy(zAxis);
