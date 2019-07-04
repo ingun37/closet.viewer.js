@@ -263,8 +263,16 @@ ZRestLoader.prototype = {
         var blob = new Blob([bytes.buffer]);
         var url = URL.createObjectURL(blob);
 
-        var loader = new THREE.TextureLoader();
-        return loader.load(url);
+
+        return new Promise((resolve, reject) => {
+          var loader = new THREE.TextureLoader();
+          return loader.load(url, (texture) => {
+            URL.revokeObjectURL( url );
+            resolve(texture)
+          });
+        })
+
+
     },
 
     async meshFactory(map, zip, retObject, loadedCamera) {
@@ -279,7 +287,7 @@ ZRestLoader.prototype = {
             await this.meshFactory2(map, zip, retObject, loadedCamera);
             return;
         }
-        
+
         this.gVersion = version;
 
         let mapCameraLtoW = map.get("m4CameraLocalToWorldMatrix");
@@ -411,7 +419,7 @@ ZRestLoader.prototype = {
 
                         material.base = new THREE.Vector3(listMaterial[j].get("v3BaseColor").x, listMaterial[j].get("v3BaseColor").y, listMaterial[j].get("v3BaseColor").z);
 
-                        
+
 
                         material.blendFuncSrc = listMaterial[j].get("uiBlendFuncSrc");
                         material.blendFuncDst = listMaterial[j].get("uiBlendFuncDst");
@@ -460,27 +468,27 @@ ZRestLoader.prototype = {
                         material.roughnessUIType = listMaterial[j].get("iRoughnessUIType");
                         material.reflectionIntensity = listMaterial[j].get("fReflectionIntensity");
 
-                        // 다음(v3ReflectionColor)은 사용되고 있지 않은 코드같다.. 
+                        // 다음(v3ReflectionColor)은 사용되고 있지 않은 코드같다..
                         let reflectionColor = listMaterial[j].get("v3ReflectionColor");
                         if (reflectionColor !== undefined && reflectionColor !== null)
                             material.reflectionColor = new THREE.Vector3(listMaterial[j].get("v3ReflectionColor").x, listMaterial[j].get("v3ReflectionColor").y, listMaterial[j].get("v3ReflectionColor").z);
                         else
                             material.reflectionColor = new THREE.Vector3(0.04, 0.04, 0.04); // 실제로는 사용되지 않는 값이지만 초기화하자
 
-                        // silk satin 의 specular color(여기서는 reflection color) 적용하기. 여기 바뀌면 CLO에서도 바꿔 줘야 한다. 
+                        // silk satin 의 specular color(여기서는 reflection color) 적용하기. 여기 바뀌면 CLO에서도 바꿔 줘야 한다.
                         if (material.bUseMetalnessRoughnessPBR == false && material.materialType == 5) // silk & satin
                         {
                             material.reflectionColor.x = material.reflectionIntensity * (material.base.x + 0.1); // 하얀색 하이라이트가 약하니 0.1 더해준다.
                             material.reflectionColor.y = material.reflectionIntensity * (material.base.y + 0.1);
                             material.reflectionColor.z = material.reflectionIntensity * (material.base.z + 0.1);
 
-                            material.base.x = 0.8 * material.base.x; // CLO쪽과 동일한 코드로 만들기 위해 0.8 곱해준다. 
+                            material.base.x = 0.8 * material.base.x; // CLO쪽과 동일한 코드로 만들기 위해 0.8 곱해준다.
                             material.base.y = 0.8 * material.base.y;
                             material.base.z = 0.8 * material.base.z;
                         }
                         else
-                            material.reflectionColor = new THREE.Vector3(0.04, 0.04, 0.04); // linear 0.04 에 해당하는 sRGB 값 59 리턴 -> linear 값이 사용된다. 
-                        
+                            material.reflectionColor = new THREE.Vector3(0.04, 0.04, 0.04); // linear 0.04 에 해당하는 sRGB 값 59 리턴 -> linear 값이 사용된다.
+
                         var tex = listMaterial[j].get("listTexture");
                         if (tex !== undefined && tex !== null) {
                             for (var k = 0 ; k < tex.length ; ++k) {
@@ -678,27 +686,27 @@ ZRestLoader.prototype = {
                 material.roughnessUIType = listMaterial[j].get("iRoughnessUIType");
                 material.reflectionIntensity = listMaterial[j].get("fReflectionIntensity");
 
-                // 다음(v3ReflectionColor)은 사용되고 있지 않은 코드같다.. 
+                // 다음(v3ReflectionColor)은 사용되고 있지 않은 코드같다..
                 let reflectionColor = listMaterial[j].get("v3ReflectionColor");
                 if (reflectionColor !== undefined && reflectionColor !== null)
                     material.reflectionColor = new THREE.Vector3(listMaterial[j].get("v3ReflectionColor").x, listMaterial[j].get("v3ReflectionColor").y, listMaterial[j].get("v3ReflectionColor").z);
                 else
                     material.reflectionColor = new THREE.Vector3(0.04, 0.04, 0.04); // 실제로는 사용되지 않는 값이지만 초기화하자
 
-                // silk satin 의 specular color(여기서는 reflection color) 적용하기. 여기 바뀌면 CLO에서도 바꿔 줘야 한다. 
+                // silk satin 의 specular color(여기서는 reflection color) 적용하기. 여기 바뀌면 CLO에서도 바꿔 줘야 한다.
                 if (material.bUseMetalnessRoughnessPBR == false && material.materialType == 5) // silk & satin
                 {
                     material.reflectionColor.x = material.reflectionIntensity * (material.base.x + 0.1); // 하얀색 하이라이트가 약하니 0.1 더해준다.
                     material.reflectionColor.y = material.reflectionIntensity * (material.base.y + 0.1);
                     material.reflectionColor.z = material.reflectionIntensity * (material.base.z + 0.1);
 
-                    material.base.x = 0.8 * material.base.x; // CLO쪽과 동일한 코드로 만들기 위해 0.8 곱해준다. 
+                    material.base.x = 0.8 * material.base.x; // CLO쪽과 동일한 코드로 만들기 위해 0.8 곱해준다.
                     material.base.y = 0.8 * material.base.y;
                     material.base.z = 0.8 * material.base.z;
                 }
                 else
-                    material.reflectionColor = new THREE.Vector3(0.04, 0.04, 0.04); // linear 0.04 에 해당하는 sRGB 값 59 리턴 -> linear 값이 사용된다. 
-                
+                    material.reflectionColor = new THREE.Vector3(0.04, 0.04, 0.04); // linear 0.04 에 해당하는 sRGB 값 59 리턴 -> linear 값이 사용된다.
+
                 var tex = listMaterial[j].get("listTexture");
                 if (tex !== undefined && tex !== null) {
                     for (var k = 0 ; k < tex.length ; ++k) {
@@ -791,7 +799,7 @@ ZRestLoader.prototype = {
                         var mapMaterialInfo = {
                             index: -1
                         };
-                        
+
                         mapMaterialInfo.index = listMaterialInfo[j].get("iMaterialIndex");
                         if (mapMaterialInfo.index < this.materialList.length)
                         {
@@ -850,7 +858,7 @@ ZRestLoader.prototype = {
 
             //var drcArrayBuffer = zip.file(dracoMeshFilename).asArrayBuffer();
             var drcArrayBuffer = await zip.file(dracoMeshFilename).async("arrayBuffer");
-                
+
             const dracoLoader = new THREE.DRACOLoader();
             //dracoLoader.setVerbosity(1); // log 나오게 하려면 주석 풀자
             const dracoGeometry = dracoLoader.decodeDracoFile(drcArrayBuffer);
@@ -874,7 +882,7 @@ ZRestLoader.prototype = {
                 {
                     indexOffset = indexOffset - listIndexCount[m];
                 }
-                
+
 
                 // to Rayn 왜 이렇게 index 를 거꾸로 해야 제대로 렌더링되는지 원인을 모르겠음. 일단 이렇게 해서 되는 것 같지만 찜찜.. Jaden 2017.06.25
                 var matMeshID = listMatMeshIDOnIndexedMesh[m].get("uiMatMeshID");
@@ -982,7 +990,7 @@ ZRestLoader.prototype = {
                         indexAttrib.push(changeVertexIndex[dracoGeometry.indices[indexOffset + j*3+2]]);
                     }
                 }
-                
+
 
                 bufferGeometry.setIndex(new THREE.BufferAttribute(new Uint32Array(indexAttrib), 1));
 
@@ -1000,10 +1008,10 @@ ZRestLoader.prototype = {
                 // var material = new THREE.MeshLambertMaterial({ color: 0xffffff, envMap: envDiffuseMap });
 
                 var threeMesh = new THREE.Mesh(bufferGeometry, material);
-                
+
                 //
                 var matMeshType = listMatMeshIDOnIndexedMesh[m].get("enType");
-                // 여기서 center, normal, bounding sphere radius, 
+                // 여기서 center, normal, bounding sphere radius,
 
                 let type = this.MatMeshType.PATTERN_MATMESH;
 
@@ -1032,7 +1040,7 @@ ZRestLoader.prototype = {
 
                 var normal = new THREE.Vector3();
                 //normal = listMatMeshIDOnIndexedMesh[m].get("v3Normal");
-                
+
                 //var bounding_sphere_radius = parseFloat(listMatMeshIDOnIndexedMesh[m].get("fBoundingSphereRadius"));
                 var bounding_sphere_radius = .0;
 
@@ -1040,9 +1048,9 @@ ZRestLoader.prototype = {
                 // outline mesh도 만들자.
                 var lineMaterial = new THREE.LineBasicMaterial({color: 0x0000ff})
                 var lineGeometry = new THREE.Geometry()
-                
+
                 var boundaryPointCount = parseInt(listMatMeshIDOnIndexedMesh[m].get("iBoundaryPointCount"))
-                
+
                 //for (var v = 0 ; v < threeMesh.geometry.attributes.position.count ; ++v)
                 for (var v = 0 ; v <= boundaryPointCount ; ++v)
                 {
@@ -1065,7 +1073,7 @@ ZRestLoader.prototype = {
                 ///
                 // 여기도 version 가지고 나누는게 나을까? center랑 이런거 데이터가 없을텐데.
                 threeMesh.userData = {SELECTED: false, MATMESH_ID: matMeshID, TYPE: type, CENTER: center, NORMAL: normal, BOUNDING_SPHERE_RADIUS: bounding_sphere_radius};
-                
+
 
                 //
                 if(this.gVersion >= 4)
@@ -1109,13 +1117,13 @@ ZRestLoader.prototype = {
                     distanceVector.copy(normal)
                     distanceVector.normalize()
 
-                    
+
                     distanceVector.multiplyScalar(bounding_sphere_radius * 13)
 
                     cameraPos.add(distanceVector)
 
                     var cameraQuaternion = new THREE.Quaternion() // 얘는 zrest 만들때 추가해야 한다.
-                
+
                     //this.markerManager.createMarker({
                     //    pointerPos: center,
                     //    faceNormal: normal,
@@ -1153,7 +1161,7 @@ ZRestLoader.prototype = {
                             if(vIndex !== undefined && vIndex !== null)
                             {
                                 //var newIndex = changeVertexIndex[vIndex]
-                                
+
                                 var frontStyleLinePos = new THREE.Vector3()
 
                                 //linePos.x = threeMesh.geometry.attributes.position.array[newIndex*3]
@@ -1274,7 +1282,7 @@ ZRestLoader.prototype = {
                 matNormal: { type: "m4", value: new THREE.Matrix4().identity() },
                 matTransparent: { type: "m4", value: new THREE.Matrix4().identity() },
                 gRotMatrix: { type: "m4", value: new THREE.Matrix4().identity() },
-                gTransMatrix: { type: "m4", value: new THREE.Matrix4().identity() },                
+                gTransMatrix: { type: "m4", value: new THREE.Matrix4().identity() },
                 sGlobal: { type: 't', value: null },
                 sAmbient: { type: 't', value: null },
                 sDiffuse: { type: 't', value: null },
@@ -1299,7 +1307,7 @@ ZRestLoader.prototype = {
         }
             // version == 3
         else
-        {   
+        {
             uniforms = {
                 m_bUseMetalnessRoughnessPBR: { type: 'i', value:  zRestColorwayMaterialArray[colorwayIndex].bUseMetalnessRoughnessPBR},
                 m_Metalness: { type: 'f', value: zRestColorwayMaterialArray[colorwayIndex].metalness },
@@ -1563,6 +1571,7 @@ ZRestLoader.prototype = {
                 threeJSMaterial.uniforms.gTransMatrix.value = gtra;
             }
         }
+        texture && texture.dispose()
         return threeJSMaterial;
     }
 };
