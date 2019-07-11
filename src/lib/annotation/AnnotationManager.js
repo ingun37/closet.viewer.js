@@ -86,12 +86,12 @@ class AnnotationManager {
   createAnnotation({pointerPos, faceNormal, cameraPos, cameraTarget, cameraQuaternion, message}, isVisible = true) {
     // 여기서 이미 있으면 안만들기. 검사하자.
     let bDuplicatePos = false
-    for (var i = 0; i < this.annotationList.length; i++) {
-      var pointerPosition = this.annotationList[i].pointerPos
-      if (pointerPosition.equals(pointerPos)) {
-        bDuplicatePos = true
-      }
-    }
+    // for (var i = 0; i < this.annotationList.length; i++) {
+    //   var pointerPosition = this.annotationList[i].pointerPos
+    //   if (pointerPosition.equals(pointerPos)) {
+    //     bDuplicatePos = true
+    //   }
+    // }
 
     let id = undefined
     if (!bDuplicatePos) {
@@ -122,27 +122,33 @@ class AnnotationManager {
     this.updateRender()
   }
 
+
+
   deleteAllAnnotation() {
-    this.annotationPointerList = []
-    this.annotationList.map(item => {
-      const sprite = this.annotationContainer.getObjectById(item.id)
+    const names = this.annotationContainer.children.map(item => item.name)
+    names.map(name => {
+      const sprite = this.annotationContainer.getObjectByName(name)
       this.annotationContainer.remove(sprite)
     })
+    this.annotationPointerList = []
     this.annotationList = []
+    this.updateRender()
   }
 
   showAnnotation(arr) {
 
-    this.annotationPointerList.map(item => {
+    if(!Array.isArray(arr)){
+      arr = []
+    }
 
-      const names = arr ? arr.filter(o => 'annotation_' + o === item.name) : []
-      if (names.length) {
-        this.annotationContainer.getObjectByName('annotation_' + names[0]).visible = true
-      } else {
+    this.annotationContainer.children.map(item => {
+      const name = arr.find(o => 'annotation_' + o === item.name)
+      if(name) {
+        this.annotationContainer.getObjectByName('annotation_' + name).visible = true
+      }else{
         this.annotationContainer.getObjectByName(item.name).visible = false
       }
     })
-
     this.updateRender()
   }
 
