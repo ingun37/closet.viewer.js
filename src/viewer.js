@@ -75,6 +75,9 @@ export default class ClosetViewer {
     this.updateRender = this.updateRender.bind(this)
     this.loadZrestData = this.loadZrestData.bind(this)
     this.fullscreen = this.fullscreen.bind(this)
+    this.dispose = this.dispose.bind(this)
+    this.onPanControls = this.onPanControls.bind(this)
+    this.offPanControls = this.offPanControls.bind(this)
 
     this.object3D = null
       //this.annotationPointerGroup = new THREE.Object3D();
@@ -252,8 +255,8 @@ export default class ClosetViewer {
 
     // canvas event
     var canvas = this.setter;
-    canvas.addEventListener("mouseout", () => this.controls.noPan = true, false);
-    canvas.addEventListener("mouseover", () => this.controls.noPan = false, false);
+    canvas.addEventListener("mouseout", this.onPanControls, false);
+    canvas.addEventListener("mouseover", this.offPanControls, false);
     canvas.addEventListener("mousedown", this.onMouseDown, false);
     canvas.addEventListener('mousemove', this.onMouseMove, false);
     canvas.addEventListener('mouseup', this.onMouseUp, false);
@@ -277,7 +280,22 @@ export default class ClosetViewer {
     this.updateRender(1)
   }
 
+  dispose() {
+    var canvas = this.setter;
+    canvas.removeEventListener("mouseout", this.onPanControls, false);
+    canvas.removeEventListener("mouseover", this.offPanControls, false);
+    canvas.removeEventListener("mousedown", this.onMouseDown, false);
+    canvas.removeEventListener('mousemove', this.onMouseMove, false);
+    canvas.removeEventListener('mouseup', this.onMouseUp, false);
+    canvas.removeEventListener('click', this.onMouseClick, false);
+  }
 
+  onPanControls() {
+    this.controls.noPan = true
+  }
+  offPanControls() {
+    this.controls.noPan = false
+  }
 
   onMouseMove( e )
   {

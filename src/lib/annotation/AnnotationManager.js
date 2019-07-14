@@ -277,7 +277,9 @@ class AnnotationManager {
       const mouse = this.getMousePosition({clientX, clientY})
 
       this.raycaster.setFromCamera(mouse, this.camera)
-      var intersects = this.raycaster.intersectObjects(this.annotationPointerList, true)
+      let intersects = this.raycaster.intersectObjects(this.annotationPointerList, true)
+
+      intersects = intersects.filter(item => item.distance > 0)
 
       if (intersects.length > 0) {
         // 처리할거 하고 return;
