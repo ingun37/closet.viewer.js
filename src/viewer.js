@@ -594,7 +594,8 @@ export default class ClosetViewer {
           clearThree(this.scene.children[i])
         }
       }
-      if(colorwayIndex > -1) await this.changeColorway(colorwayIndex);
+      if(colorwayIndex > -1)
+        await this.changeColorway(colorwayIndex);
       this.scene.add(object)
       this.object3D = object
       this.zrest.ZoomToObjects(loadedCamera, this.scene);
@@ -606,6 +607,20 @@ export default class ClosetViewer {
       this.updateRender()
 
     }
+
+      // delete object3D, geometry, material dispose
+      for (var i = 0 ; i < this.scene.children.length; i++) {
+          if(this.scene.children[i].name === 'object3D') {
+              clearThree(this.scene.children[i])
+              this.scene.remove(this.scene.children[i])
+          }
+      }
+
+      if(this.zrest !== undefined)
+      {
+          this.zrest.clearMap();
+          this.zrest = null;
+      }
 
     if(url.constructor === ArrayBuffer){
       this.zrest = new ZRestLoader({ scene: this.scene, marker: this.marker, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition });
@@ -681,12 +696,22 @@ export default class ClosetViewer {
     else{nontype_cb(object);}
   }
 }
-function clearThree(obj){
-  while(obj.children.length > 0){
-    clearThree(obj.children[0])
+function clearThree(obj)
+{
+  while(obj.children.length > 0)
+  {
+    clearThree(obj.children[0]);
     obj.remove(obj.children[0]);
   }
-  if(obj.geometry) obj.geometry.dispose()
-  if(obj.material) obj.material.dispose()
-  if(obj.texture) obj.texture.dispose()
+
+  if(obj.geometry !== undefined)
+      obj.geometry.dispose();
+
+  if(obj.material !== undefined)
+      obj.material.dispose();
+
+  if(obj.texture !== undefined)
+      obj.texture.dispose();
+
+  obj = undefined;
 }
