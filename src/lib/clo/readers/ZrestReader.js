@@ -80,6 +80,11 @@ ZRestLoader.prototype = {
 
     constructor: ZRestLoader,
 
+    clearMap() {
+        _gNameToTextureMap.clear();
+        gSeamPuckeringNormalMap = null;
+    },
+
     load(url, onLoad, onProgress, onError) {
 
         var loader = new THREE.FileLoader(this.manager);
