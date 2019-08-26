@@ -237,7 +237,6 @@
   }
 
   var loaded = function (viewer) {
-    console.log('viewer.getColorwaySize()', viewer.getColorwaySize())
     var setter = viewer.setter
     var colorwaySize = viewer.getColorwaySize()
 
@@ -256,8 +255,8 @@
       btns.append(btn)
     }
 
-    document.getElementById('getGarmentStatus').innerText = closet.viewer.GetGarmentShowHideStatus()
-    document.getElementById('getAvatarStatus').innerText = closet.viewer.GetAvatarShowHideStatus()
+    document.getElementById('getGarmentStatus').innerText = closet.viewer.getGarmentShowHideStatus()
+    document.getElementById('getAvatarStatus').innerText = closet.viewer.getAvatarShowHideStatus()
   }
 
 
