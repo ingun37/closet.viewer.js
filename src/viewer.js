@@ -3,23 +3,16 @@ import ZRestLoader, {dataWorkerFunction, checkFileReaderSyncSupport} from './lib
 import * as THREE from '@/lib/threejs/three';
 import '@/lib/threejs/OrbitControls';
 import '@/lib/draco/DRACOLoader';
-// import '@/lib/clo/UtilFunctions'
+
 import RendererStats from '@xailabs/three-renderer-stats';
 import AnnotationManager from '@/lib/annotation/AnnotationManager';
 import screenfull from 'screenfull';
 import MarkerManager from '@/lib/Marker/MarkerManager';
 import MobileDetect from 'mobile-detect';
 
-let container; let states;
-let camera; let scene; let renderer; let controls;
-let background_camera; let background_scene;
 let windowHalfX = window.innerWidth / 2;
 let windowHalfY = window.innerHeight / 2;
 
-let reader;
-const progress = document.querySelector('.percent');
-const dataSyncWorkerURL = URL.createObjectURL(new Blob(['(' + dataWorkerFunction.toString() + ')()'], {type: 'text/javascript'}));
-const timerId = 0;
 let rendererStats = null;
 
 checkFileReaderSyncSupport();
@@ -27,29 +20,11 @@ checkFileReaderSyncSupport();
 const cameraHeight = 1100;
 const cameraDistance = 5000;
 
-const envDiffuseMap = null;
-const envSpecularMap = null;
-
-const intProgress = 0;
-
-// var setter = null
-
 let requestId = null;
 
 if (!PRODUCTION) rendererStats = new RendererStats();
 
-
-const mouse = new THREE.Vector2(); let INTERSECTED;
-
-let helper;
-
-/** @CloserViewer */
 export default class ClosetViewer {
-  /**
-     * Repeat <tt>str</tt> several times.
-     * @param {string} str The string to repeat.
-     * @param {number} [times=1] How many times to repeat the string.
-     */
   constructor() {
     this.init = this.init.bind(this);
     this.render = this.render.bind(this);
@@ -81,14 +56,13 @@ export default class ClosetViewer {
     this.fullscreen = this.fullscreen.bind(this);
 
     this.object3D = null;
-    // this.annotationPointerGroup = new THREE.Object3D();
   }
-
 
   init({width, height, element, cameraPosition = null, stats}) {
     const mobileDetect = new MobileDetect(window.navigator.userAgent);
     const w = this.defaultWidth = width;
     const h = this.defaultHeight = height;
+
     this.setter = document.getElementById(element) || document.querySelector(element);
     this.id = element;
     this.cameraPosition = cameraPosition;
@@ -109,9 +83,7 @@ export default class ClosetViewer {
     this.setter.appendChild(this.renderer.domElement);
 
     // create camera
-    this.camera = new THREE.PerspectiveCamera(15, w / h, 100, 100000);
-    // this.camera.position.y = cameraHeight;
-    // this.camera.position.z = cameraDistance;
+    this.camera = appendDefaultCamera();
     this.camera.position.set(0, cameraHeight, cameraDistance);
 
     // create camera controller
@@ -135,33 +107,26 @@ export default class ClosetViewer {
 
     const DirLight1 = new THREE.DirectionalLight(0x6e6e6e);
     DirLight1.position.set(1500, 3000, 1500);
+    DirLight1.castShadow = (mobileDetect.os() === "iOS")? false : true;
 
-    if (mobileDetect.os() === 'iOS') {
-      DirLight1.castShadow = false;
-    } else {
-      DirLight1.castShadow = true;
-    }
-
-
-    // Set up shadow properties for the light
-    DirLight1.shadow.mapSize.width = 2048; // default
+    // set up shadow properties for the light
+    DirLight1.shadow.mapSize.width = 2048;  // default
     DirLight1.shadow.mapSize.height = 2048; // default
-    DirLight1.shadow.camera.near = 2000; // default
-    DirLight1.shadow.camera.far = 7000; // default
+    DirLight1.shadow.camera.near = 2000;    // default
+    DirLight1.shadow.camera.far = 7000;     // default
     DirLight1.shadow.camera.right = 1500;
     DirLight1.shadow.camera.left = -1500;
     DirLight1.shadow.camera.top = 1500;
     DirLight1.shadow.camera.bottom = -1500;
     DirLight1.shadow.bias = -0.001;
-
     // specular2 : 3c3c3c
 
     // scene.add(new THREE.AmbientLight(0x8c8c8c));// amibent light은 추가하지 않고 shader에서 하드코딩으로 처리한다. CLO와 three.js 의 light 구조가 다르므로 이렇게 하자
     this.scene.add(DirLight0);
     this.scene.add(DirLight1);
 
-    const loader = new THREE.TextureLoader();
-    const texture = loader.load(require('@/lib/clo/background/img_3dwindow_bg_Designer.png'));
+    const textureLoader = new THREE.TextureLoader();
+    const texture = textureLoader.load(require('@/lib/clo/background/img_3dwindow_bg_Designer.png'));
     this.backgroundMesh = new THREE.Mesh(
         new THREE.PlaneGeometry(2, 2, 0),
         new THREE.MeshBasicMaterial({
@@ -177,7 +142,6 @@ export default class ClosetViewer {
 
     this.background_scene.add(this.background_camera);
     this.background_scene.add(this.backgroundMesh);
-
 
     this.annotation = new AnnotationManager({
       scene: this.scene,
@@ -196,11 +160,6 @@ export default class ClosetViewer {
       updateRender: this.updateRender,
     });
 
-    const lineMaterial = new THREE.LineBasicMaterial({
-      color: 0x0000ff,
-    });
-
-
     // canvas event
     const canvas = this.setter;
     canvas.addEventListener('mouseout', () => this.controls.noPan = true, false);
@@ -210,6 +169,15 @@ export default class ClosetViewer {
     canvas.addEventListener('mouseup', this.onMouseUp, false);
     canvas.addEventListener('click', this.onMouseClick, false);
 
+    function appendDefaultCamera() {
+      let fov = 15;
+      let aspect = w / h;
+      let near = 100;
+      let far = 100000;
+
+      return new THREE.PerspectiveCamera(fov, aspect, near, far);
+    }
+
     if (!PRODUCTION && this.stats) {
       rendererStats.domElement.style.position	= 'absolute';
       rendererStats.domElement.style.left	= '-100px';
@@ -217,20 +185,10 @@ export default class ClosetViewer {
       this.setter.appendChild( rendererStats.domElement );
     }
 
-    // raycaster.params.Points.threshold = threshold;
-
-    // this.scene.add(this.annotationPointerList);
-
-
-    // this.animate()
-
-    // this.render()
     this.updateRender(1);
   }
 
-
   onMouseMove( e ) {
-    // console.log(e)
     e.preventDefault();
     if (this.annotation && this.object3D) this.annotation.onMouseMove(e);
     if (this.marker) this.marker.onMouseMove(e);
@@ -255,49 +213,46 @@ export default class ClosetViewer {
   }
 
   setVisibleAllGarment(visibility) {
-    for (let i=0; i<this.zrest.matMeshList.length; i++) {
-      if (this.zrest.matMeshList[i].userData.TYPE == this.zrest.MATMESH_TYPE.PATTERN_MATMESH ||
-        this.zrest.matMeshList[i].userData.TYPE == this.zrest.MATMESH_TYPE.TRIM_MATMESH ||
-        this.zrest.matMeshList[i].userData.TYPE == this.zrest.MATMESH_TYPE.PRINTOVERLAY_MATMESH ||
-        this.zrest.matMeshList[i].userData.TYPE == this.zrest.MATMESH_TYPE.BUTTONHEAD_MATMESH ||
-        this.zrest.matMeshList[i].userData.TYPE == this.zrest.MATMESH_TYPE.STITCH_MATMESH ) {
+    let matMeshType = this.zrest.MatMeshType;
+
+    for(let i=0; i<this.zrest.matMeshList.length; ++i) {
+      let t = this.zrest.matMeshList[i].userData.TYPE;
+
+      if(t == matMeshType.PATTERN_MATMESH || t == matMeshType.TRIM_MATMESH || t == matMeshType.PRINTOVERLAY_MATMESH || t == matMeshType.BUTTONHEAD_MATMESH || t == matMeshType.STITCH_MATMESH ) {
         this.zrest.matMeshList[i].visible = visibility;
       }
     }
 
     this.updateRender();
+  }
+
+  isExistMatMeshType(type) {
+    for(let i=0; i<this.zrest.matMeshList.length; ++i) {
+      if(this.zrest.matMeshList[i].userData.TYPE == type) {
+        return true;
+      }
+    }
+    return false;
   }
 
   isExistGarment() {
-    for (let i=0; i<this.zrest.matMeshList.length; i++) {
-      if (this.zrest.matMeshList[i].userData.TYPE == this.zrest.MATMESH_TYPE.PATTERN_MATMESH) {
-        return true;
-      }
-    }
-
-    return false;
+    return this.isExistMatMeshType(this.zrest.MatMeshType.PATTERN_MATMESH)
+  }
+  
+  isExistAvatar() {
+    return this.isExistMatMeshType(this.zrest.MatMeshType.AVATAR_MATMESH)
   }
 
   setVisibleAllAvatar(visibility) {
-    for (let i=0; i<this.zrest.matMeshList.length; i++) {
-      if (this.zrest.matMeshList[i].userData.TYPE == this.zrest.MATMESH_TYPE.AVATAR_MATMESH) {
+    for(let i=0; i<this.zrest.matMeshList.length; i++) {
+      if(this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.AVATAR_MATMESH) {
         this.zrest.matMeshList[i].visible = visibility;
       }
     }
-
+    
     this.updateRender();
   }
-
-  isExistAvatar() {
-    for (let i=0; i<this.zrest.matMeshList.length; i++) {
-      if (this.zrest.matMeshList[i].userData.TYPE == this.zrest.MATMESH_TYPE.AVATAR_MATMESH) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
+  
   getShowHideStatus(type) {
     for (let i=0; i<this.zrest.matMeshList.length; i++) {
       if (this.zrest.matMeshList[i].userData.TYPE == type) {
@@ -318,71 +273,49 @@ export default class ClosetViewer {
     return this.getShowHideStatus(this.zrest.MATMESH_TYPE.AVATAR_MATMESH);
   }
 
-
   isAvailableShowHide() {
-    if (this.zrest._version >= 4) {
-      return true;
-    } else {
-      return false;
-    }
+    return (this.zrest.gVersion >= 4) // TODO: check this condition statement always works stable
   }
 
   getCameraMatrix() {
-    const matrix = [];
+    let camMatrix = this.camera.matrix.elements;
+    const camMatrixPushOrder = [0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14];
 
-    matrix.push(this.camera.matrix.elements[0]);
-    matrix.push(this.camera.matrix.elements[4]);
-    matrix.push(this.camera.matrix.elements[8]);
-    matrix.push(this.camera.matrix.elements[12]);
-    matrix.push(this.camera.matrix.elements[1]);
-    matrix.push(this.camera.matrix.elements[5]);
-    matrix.push(this.camera.matrix.elements[9]);
-    matrix.push(this.camera.matrix.elements[13]);
-    matrix.push(this.camera.matrix.elements[2]);
-    matrix.push(this.camera.matrix.elements[6]);
-    matrix.push(this.camera.matrix.elements[10]);
-    matrix.push(this.camera.matrix.elements[14]);
-
-    return matrix;
+    return camMatrixPushOrder.map(index => camMatrix[index]);
   }
 
+  // TODO: consider remove duplicated routine about camMatrixPushOrder with getCameraMatrix()
   setCameraMatrix(mat, bUpdateRendering) {
     if (mat !== undefined && mat.length === 12) {
-      this.camera.matrix.elements[0] = mat[0];
-      this.camera.matrix.elements[4] = mat[1];
-      this.camera.matrix.elements[8] = mat[2];
-      this.camera.matrix.elements[12] = mat[3];
-      this.camera.matrix.elements[1] = mat[4];
-      this.camera.matrix.elements[5] = mat[5];
-      this.camera.matrix.elements[9] = mat[6];
-      this.camera.matrix.elements[13] = mat[7];
-      this.camera.matrix.elements[2] = mat[8];
-      this.camera.matrix.elements[6] = mat[9];
-      this.camera.matrix.elements[10] = mat[10];
-      this.camera.matrix.elements[14] = mat[11];
+      let camMatrixPushOrder = [0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14];  
 
-      if (bUpdateRendering === true) {
-        this.updateRender();
+      for (let i=0; i<camMatrixPushOrder.length; ++i) {
+        this.camera.matrix.elements[camMatrixPushOrder[i]] = mat[i];
       }
+
+      // TODO: consider remove === operation
+      if (bUpdateRendering === true)   
+        this.updateRender()
     }
   }
 
   fullscreen = () => {
     if (!screenfull.isFullscreen) {
-      this.lastWidth = this.setter.clientWidth;
-      this.lastHeight = this.setter.clientHeight;
+      this.lastWidth = this.setter.clientWidth
+      this.lastHeight = this.setter.clientHeight
     }
 
-    const elem = this.setter;
+    const elem = this.setter
     if (screenfull.enabled) {
       screenfull.on('change', () => {
-        if (screenfull.isFullscreen) {
-          this.setWindowSize(screen.width, screen.height);
+        if(screenfull.isFullscreen) {
+          this.setWindowSize(screen.width, screen.height)
         } else {
-          this.setWindowSize(this.lastWidth, this.lastHeight);
+          this.setWindowSize(this.lastWidth, this.lastHeight)
         }
       });
-      screenfull.toggle(elem);
+
+      screenfull.toggle(elem)
     }
   }
 
@@ -395,51 +328,32 @@ export default class ClosetViewer {
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
-    this.render();
+    this.render()
   }
 
   onWindowResize(datas) {
-    const data = {
-      width: screen.width,
-      height: screen.height,
-      fullscreen: false,
-      marketplace: false,
-      reponsive: false,
-    };
-    $.extend(data, datas);
+    var data = {
+      width : screen.width,
+      height : screen.height,
+      fullscreen : false,
+      marketplace : false,
+      reponsive : false,
+    }
+    $.extend(data, datas);    // TODO: Is it necessary using jQuery? Why?
 
     if (data.fullscreen || data.responsive) {
-      windowHalfX = data.width / 2;
-      windowHalfY = data.height / 2;
-
-      this.camera.aspect = data.width / data.height;
-      this.camera.updateProjectionMatrix();
-
-      this.renderer.setSize(data.width, data.height);
+      setRenderSize(data.width, data.height);
     } else {
       if (data.marketplace) {
-        windowHalfX = 520;
-        windowHalfY = 650;
-
-        this.camera.aspect = 520 / 650;
-        this.camera.updateProjectionMatrix();
-
-        this.renderer.setSize(520, 650);
+        setRenderSize(520, 650);
       } else {
-        windowHalfX = 650;
-        windowHalfY = 750;
-
-        this.camera.aspect = 650 / 750;
-        this.camera.updateProjectionMatrix();
-
-        this.renderer.setSize(650, 750);
+        setRenderSize(650, 750);
       }
     }
   }
 
   animate() {
     requestAnimationFrame(this.animate.bind(this));
-    // console.log("camera position: " + this.camera.position);
     this.controls.update();
     this.render();
   }
@@ -454,10 +368,11 @@ export default class ClosetViewer {
 
     this.renderer.render(this.background_scene, this.background_camera); // draw background
     this.renderer.render(this.scene, this.camera); // draw object
+
     if (!PRODUCTION) rendererStats.update(this.renderer);
   }
 
-  updateRender(t = 100, isUpdate = false) {
+  updateRender(t = 100) {
     // 여기에 pointer 업데이트 하는 함수 콜하기.
     this.controls.update();
     setTimeout(this.render, t);
@@ -514,11 +429,12 @@ export default class ClosetViewer {
           clearThree(this.scene.children[i]);
         }
       }
-      if (colorwayIndex > -1) await this.changeColorway(colorwayIndex);
+      if (colorwayIndex > -1) {
+        await this.changeColorway(colorwayIndex);
+      }
       this.scene.add(object);
       this.object3D = object;
       this.zrest.zoomToObjects(loadedCamera, this.scene);
-
 
       if (onLoad) onLoad(this);
 
@@ -537,7 +453,6 @@ export default class ClosetViewer {
       return;
     }
 
-
     if (url.constructor === String) {
       this.zrest = new ZRestLoader({scene: this.scene, marker: this.marker, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition});
       this.zrest.load(url, loaded, progress, error);
@@ -551,7 +466,6 @@ export default class ClosetViewer {
   }
 
   getColorwaySize() {
-    console.log('getColorwaySize@viewer.js');
     return this.zrest.getColorwaySize();
   }
 
@@ -598,7 +512,6 @@ export default class ClosetViewer {
     this.updateRender();
   }
 
-
   SafeDeallocation(object, type, type_cb, nontype_cb) {
     if (object instanceof type) {
       type_cb(object);
@@ -607,13 +520,21 @@ export default class ClosetViewer {
     }
   }
 }
+
 function clearThree(obj) {
   while (obj.children.length > 0) {
     clearThree(obj.children[0]);
     obj.remove(obj.children[0]);
   }
 
-  if (obj.geometry) obj.geometry.dispose();
-  if (obj.material) obj.material.dispose();
-  if (obj.texture) obj.texture.dispose();
+  function disposeIfExists(component) {
+    if(component !== undefined)
+      component.dispose();
+  }
+
+  disposeIfExists(obj.geometry);
+  disposeIfExists(obj.material);
+  disposeIfExists(obj.texture);
+
+  obj = undefined;
 }
