@@ -213,7 +213,7 @@ export default class ClosetViewer {
   }
 
   setVisibleAllGarment(visibility) {
-    let matMeshType = this.zrest.MatMeshType;
+    let matMeshType = this.zrest.MATMESH_TYPE;
 
     for(let i=0; i<this.zrest.matMeshList.length; ++i) {
       let t = this.zrest.matMeshList[i].userData.TYPE;
@@ -226,26 +226,19 @@ export default class ClosetViewer {
     this.updateRender();
   }
 
-  isExistMatMeshType(type) {
-    for(let i=0; i<this.zrest.matMeshList.length; ++i) {
-      if(this.zrest.matMeshList[i].userData.TYPE == type) {
-        return true;
-      }
-    }
-    return false;
-  }
+
 
   isExistGarment() {
-    return this.isExistMatMeshType(this.zrest.MatMeshType.PATTERN_MATMESH)
+    return isExistMatMeshType(this.zrest.MATMESH_TYPE.PATTERN_MATMESH)
   }
   
   isExistAvatar() {
-    return this.isExistMatMeshType(this.zrest.MatMeshType.AVATAR_MATMESH)
+    return isExistMatMeshType(this.zrest.MATMESH_TYPE.AVATAR_MATMESH)
   }
 
   setVisibleAllAvatar(visibility) {
     for(let i=0; i<this.zrest.matMeshList.length; i++) {
-      if(this.zrest.matMeshList[i].userData.TYPE == this.zrest.MatMeshType.AVATAR_MATMESH) {
+      if(this.zrest.matMeshList[i].userData.TYPE == this.zrest.MATMESH_TYPE.AVATAR_MATMESH) {
         this.zrest.matMeshList[i].visible = visibility;
       }
     }
@@ -438,7 +431,6 @@ export default class ClosetViewer {
 
       if (onLoad) onLoad(this);
 
-
       this.updateRender();
     };
 
@@ -497,6 +489,7 @@ export default class ClosetViewer {
     for (let i = 0; i < matMeshList.length; ++i) {
       const prevMaterial = matMeshList[i].material;
       let preUseSeamPuckeringMap = false;
+      //console.log(prevMaterial.uniforms, prevMaterial.uniforms.bUseSeamPuckeringNormal);
       if (prevMaterial.uniforms.bUseSeamPuckeringNormal !== undefined) {
         preUseSeamPuckeringMap = prevMaterial.uniforms.bUseSeamPuckeringNormal.value;
       }
@@ -506,7 +499,7 @@ export default class ClosetViewer {
       const id = matMeshList[i].userData.MATMESH_ID;
 
       // TODO: hide this function!
-      matMeshList[i].material = await this.zrest.makeMaterialForZrest(this.zrest.jsZip, this.zrest.materialInformationMap.get(id), number, preUseSeamPuckeringMap, this.zrest.camera, this.zrest._drawMode, this.zrest._seamPuckeringNormalMap, this.zrest._nameToTextureMap, this.zrest._version);
+      matMeshList[i].material = await this.zrest.makeMaterialForZrest(this.zrest.jsZip, this.zrest.materialInformationMap.get(id), number, preUseSeamPuckeringMap, this.zrest.camera, this.zrest.meshFactory.version);
     }
 
     this.updateRender();
@@ -519,7 +512,17 @@ export default class ClosetViewer {
       nontype_cb(object);
     }
   }
-}
+};
+
+function isExistMatMeshType(type) {
+  console.log('isExistMatMeshType');
+  for(let i=0; i<this.zrest.matMeshList.length; ++i) {
+    if(this.zrest.matMeshList[i].userData.TYPE == type) {
+      return true;
+    }
+  }
+  return false;
+};
 
 function clearThree(obj) {
   while (obj.children.length > 0) {
@@ -527,10 +530,10 @@ function clearThree(obj) {
     obj.remove(obj.children[0]);
   }
 
-  function disposeIfExists(component) {
+  const disposeIfExists = (component) => {
     if(component !== undefined)
       component.dispose();
-  }
+  };
 
   disposeIfExists(obj.geometry);
   disposeIfExists(obj.material);

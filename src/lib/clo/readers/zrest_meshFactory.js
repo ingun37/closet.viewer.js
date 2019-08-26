@@ -127,7 +127,7 @@ const getCameraLtoW = (LtoWMatrix, loadedCamera) => {
   return true;
 };
 
-const convertMaterial = (source) => {
+const setMaterial = (source) => {
   // TODO: 'material' is assigned every loop. Should be improved.
   const material = {
     id: -1,

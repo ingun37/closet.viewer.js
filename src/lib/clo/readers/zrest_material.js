@@ -12,13 +12,13 @@ import pbrVertexShader from 'raw-loader!@/lib/clo/shader/pbrVertexShader.vert';
 
 import {TEXTURE_TYPE, RENDER_FACE_TYPE} from '@/lib/clo/readers/predefined';
 
-export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeringNormalMap, loadedCamera, _drawMode, _seamPuckeringNormalMap, _nameToTextureMap, version) {
+export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeringNormalMap, loadedCamera, drawMode, seamPuckeringNormalMap, nameToTextureMap, version) {
   const zRestColorwayMaterialArray = property.colorwayMaterials;
   const material = zRestColorwayMaterialArray[colorwayIndex];
   const rFace = getRenderFaceType(material.renderFace);
   const uniforms = getUniforms(version, loadedCamera, colorwayIndex);
 
-  const attachShader = (_drawMode, version) => {
+  const attachShader = (drawMode, version) => {
     const m = new THREE.ShaderMaterial({
       uniforms: THREE.UniformsUtils.merge([
         THREE.UniformsLib['lights'], uniforms,
@@ -26,7 +26,7 @@ export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeri
       vertexShader: null,
       fragmentShader: null,
       side: rFace, // double side로 하면 zfighting이 생각보다 심해진다. 나중에 이문제 해결 필요
-      wireframe: _drawMode.wireframe.pattern,
+      wireframe: drawMode.wireframe.pattern,
       lights: true,
       polygonOffset: property.bPolygonOffset, // zOffset 이전 버전에서는 bPolygonOffset 사용, zOffset 사용 버전부터는 bPolygonOffset = false 로 설정됨
       polygonOffsetFactor: -0.5,
@@ -49,16 +49,16 @@ export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeri
       m.uniforms.sSpecularEnvironmentMap.value = envSpecularMap;
     }
 
-    if (_seamPuckeringNormalMap !== null && bUseSeamPuckeringNormalMap) {
+    if (seamPuckeringNormalMap !== null && bUseSeamPuckeringNormalMap) {
       m.uniforms.bUseSeamPuckeringNormal.value = bUseSeamPuckeringNormalMap;
-      m.uniforms.sSeamPuckeringNormal.value = _seamPuckeringNormalMap;
+      m.uniforms.sSeamPuckeringNormal.value = seamPuckeringNormalMap;
     }
 
     return m;
   };
 
   // index is one of texture list. this value only zero now.
-  const threeJSMaterial = attachShader(_drawMode, version);
+  const threeJSMaterial = attachShader(drawMode, version);
 
   await loadZrestTexture(colorwayIndex, version);
 
@@ -193,11 +193,11 @@ export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeri
               * 버전 관리 툴을 믿고 삭제했습니다.
               * 기존 코드는 Release v1.0.23을 참고하세요.
             */
-          texture = _nameToTextureMap.get(textureFileName);
+          texture = nameToTextureMap.get(textureFileName);
 
-          if (!texture) {
+          if (! texture) {
             texture = await loadTexture(zip, textureFileName);
-            _nameToTextureMap.set(textureFileName, texture);
+            nameToTextureMap.set(textureFileName, texture);
           }
 
           // wrap type 외에는 기본값을 그대로 사용하면 된다.
