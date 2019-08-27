@@ -52,7 +52,7 @@ export default class ClosetViewer {
     this.getAvatarShowHideStatus = this.getAvatarShowHideStatus.bind(this);
     this.isAvailableShowHide = this.isAvailableShowHide.bind(this);
     this.setCameraPosition = this.setCameraPosition.bind(this);
-    this.updateRender = this.updateRender.bind(this);
+    this.updateRender = this.updateRenderer.bind(this);
     this.loadZrestData = this.loadZrestData.bind(this);
     this.fullscreen = this.fullscreen.bind(this);
 
@@ -100,7 +100,11 @@ export default class ClosetViewer {
     // create scenegraph
     this.scene = new THREE.Scene();
 
-    // 이제 version 3 이후 파일에 대해서는 shader에서 light 설정을 hard coding해서 사용한다. 하지만 version 2 이하 파일을 위해 여기에서도 설정한다.
+    /*
+    * 이제 version 3 이후 파일에 대해서는 shader에서 light 설정을 hard coding해서 사용한다. 
+    * 하지만 version 2 이하 파일을 위해 여기에서도 설정한다.
+    * by Jaden
+    */
     const DirLight0 = new THREE.DirectionalLight(0xd2d2d2);
     DirLight0.position.set(0, 0, 1).normalize();
     DirLight0.castShadow = false;
@@ -122,7 +126,13 @@ export default class ClosetViewer {
     DirLight1.shadow.bias = -0.001;
     // specular2 : 3c3c3c
 
-    // scene.add(new THREE.AmbientLight(0x8c8c8c));// amibent light은 추가하지 않고 shader에서 하드코딩으로 처리한다. CLO와 three.js 의 light 구조가 다르므로 이렇게 하자
+    /*
+    * scene.add(new THREE.AmbientLight(0x8c8c8c));
+    * amibent light은 추가하지 않고 shader에서 하드코딩으로 처리한다. 
+    * CLO와 three.js 의 light 구조가 다르므로 이렇게 하자.
+    * by Jaden
+    */
+
     this.scene.add(DirLight0);
     this.scene.add(DirLight1);
 
@@ -149,7 +159,7 @@ export default class ClosetViewer {
       camera: this.camera,
       renderer: this.renderer,
       controls: this.controls,
-      updateRender: this.updateRender,
+      updateRender: this.updateRenderer,
       setter: this.setter,
     });
 
@@ -158,7 +168,7 @@ export default class ClosetViewer {
       camera: this.camera,
       renderer: this.renderer,
       controls: this.controls,
-      updateRender: this.updateRender,
+      updateRender: this.updateRenderer,
     });
 
     // canvas event
@@ -171,10 +181,10 @@ export default class ClosetViewer {
     canvas.addEventListener('click', this.onMouseClick, false);
 
     function appendDefaultCamera() {
-      let fov = 15;
-      let aspect = w / h;
-      let near = 100;
-      let far = 100000;
+      const fov = 15;
+      const aspect = w / h;
+      const near = 100;
+      const far = 100000;
 
       return new THREE.PerspectiveCamera(fov, aspect, near, far);
     }
@@ -186,7 +196,7 @@ export default class ClosetViewer {
       this.setter.appendChild( rendererStats.domElement );
     }
 
-    this.updateRender(1);
+    this.updateRenderer(1);
   }
 
   onMouseMove( e ) {
@@ -214,7 +224,7 @@ export default class ClosetViewer {
   }
 
   setVisibleAllGarment(visibility) {
-    let matMeshType = this.zrest.MATMESH_TYPE;
+    const matMeshType = this.zrest.MATMESH_TYPE;
 
     for(let i=0; i<this.zrest.matMeshList.length; ++i) {
       let t = this.zrest.matMeshList[i].userData.TYPE;
@@ -224,7 +234,7 @@ export default class ClosetViewer {
       }
     }
 
-    this.updateRender();
+    this.updateRenderer();
   }
 
   isExistGarment() {
@@ -241,7 +251,7 @@ export default class ClosetViewer {
         this.zrest.matMeshList[i].visible = visibility;
       }
     }
-    this.updateRender();
+    this.updateRenderer();
   }
   
   getShowHideStatus(type) {
@@ -282,7 +292,7 @@ export default class ClosetViewer {
 
       // TODO: consider remove === operation
       if (bShouldUpdateRendering) {
-        this.updateRender()
+        this.updateRenderer()
       }
     }
   }
@@ -360,7 +370,7 @@ export default class ClosetViewer {
     if (!PRODUCTION) rendererStats.update(this.renderer);
   }
 
-  updateRender(t = 100) {
+  updateRenderer(t = 100) {
     // 여기에 pointer 업데이트 하는 함수 콜하기.
     this.controls.update();
     setTimeout(this.render, t);
@@ -426,7 +436,7 @@ export default class ClosetViewer {
 
       if (onLoad) onLoad(this);
 
-      this.updateRender();
+      this.updateRenderer();
     };
 
     if (this.zrest !== undefined) {
@@ -449,7 +459,7 @@ export default class ClosetViewer {
   setCameraPosition(position, target) {
     this.camera.position.copy(position);
     if (target) this.controls.target.copy(target);
-    this.updateRender();
+    this.updateRenderer();
   }
 
   getColorwaySize() {
@@ -497,7 +507,7 @@ export default class ClosetViewer {
       matMeshList[i].material = await this.zrest.makeMaterialForZrest(this.zrest.jsZip, this.zrest.materialInformationMap.get(id), number, preUseSeamPuckeringMap, this.zrest.camera, this.zrest.meshFactory.version);
     }
 
-    this.updateRender();
+    this.updateRenderer();
   }
 
   SafeDeallocation(object, type, type_cb, nontype_cb) {
