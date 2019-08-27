@@ -46,7 +46,7 @@ MeshFactory.prototype = {
       const listMaterial = map.get('listMaterial');
       if (listMaterial !== undefined) {
         for (let j = 0; j < listMaterial.length; ++j) {
-          const material = convertMaterial(listMaterial[j]);
+          const material = setMaterial(listMaterial[j]);
           this.materialList.push(material);
         }
       }
@@ -81,7 +81,7 @@ MeshFactory.prototype = {
 
           if (listMaterial !== undefined) {
             for (let j = 0; j < listMaterial.length; ++j) {
-              const material = convertMaterial(listMaterial[j]);
+              const material = setMaterial(listMaterial[j]);
               zRestColorwayMaterials.colorwayMaterials.push(material);
             }
           }
