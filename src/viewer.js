@@ -19,6 +19,7 @@ checkFileReaderSyncSupport();
 
 const cameraHeight = 1100;
 const cameraDistance = 5000;
+const camMatrixPushOrder = [0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14];
 
 let requestId = null;
 
@@ -137,11 +138,11 @@ export default class ClosetViewer {
     this.backgroundMesh.material.depthTest = false;
     this.backgroundMesh.material.depthWrite = false;
 
-    this.background_scene = new THREE.Scene();
-    this.background_camera = new THREE.Camera();
+    this.backgroundScene = new THREE.Scene();
+    this.backgroundCamera = new THREE.Camera();
 
-    this.background_scene.add(this.background_camera);
-    this.background_scene.add(this.backgroundMesh);
+    this.backgroundScene.add(this.backgroundCamera);
+    this.backgroundScene.add(this.backgroundMesh);
 
     this.annotation = new AnnotationManager({
       scene: this.scene,
@@ -226,8 +227,6 @@ export default class ClosetViewer {
     this.updateRender();
   }
 
-
-
   isExistGarment() {
     return isExistMatMeshType(this.zrest.MATMESH_TYPE.PATTERN_MATMESH)
   }
@@ -242,19 +241,17 @@ export default class ClosetViewer {
         this.zrest.matMeshList[i].visible = visibility;
       }
     }
-    
     this.updateRender();
   }
   
   getShowHideStatus(type) {
     for (let i=0; i<this.zrest.matMeshList.length; i++) {
       if (this.zrest.matMeshList[i].userData.TYPE == type) {
-        if (this.zrest.matMeshList[i].visible === true) {
+        if (this.zrest.matMeshList[i].visible) {
           return true;
         }
       }
     }
-
     return false;
   }
 
@@ -267,28 +264,26 @@ export default class ClosetViewer {
   }
 
   isAvailableShowHide() {
-    return (this.zrest.gVersion >= 4) // TODO: check this condition statement always works stable
+    // TODO: check this condition statement always works stable
+    return (this.zrest.gVersion >= 4) 
   }
 
   getCameraMatrix() {
     let camMatrix = this.camera.matrix.elements;
-    const camMatrixPushOrder = [0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14];
-
     return camMatrixPushOrder.map(index => camMatrix[index]);
   }
 
   // TODO: consider remove duplicated routine about camMatrixPushOrder with getCameraMatrix()
-  setCameraMatrix(mat, bUpdateRendering) {
+  setCameraMatrix(mat, bShouldUpdateRendering) {
     if (mat !== undefined && mat.length === 12) {
-      let camMatrixPushOrder = [0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14];  
-
       for (let i=0; i<camMatrixPushOrder.length; ++i) {
         this.camera.matrix.elements[camMatrixPushOrder[i]] = mat[i];
       }
 
       // TODO: consider remove === operation
-      if (bUpdateRendering === true)   
+      if (bShouldUpdateRendering) {
         this.updateRender()
+      }
     }
   }
 
@@ -359,7 +354,7 @@ export default class ClosetViewer {
     this.renderer.autoClear = false;
     this.renderer.clear();
 
-    this.renderer.render(this.background_scene, this.background_camera); // draw background
+    this.renderer.render(this.backgroundScene, this.backgroundCamera); // draw background
     this.renderer.render(this.scene, this.camera); // draw object
 
     if (!PRODUCTION) rendererStats.update(this.renderer);
