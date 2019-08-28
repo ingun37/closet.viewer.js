@@ -29,7 +29,6 @@ export default function ZRestLoader({scene, marker, camera, controls, cameraPosi
 
   this.materialList = [];
   this.matMeshList = [];
-  this.materialInformationMap = null;
   this.currentColorwayIndex = 0;
   this.jsZip = null;
 
@@ -66,6 +65,10 @@ ZRestLoader.prototype = {
     return this.meshFactory.getColorwaySize();
   },
 
+  getMaterialInformationMap() {
+    return this.meshFactory.materialInformationMap;
+  },
+
   parse(data, onLoad) {
     this.data = data;
     this.onLoad = onLoad;
@@ -88,6 +91,7 @@ ZRestLoader.prototype = {
 
     let rootMap;
     let restName = '';
+
     // TODO: consider change names. btn and bth are confusing easily
     const btnNameList = [];
     const bthNameList = [];
@@ -135,9 +139,6 @@ ZRestLoader.prototype = {
           };
 
           await this.meshFactory.build(rootMap, zip, object3D, loadedCamera);
-
-          // TODO: check this works correctly.
-          this.materialInformationMap = this.meshFactory.materialInformationMap;
 
           // 여기가 실질적으로 Zrest 로드 완료되는 시점
           this.onLoad(object3D, loadedCamera, this.data);
