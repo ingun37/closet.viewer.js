@@ -29,7 +29,7 @@ MeshFactory.prototype = {
 
     this.version = version;
 
-    console.log('version: ' + this._version);
+    console.log('version: ' + this.version);
     this.materialInformationMap = new Map();
 
     const camLtoW = map.get('m4CameraLocalToWorldMatrix');
