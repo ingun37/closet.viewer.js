@@ -59,7 +59,7 @@
 </head>
 <body>
 
-<div class=" ui container">
+<div class="ui container">
     <div id="container" class="">
         <div class="ui grid">
             <div class="eight wide column">
@@ -278,11 +278,6 @@
   closetViewerArray.push({viewer: closet.viewer, id: 'detail_viewer'})
 
 
-  // document.querySelector('#detail_viewer').addEventListener("click", function(e) {
-  //   closet.viewer.annotation.onMouseClick({ clientX: e.clientX, clientY: e.clientY }, window.isAnnotation)
-  // }, false)
-
-
   function add() {
     var container = document.querySelector('.sub-viewer')
 
@@ -308,7 +303,6 @@
   }
 
   function setVisibleAllAvatar() {
-
     if (!avatarBool) {
       avatarBool = true
     } else {
@@ -363,25 +357,6 @@
     closet.viewer.getCameraMatrix()
     console.log(closet.viewer.getCameraMatrix())
   }
-
-  // (function(d, s, id) {
-  //     var js, fjs = d.getElementsByTagName(s)[0]
-  //     if (d.getElementById(id)) { return }
-  //     js = d.createElement(s); js.id = id
-  //     js.src = '/closet.viewer.js'
-  //     fjs.parentNode.insertBefore(js, fjs)
-  // }(document, 'script', 'clo-viewer'))
-  //
-  //
-  // window.cvInit = function() {
-  //     console.log('cvInit')
-  //
-  //     closet.viewer.init({
-  //         element: 'detail_viewer',
-  //         width: 620,
-  //         height: 780
-  //     })
-  // }
 
 </script>
 </body>
