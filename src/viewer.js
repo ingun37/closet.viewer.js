@@ -1,5 +1,5 @@
 ﻿/* eslint-disable require-jsdoc */
-import ZRestLoader, {dataWorkerFunction, checkFileReaderSyncSupport} from './lib/clo/readers/ZrestReader';
+import ZRestLoader, {dataWorkerFunction, checkFileReaderSyncSupport} from './lib/clo/readers/ZrestLoader';
 import * as THREE from '@/lib/threejs/three';
 import '@/lib/threejs/OrbitControls';
 import '@/lib/draco/DRACOLoader';
@@ -486,7 +486,7 @@ export default class ClosetViewer {
       console.log('zip is null');
       return;
     }
-    
+
     this.zrest.currentColorwayIndex = number;
     console.log("selected colorway index: " + number);
 
