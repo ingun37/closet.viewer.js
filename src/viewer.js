@@ -486,6 +486,7 @@ export default class ClosetViewer {
       console.log('zip is null');
       return;
     }
+    
     this.zrest.currentColorwayIndex = number;
     console.log("selected colorway index: " + number);
 
@@ -493,18 +494,21 @@ export default class ClosetViewer {
 
     for (let i = 0; i < matMeshList.length; ++i) {
       const prevMaterial = matMeshList[i].material;
-      let preUseSeamPuckeringMap = false;
-      //console.log(prevMaterial.uniforms, prevMaterial.uniforms.bUseSeamPuckeringNormal);
+      let bPrevUseSeamPuckeringMap = false;
       if (prevMaterial.uniforms.bUseSeamPuckeringNormal !== undefined) {
-        preUseSeamPuckeringMap = prevMaterial.uniforms.bUseSeamPuckeringNormal.value;
+        bPrevUseSeamPuckeringMap = prevMaterial.uniforms.bUseSeamPuckeringNormal.value;
       }
 
-      this.SafeDeallocation(prevMaterial, THREE.ShaderMaterial, function() {/* console.log("success deallocation");*/}, function() {/* console.log("unsuccess deallocation");*/});
+      this.SafeDeallocation(prevMaterial, THREE.ShaderMaterial, function() {
+        // console.log("success deallocation");
+      }, function() {
+        // console.log("unsuccess deallocation");
+      });
 
       const id = matMeshList[i].userData.MATMESH_ID;
 
       // TODO: hide this function!
-      matMeshList[i].material = await this.zrest.makeMaterialForZrest(this.zrest.jsZip, this.zrest.materialInformationMap.get(id), number, preUseSeamPuckeringMap, this.zrest.camera, this.zrest.meshFactory.version);
+      matMeshList[i].material = await this.zrest.makeMaterialForZrest(this.zrest.jsZip, this.zrest.getMaterialInformationMap().get(id), number, bPrevUseSeamPuckeringMap, this.zrest.camera, this.zrest.meshFactory.version);
     }
 
     this.updateRenderer();

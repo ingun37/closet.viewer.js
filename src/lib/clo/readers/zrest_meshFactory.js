@@ -27,8 +27,7 @@ MeshFactory.prototype = {
   async build(map, zip, retObject, loadedCamera) {
     const version = (map.get('uiVersion') || 1);
 
-    // TODO: should be removed if possible
-    this._version = version;
+    this.version = version;
 
     console.log('version: ' + this._version);
     this.materialInformationMap = new Map();
@@ -58,7 +57,6 @@ MeshFactory.prototype = {
         const zRestColorwayMaterials = setZRestColorwayMaterials(zRestMatMeshArray[i]);
 
         if (version > 4) {
-          // TEST: high version only
           const renderFace = zRestMatMeshArray[i].get('enRenderFace');
           const listMaterialInfo = zRestMatMeshArray[i].get('listMaterialInfo');
 
@@ -71,6 +69,7 @@ MeshFactory.prototype = {
               mapMaterialInfo.index = listMaterialInfo[j].get('iMaterialIndex');
               if (mapMaterialInfo.index < this.materialList.length) {
                 // 나중에 작성자의 의도를 파악해야 함. 미심쩍다...왜 Material이 renderFace 정보를 가지고 있는지 잘 모르겠음.
+                // by Jaden
                 this.materialList[mapMaterialInfo.index].renderFace = renderFace;
                 zRestColorwayMaterials.colorwayMaterials.push(this.materialList[mapMaterialInfo.index]);
               }
@@ -169,12 +168,12 @@ const setMaterial = (source) => {
     texture: [],
   };
 
-  // For high version
+  // For high version only
+  // TODO: consider removing this module 
   const element = source.get('mapElement');
   if (element !== undefined) {
     material.id = element.get('uiID');
   }
-  // end
 
   material.renderFace = source.get('enRenderFace');
   material.bTransparent = source.get('bTransparent');
