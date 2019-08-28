@@ -172,10 +172,10 @@ export default class ClosetViewer {
     });
 
     // canvas event
-    const canvas = this.setter;
-    canvas.addEventListener('mouseout', () => this.controls.noPan = true, false);
-    canvas.addEventListener('mouseover', () => this.controls.noPan = false, false);
-    canvas.addEventListener('mousedown', this.onMouseDown, false);
+    var canvas = this.setter;
+    canvas.addEventListener("mouseout", this.onPanControls, false);
+    canvas.addEventListener("mouseover", this.offPanControls, false);
+    canvas.addEventListener("mousedown", this.onMouseDown, false);
     canvas.addEventListener('mousemove', this.onMouseMove, false);
     canvas.addEventListener('mouseup', this.onMouseUp, false);
     canvas.addEventListener('click', this.onMouseClick, false);
