@@ -28,7 +28,8 @@ export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeri
       side: rFace, // double side로 하면 zfighting이 생각보다 심해진다. 나중에 이문제 해결 필요
       wireframe: drawMode.wireframe.pattern,
       lights: true,
-      polygonOffset: property.bPolygonOffset, // zOffset 이전 버전에서는 bPolygonOffset 사용, zOffset 사용 버전부터는 bPolygonOffset = false 로 설정됨
+      // zOffset 이전 버전에서는 bPolygonOffset 사용, zOffset 사용 버전부터는 bPolygonOffset = false 로 설정됨
+      polygonOffset: property.bPolygonOffset,
       polygonOffsetFactor: -0.5,
       polygonOffsetUnits: -2.0,
       depthWrite: !material.bTransparent,
@@ -79,87 +80,102 @@ export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeri
   }
 
   function getUniforms(version, camera, colorwayIndex) {
+    const buildTypeValue = (_type, _value) => {
+      return {
+        type: _type,
+        value: _value,
+      };
+    };
+    const buildFValue = (_value) => buildTypeValue('f', _value);
+    const buildV3Value = (_value) => buildTypeValue('v3', _value);
+
+    const identityMatrix = buildTypeValue('m4', new THREE.Matrix4().identity());
+    const tNull = buildTypeValue('t', null);
+    const iZero = buildTypeValue('i', 0);
+
     if (version <=2) {
       return {
-        matGlobal: {type: 'm4', value: new THREE.Matrix4().identity()},
-        matAmbient: {type: 'm4', value: new THREE.Matrix4().identity()},
-        matDiffuse: {type: 'm4', value: new THREE.Matrix4().identity()},
-        matSpecular: {type: 'm4', value: new THREE.Matrix4().identity()},
-        matNormal: {type: 'm4', value: new THREE.Matrix4().identity()},
-        matTransparent: {type: 'm4', value: new THREE.Matrix4().identity()},
-        gRotMatrix: {type: 'm4', value: new THREE.Matrix4().identity()},
-        gTransMatrix: {type: 'm4', value: new THREE.Matrix4().identity()},
-        sGlobal: {type: 't', value: null},
-        sAmbient: {type: 't', value: null},
-        sDiffuse: {type: 't', value: null},
-        sSpecular: {type: 't', value: null},
-        sNormal: {type: 't', value: null},
-        sTransparent: {type: 't', value: null},
-        bUseGlobal: {type: 'i', value: 0},
-        bUseAmbient: {type: 'i', value: 0},
-        bUseDiffuse: {type: 'i', value: 0},
-        bUseSpecular: {type: 'i', value: 0},
-        bUseNormal: {type: 'i', value: 0},
-        bUseTransparent: {type: 'i', value: 0},
+        matGlobal: identityMatrix,
+        matAmbient: identityMatrix,
+        matDiffuse: identityMatrix,
+        matSpecular: identityMatrix,
+        matNormal: identityMatrix,
+        matTransparent: identityMatrix,
+        gRotMatrix: identityMatrix,
+        gTransMatrix: identityMatrix,
 
-        materialAmbient: {type: 'v3', value: zRestColorwayMaterialArray[colorwayIndex].ambient},
-        materialDiffuse: {type: 'v3', value: zRestColorwayMaterialArray[colorwayIndex].diffuse},
-        materialSpecular: {type: 'v3', value: zRestColorwayMaterialArray[colorwayIndex].specular},
-        materialEmission: {type: 'v3', value: zRestColorwayMaterialArray[colorwayIndex].emission},
-        materialShininess: {type: 'f', value: zRestColorwayMaterialArray[colorwayIndex].shininess},
-        materialOpacity: {type: 'f', value: zRestColorwayMaterialArray[colorwayIndex].alpha},
-        normalMapIntensityInPercentage: {type: 'f', value: zRestColorwayMaterialArray[colorwayIndex].normalMapIntensityInPercentage},
+        sGlobal: tNull,
+        sAmbient: tNull,
+        sDiffuse: tNull,
+        sSpecular: tNull,
+        sNormal: tNull,
+        sTransparent: tNull,
+
+        bUseGlobal: iZero,
+        bUseAmbient: iZero,
+        bUseDiffuse: iZero,
+        bUseSpecular: iZero,
+        bUseNormal: iZero,
+        bUseTransparent: iZero,
+
+        materialAmbient: buildV3Value(material.ambient),
+        materialDiffuse: buildV3Value(material.diffuse),
+        materialSpecular: buildV3Value(material.specular),
+        materialEmission: buildV3Value(material.emission),
+        materialShininess: buildFValue(material.shininess),
+        materialOpacity: buildFValue(material.alpha),
+        normalMapIntensityInPercentage: buildFValue(material.normalMapIntensityInPercentage),
       };
     } else { // version > 3
       return {
-        m_bUseMetalnessRoughnessPBR: {type: 'i', value: zRestColorwayMaterialArray[colorwayIndex].bUseMetalnessRoughnessPBR},
-        m_Metalness: {type: 'f', value: zRestColorwayMaterialArray[colorwayIndex].metalness},
-        m_Glossiness: {type: 'f', value: zRestColorwayMaterialArray[colorwayIndex].glossiness},
-        m_bInvertGlossinessMap: {type: 'i', value: 0}, // 아래 텍스처 로드하면서 설정
-        m_GlossinessMapIntensity: {type: 'f', value: 1.0}, // 아래서 설정
+        m_bUseMetalnessRoughnessPBR: buildTypeValue('i', material.bUseMetalnessRoughnessPBR),
+        m_Metalness: buildFValue(material.metalness),
+        m_Glossiness: buildFValue(material.glossiness),
+        m_bInvertGlossinessMap: iZero, // 아래 텍스처 로드하면서 설정
+        m_GlossinessMapIntensity: iZero, // 아래서 설정
         // m_EnvironmentAngle: { type: 'f', value: 0.0 }, // 나중에 zprj 파일에서 읽자
-        m_EnvironmentLightIntensity: {type: 'f', value: zRestColorwayMaterialArray[colorwayIndex].environmentLightIntensity},
-        m_CameraLightIntensity: {type: 'f', value: zRestColorwayMaterialArray[colorwayIndex].cameraLightIntensity},
-        m_ReflectionIntensity: {type: 'f', value: zRestColorwayMaterialArray[colorwayIndex].reflectionIntensity},
-        m_RoughnessUIType: {type: 'i', value: zRestColorwayMaterialArray[colorwayIndex].roughnessUIType},
-        m_FrontColorMult: {type: 'f', value: zRestColorwayMaterialArray[colorwayIndex].frontColorMult},
-        m_SideColorMult: {type: 'f', value: zRestColorwayMaterialArray[colorwayIndex].sideColorMult},
+        m_EnvironmentLightIntensity: buildFValue(material.environmentLightIntensity),
+        m_CameraLightIntensity: buildFValue(material.cameraLightIntensity),
+        m_ReflectionIntensity: buildFValue(material.reflectionIntensity),
+        m_RoughnessUIType: buildTypeValue('i', material.roughnessUIType),
+        m_FrontColorMult: buildFValue(material.frontColorMult),
+        m_SideColorMult: buildFValue(material.sideColorMult),
 
-        materialBaseColor: {type: 'v3', value: zRestColorwayMaterialArray[colorwayIndex].base},
-        materialSpecular: {type: 'v3', value: zRestColorwayMaterialArray[colorwayIndex].reflectionColor},
-        materialOpacity: {type: 'f', value: zRestColorwayMaterialArray[colorwayIndex].alpha},
-        normalMapIntensityInPercentage: {type: 'f', value: zRestColorwayMaterialArray[colorwayIndex].normalMapIntensityInPercentage},
+        materialBaseColor: buildV3Value(material.base),
+        materialSpecular: buildV3Value(material.reflectionColor),
+        materialOpacity: buildFValue(material.alpha),
+        normalMapIntensityInPercentage: buildFValue(material.normalMapIntensityInPercentage),
 
         // 아래는 texture 정보에서 설정
-        bUseGlobal: {type: 'i', value: 0},
-        bUseNormal: {type: 'i', value: 0},
-        bUseSeamPuckeringNormal: {type: 'i', value: 0},
-        bUseTransparent: {type: 'i', value: 0},
-        bUseGlossinessMap: {type: 'i', value: 0},
-        bUseMetalnessMap: {type: 'i', value: 0},
-        bUseAmbientOcclusion: {type: 'i', value: 0},
+        bUseGlobal: iZero,
+        bUseNormal: iZero,
+        bUseSeamPuckeringNormal: iZero,
+        bUseTransparent: iZero,
+        bUseGlossinessMap: iZero,
+        bUseMetalnessMap: iZero,
+        bUseAmbientOcclusion: iZero,
 
-        matGlobal: {type: 'm4', value: new THREE.Matrix4().identity()},
-        matNormal: {type: 'm4', value: new THREE.Matrix4().identity()},
-        matTransparent: {type: 'm4', value: new THREE.Matrix4().identity()},
-        matGlossiness: {type: 'm4', value: new THREE.Matrix4().identity()},
-        matMetalness: {type: 'm4', value: new THREE.Matrix4().identity()},
+        matGlobal: identityMatrix,
+        matNormal: identityMatrix,
+        matTransparent: identityMatrix,
+        matGlossiness: identityMatrix,
+        matMetalness: identityMatrix,
 
-        gRotMatrix: {type: 'm4', value: new THREE.Matrix4().identity()},
-        gTransMatrix: {type: 'm4', value: new THREE.Matrix4().identity()},
+        gRotMatrix: identityMatrix,
+        gTransMatrix: identityMatrix,
 
-        positionOffset: {type: 'f', value: property.zOffset},
-        cameraNear: {type: 'f', value: loadedCamera.near},
-        cameraFar: {type: 'f', value: loadedCamera.far},
+        positionOffset: buildFValue(property.zOffset),
+        cameraNear: buildFValue(loadedCamera.near),
+        cameraFar: buildFValue(loadedCamera.far),
 
-        sGlobal: {type: 't', value: null},
-        sNormal: {type: 't', value: null},
-        sSeamPuckeringNormal: {type: 't', value: null},
-        sTransparent: {type: 't', value: null},
-        sGlossiness: {type: 't', value: null},
-        sMetalness: {type: 't', value: null},
-        sDiffuseEnvironmentMap: {type: 't', value: null}, // 여기서 바로 value: envDiffuseMap 으로 설정하면 안먹힌다.
-        sSpecularEnvironmentMap: {type: 't', value: null}, // 여기서 바로 value: envDiffuseMap 으로 설정하면 안먹힌다.
+        sGlobal: tNull,
+        sNormal: tNull,
+        sSeamPuckeringNormal: tNull,
+        sTransparent: tNull,
+        sGlossiness: tNull,
+        sMetalness: tNull,
+        sDiffuseEnvironmentMap: tNull, // 여기서 바로 value: envDiffuseMap 으로 설정하면 안먹힌다.
+        sSpecularEnvironmentMap: tNull, // 여기서 바로 value: envDiffuseMap 으로 설정하면 안먹힌다.
         // uniform sampler2D sAmbientOcclusionMap;
       };
     }
@@ -170,8 +186,8 @@ export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeri
     let bHasTexture = false;
     let texture;
 
-    for (let i = 0; i < zRestColorwayMaterialArray[colorwayIndex].texture.length; i++) {
-      const zRestTexture = zRestColorwayMaterialArray[colorwayIndex].texture[i];
+    for (let i = 0; i < material.texture.length; i++) {
+      const zRestTexture = material.texture[i];
 
       if (!zip.file(zRestTexture.file)) {
         const temp = zRestTexture.file;
@@ -286,13 +302,15 @@ export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeri
 
     if (bHasTexture) {
       if (property.colorwayObjectTextureTransformation.length > 0) {
+        const transformed = property.colorwayObjectTextureTransformation;
         const grot = new THREE.Matrix4();
         grot.identity();
-        grot.makeRotationZ(-THREE.Math.degToRad(property.colorwayObjectTextureTransformation[colorwayIndex].angle));
+        grot.makeRotationZ(-THREE.Math.degToRad(transformed[colorwayIndex].angle));
 
         const gtra = new THREE.Matrix4();
         gtra.identity();
-        gtra.makeTranslation(-property.colorwayObjectTextureTransformation[colorwayIndex].translate.x, -property.colorwayObjectTextureTransformation[colorwayIndex].translate.y, 0.0);
+
+        gtra.makeTranslation(-transformed[colorwayIndex].translate.x, -transformed[colorwayIndex].translate.y, 0.0);
 
         threeJSMaterial.uniforms.gRotMatrix.value = grot;
         threeJSMaterial.uniforms.gTransMatrix.value = gtra;
