@@ -52,7 +52,7 @@ export default class ClosetViewer {
     this.getAvatarShowHideStatus = this.getAvatarShowHideStatus.bind(this);
     this.isAvailableShowHide = this.isAvailableShowHide.bind(this);
     this.setCameraPosition = this.setCameraPosition.bind(this);
-    this.updateRender = this.updateRenderer.bind(this);
+    this.updateRenderer = this.updateRenderer.bind(this);
     this.loadZrestData = this.loadZrestData.bind(this);
     this.fullscreen = this.fullscreen.bind(this);
 
@@ -159,7 +159,7 @@ export default class ClosetViewer {
       camera: this.camera,
       renderer: this.renderer,
       controls: this.controls,
-      updateRender: this.updateRenderer,
+      updateRenderer: this.updateRenderer,
       setter: this.setter,
     });
 
@@ -168,7 +168,7 @@ export default class ClosetViewer {
       camera: this.camera,
       renderer: this.renderer,
       controls: this.controls,
-      updateRender: this.updateRenderer,
+      updateRenderer: this.updateRenderer,
     });
 
     // canvas event
