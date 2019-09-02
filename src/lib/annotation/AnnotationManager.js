@@ -271,11 +271,9 @@ class AnnotationManager {
 
       if (intersects.length > 0) {
         // 처리할거 하고 return;
-        // for(var i=0; i<this.annotationPointerList.length; i++)
         for (let i = 0; i < this.annotationList.length; i++) {
           if (intersects[0].object === this.annotationList[i].sprite) {
             return this.annotationList[i];
-            // this.animateCamera(this.annotationList[i].cameraPos)
           }
         }
       }
@@ -300,8 +298,6 @@ class AnnotationManager {
       THREE.Quaternion.slerp(startQuaternion, endQuaternion, q, t);
       q.normalize();
 
-      console.log(this.camera.quaternion);
-
       this.camera.quaternion.copy(q);
       this.updateRenderer();
     };
@@ -312,21 +308,25 @@ class AnnotationManager {
       this.controls.enabled = true;
     };
 
+    // TODO: remove vars on follows
     // 여기서 interpolation 해야할게, camera position, camera upVector
     if (this.camera.position.x !== to.x || this.camera.position.y !== to.y || this.camera.position.z !== to.z) {
-      const startQuaternion = new THREE.Quaternion();
+      // eslint-disable-next-line prefer-const
+      var startQuaternion = new THREE.Quaternion();
       startQuaternion.copy(this.camera.quaternion);
       startQuaternion.normalize();
 
-      console.log(annotationItem);
-      const endQuaternion = new THREE.Quaternion();
+      // eslint-disable-next-line prefer-const
+      var endQuaternion = new THREE.Quaternion();
       endQuaternion.copy(annotationItem.cameraQuaternion);
       endQuaternion.normalize();
 
-      const target = new THREE.Vector3();
+      // eslint-disable-next-line prefer-const
+      let target = new THREE.Vector3();
       target.copy(annotationItem.cameraTarget);
 
-      const tween = TweenMax.to(this.camera.position, 0.8, {
+      // eslint-disable-next-line prefer-const
+      var tween = TweenMax.to(this.camera.position, 0.8, {
         x: to.x,
         y: to.y,
         z: to.z,
@@ -421,6 +421,9 @@ function Annotation(pointerPosition, normal, cameraPosition, cameraTarget, camer
 
   this.cameraTarget = new THREE.Vector3(); // DB
   this.cameraTarget.copy(cameraTarget);
+
+  this.cameraQuaternion = new THREE.Quaternion(); // DB
+  this.cameraQuaternion.copy(cameraQuaternion);
 
   this.message = _message; // DB
   this.sprite = _sprite;
