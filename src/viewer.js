@@ -7,7 +7,6 @@ import '@/lib/draco/DRACOLoader';
 import RendererStats from '@xailabs/three-renderer-stats';
 import AnnotationManager from '@/lib/annotation/AnnotationManager';
 import screenfull from 'screenfull';
-import MarkerManager from '@/lib/Marker/MarkerManager';
 import MobileDetect from 'mobile-detect';
 
 let windowHalfX = window.innerWidth / 2;
@@ -163,14 +162,6 @@ export default class ClosetViewer {
       setter: this.setter,
     });
 
-    this.marker = new MarkerManager({
-      scene: this.scene,
-      camera: this.camera,
-      renderer: this.renderer,
-      controls: this.controls,
-      updateRenderer: this.updateRenderer,
-    });
-
     // canvas event
     const canvas = this.setter;
     canvas.addEventListener('mouseout', () => this.controls.noPan = true, false);
@@ -202,25 +193,21 @@ export default class ClosetViewer {
   onMouseMove( e ) {
     e.preventDefault();
     if (this.annotation && this.object3D) this.annotation.onMouseMove(e);
-    if (this.marker) this.marker.onMouseMove(e);
   }
 
   onMouseDown( e ) {
     e.preventDefault();
     if (this.annotation && this.object3D) this.annotation.onMouseDown(e);
-    if (this.marker) this.marker.onMouseDown(e);
   }
 
   onMouseUp( e ) {
     e.preventDefault();
     if (this.annotation && this.object3D) this.annotation.onMouseUp(e);
-    if (this.marker) this.marker.onMouseUp(e);
   }
 
   onMouseClick( e ) {
     e.preventDefault();
     if (this.annotation && this.object3D) this.annotation.onMouseClick(e);
-    if (this.marker) this.marker.onMouseUp(e);
   }
 
   setVisibleAllGarment(visibility) {
@@ -359,8 +346,6 @@ export default class ClosetViewer {
   render() {
     if (this.annotation) this.annotation.updateAnnotationPointerSize(); // update annotation pointer size
 
-    if (this.marker) this.marker.updatePointerSize(); // update pointer size
-    //
     this.renderer.autoClear = false;
     this.renderer.clear();
 
@@ -417,10 +402,6 @@ export default class ClosetViewer {
         zrest: this.zrest,
       });
 
-      this.marker.init({
-        zrest: this.zrest,
-      });
-
       // delete object3D, geometry, material dispose
       for (let i = 0; i < this.scene.children.length; i++) {
         if (this.scene.children[i].name === 'object3D') {
@@ -445,13 +426,13 @@ export default class ClosetViewer {
     }
 
     if (url.constructor === ArrayBuffer) {
-      this.zrest = new ZRestLoader({scene: this.scene, marker: this.marker, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition});
+      this.zrest = new ZRestLoader({scene: this.scene, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition});
       this.zrest.parse(url, loaded);
       return;
     }
 
     if (url.constructor === String) {
-      this.zrest = new ZRestLoader({scene: this.scene, marker: this.marker, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition});
+      this.zrest = new ZRestLoader({scene: this.scene, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition});
       this.zrest.load(url, loaded, progress, error);
     }
   }

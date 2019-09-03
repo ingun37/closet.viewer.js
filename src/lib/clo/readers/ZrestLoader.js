@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 'use strict';
 
 /* eslint-disable require-jsdoc */
@@ -19,9 +20,8 @@ const _drawMode = {wireframe: {pattern: false, button: false}};
 const _version = -1;
 
 
-export default function ZRestLoader({scene, marker, camera, controls, cameraPosition}, manager) {
+export default function ZRestLoader({scene, camera, controls, cameraPosition}, manager) {
   this.scene = scene;
-  this.markerManager = marker;
   this.camera = camera;
   this.controls = controls;
   this.cameraPosition = cameraPosition;
