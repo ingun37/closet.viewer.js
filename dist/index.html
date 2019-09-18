@@ -330,9 +330,13 @@
   }
 
   function loadForm() {
-    var url = document.getElementById('zrestURL').value
+    var url = document.getElementById('zrestURL').value;
 
-    load(url)
+    if (!url.includes('.')) {
+      url += '.zrest';
+    }
+
+    load(url);
   }
 
   function load(url) {
@@ -341,7 +345,7 @@
       viewer.loadZrestUrl(url, progress, loaded)
     }
 
-    currentURL = url
+    currentURL = url;
   }
 
   function canvasCapture() {
