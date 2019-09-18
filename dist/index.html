@@ -247,7 +247,6 @@
     $(setter).find('.colorwayBtns').remove()
     var btns = $(setter).append('<div class="colorwayBtns"></div>').find('.colorwayBtns')
 
-
     for (var i = 0; i < colorwaySize; i++) {
       var btn = document.createElement('button')
       btn.className = 'mini ui button'
@@ -258,6 +257,8 @@
       })
       btns.append(btn)
     }
+
+    if(closet.viewer.annotation) closet.viewer.annotation.deleteAllAnnotation();
 
     document.getElementById('getGarmentStatus').innerText = closet.viewer.getGarmentShowHideStatus()
     document.getElementById('getAvatarStatus').innerText = closet.viewer.getAvatarShowHideStatus()
