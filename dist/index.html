@@ -127,6 +127,8 @@
                     </button>
                     <button type="button" onclick="setVisibleAnnotation()" data-on="false" id="setAnnotation" class="ui button">Annotation Visible
                     </button>
+                    <button type="button" onclick="setTechPackMarker()" data-on="false" id="setTechPackMarker" class="ui button">Load 3D Tech pack Marker
+                    </button>
                 </div>
 
                 <div>Loaded: <span id="progresstest">0</span></div>
@@ -313,6 +315,33 @@
   function setVisibleAnnotation() {
     isVisibleAnnotation = !isVisibleAnnotation
     closet.viewer.annotation.setVisibleContainer(isVisibleAnnotation)
+  }
+
+  function setTechPackMarker() {
+    if (!closet.viewer.zrest) {
+      alert('Load zrest file first.');
+      return;
+    }
+    else {
+      const patternList = closet.viewer.getPatternList();
+      console.log(patternList);
+
+      for(let i = 0; i < patternList.length; i++) {
+        //const position = patternList[i].center;
+        console.log(patternList[i].center);
+
+        const position = {
+          pointerPos: patternList[i].center,
+          faceNormal: closet.viewer.camera.position, // TEMP
+          cameraPos: closet.viewer.camera.position,
+          cameraTarget: closet.viewer.controls.target,
+          cameraQuaternion: closet.viewer.camera.quaternion,
+        };
+
+        closet.viewer.annotation.createAnnotation({...position, message: (i + 1)});
+      }
+      
+    }
   }
 
   function createClosetViewer(id) {

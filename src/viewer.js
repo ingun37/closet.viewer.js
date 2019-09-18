@@ -9,6 +9,9 @@ import AnnotationManager from '@/lib/annotation/AnnotationManager';
 import screenfull from 'screenfull';
 import MobileDetect from 'mobile-detect';
 
+import {MATMESH_TYPE} from '@/lib/clo/readers/predefined';
+import '@/lib/threejs/BufferGeometryUtils';
+
 let windowHalfX = window.innerWidth / 2;
 let windowHalfY = window.innerHeight / 2;
 
@@ -56,6 +59,8 @@ export default class ClosetViewer {
     this.fullscreen = this.fullscreen.bind(this);
 
     this.object3D = null;
+
+    this.getPatternList = this.getPatternList.bind(this);
   }
 
   init({width, height, element, cameraPosition = null, stats}) {
@@ -284,6 +289,26 @@ export default class ClosetViewer {
     }
   }
 
+  getPatternList() {
+    const patternList = [];
+    const r = this.zrest.matMeshList.filter((matMesh) => { return matMesh.userData.TYPE === MATMESH_TYPE.PATTERN_MATMESH });
+
+    if (r.length % 3 !== 0) {
+      alert('Wrong patterns');
+    } else {
+      for (let i=0; i<r.length; i+=3) {
+        const pattern = new Array(r[i], r[i+1], r[i+2]);
+        const merged = THREE.BufferGeometryUtils.mergeBufferGeometries([pattern[0].geometry, pattern[1].geometry, pattern[2].geometry], false);
+        merged.computeBoundingSphere();
+        const center = merged.boundingSphere.center;
+        pattern.center = center;
+        patternList.push(pattern);
+      }
+    }
+
+    return patternList;
+  }
+  
   fullscreen = () => {
     if (!screenfull.isFullscreen) {
       this.lastWidth = this.setter.clientWidth
