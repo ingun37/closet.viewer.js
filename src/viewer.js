@@ -16,6 +16,7 @@ let windowHalfX = window.innerWidth / 2;
 let windowHalfY = window.innerHeight / 2;
 
 let rendererStats = null;
+let patternList = [];
 
 checkFileReaderSyncSupport();
 
@@ -32,6 +33,7 @@ export default class ClosetViewer {
     this.init = this.init.bind(this);
     this.render = this.render.bind(this);
     this.loadZrestUrl = this.loadZrestUrl.bind(this);
+
     this.getCameraMatrix = this.getCameraMatrix.bind(this);
     this.setCameraMatrix = this.setCameraMatrix.bind(this);
 
@@ -42,10 +44,12 @@ export default class ClosetViewer {
     this.getColorwaySize = this.getColorwaySize.bind(this);
     this.onUpdateCamera = this.onUpdateCamera.bind(this);
     this.stopRender = this.stopRender.bind(this);
+
     this.onMouseDown = this.onMouseDown.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this);
     this.onMouseUp = this.onMouseUp.bind(this);
     this.onMouseClick = this.onMouseClick.bind(this);
+
     this.setVisibleAllGarment = this.setVisibleAllGarment.bind(this);
     this.setVisibleAllAvatar = this.setVisibleAllAvatar.bind(this);
     this.isExistGarment = this.isExistGarment.bind(this);
@@ -59,8 +63,10 @@ export default class ClosetViewer {
     this.fullscreen = this.fullscreen.bind(this);
 
     this.object3D = null;
+    this.patternList = patternList;
 
     this.getPatternList = this.getPatternList.bind(this);
+    this.setTechPackMarker = this.setTechPackMarker.bind(this);
   }
 
   init({width, height, element, cameraPosition = null, stats}) {
@@ -290,13 +296,13 @@ export default class ClosetViewer {
   }
 
   getPatternList() {
-    const patternList = [];
+    const patternList = this.patternList;
     const r = this.zrest.matMeshList.filter((matMesh) => { return matMesh.userData.TYPE === MATMESH_TYPE.PATTERN_MATMESH });
 
     if (r.length % 3 !== 0) {
       alert('Wrong patterns');
     } else {
-      for (let i=0; i<r.length; i+=3) {
+      for (let i = 0; i < r.length; i += 3) {
         const pattern = new Array(r[i], r[i+1], r[i+2]);
         const merged = THREE.BufferGeometryUtils.mergeBufferGeometries([pattern[0].geometry, pattern[1].geometry, pattern[2].geometry], false);
         merged.computeBoundingSphere();
@@ -304,9 +310,25 @@ export default class ClosetViewer {
         pattern.center = center;
         patternList.push(pattern);
       }
+
+      // FOR TEST
+      // let wholeMerged = r[0].geometry;
+      // for (let i = 1; i < r.length; i++) {
+      //   wholeMerged = THREE.BufferGeometryUtils.mergeBufferGeometries([wholeMerged, r[i].geometry], false);
+      // }
+      // wholeMerged.computeBoundingSphere();
+      // const center = wholeMerged.boundingSphere.center;
+      // console.log(center);
+      // const pattern = new Array(r[0], r[1], r[2]);
+      // pattern.center = center;
+      // patternList.push(pattern);
     }
 
     return patternList;
+  }
+
+  clearPatternList() {
+    this.patternList = [];
   }
   
   fullscreen = () => {
@@ -466,6 +488,25 @@ export default class ClosetViewer {
     this.camera.position.copy(position);
     if (target) this.controls.target.copy(target);
     this.updateRenderer();
+  }
+
+  setTechPackMarker() {
+    console.log('setTechPackMarker() @ viewer');
+    this.getPatternList();
+
+    for(let i = 0; i < this.patternList.length; i++) {
+      console.log(this.patternList[i].center);
+
+      const position = {
+        pointerPos: this.patternList[i].center,
+        faceNormal: this.camera.position, // TEMP
+        cameraPos: this.camera.position,
+        cameraTarget: this.controls.target,
+        cameraQuaternion: this.camera.quaternion,
+      };
+
+      this.annotation.createAnnotation({...position, message: (i + 1)});
+    }
   }
 
   getColorwaySize() {
