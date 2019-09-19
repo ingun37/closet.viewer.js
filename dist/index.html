@@ -256,7 +256,10 @@
       btns.append(btn)
     }
 
-    if(closet.viewer.annotation) closet.viewer.annotation.deleteAllAnnotation();
+    if (closet.viewer.annotation) {
+      closet.viewer.annotation.deleteAllAnnotation();
+      closet.viewer.clearPatternList();
+    }
 
     document.getElementById('getGarmentStatus').innerText = closet.viewer.getGarmentShowHideStatus()
     document.getElementById('getAvatarStatus').innerText = closet.viewer.getAvatarShowHideStatus()
@@ -324,24 +327,27 @@
       return;
     }
     else {
-      const patternList = closet.viewer.getPatternList();
-      console.log(patternList);
-
-      for(let i = 0; i < patternList.length; i++) {
-        //const position = patternList[i].center;
-        console.log(patternList[i].center);
-
-        const position = {
-          pointerPos: patternList[i].center,
-          faceNormal: closet.viewer.camera.position, // TEMP
-          cameraPos: closet.viewer.camera.position,
-          cameraTarget: closet.viewer.controls.target,
-          cameraQuaternion: closet.viewer.camera.quaternion,
-        };
-
-        closet.viewer.annotation.createAnnotation({...position, message: (i + 1)});
-      }
+      console.log('call setTechPackMarker()');
+      closet.viewer.setTechPackMarker();
       
+      return;
+    //   const patternList = closet.viewer.getPatternList();
+    //   console.log(patternList);
+
+    //   for(let i = 0; i < patternList.length; i++) {
+    //     //const position = patternList[i].center;
+    //     console.log(patternList[i].center);
+
+    //     const position = {
+    //       pointerPos: patternList[i].center,
+    //       faceNormal: closet.viewer.camera.position, // TEMP
+    //       cameraPos: closet.viewer.camera.position,
+    //       cameraTarget: closet.viewer.controls.target,
+    //       cameraQuaternion: closet.viewer.camera.quaternion,
+    //     };
+
+    //     closet.viewer.annotation.createAnnotation({...position, message: (i + 1)});
+    // }
     }
   }
 
