@@ -4,8 +4,10 @@ import * as THREE from '@/lib/threejs/three';
 import '@/lib/threejs/OrbitControls';
 import '@/lib/draco/DRACOLoader';
 
-import RendererStats from '@xailabs/three-renderer-stats';
 import AnnotationManager from '@/lib/annotation/AnnotationManager';
+import TechPackManager from '@/lib/techPack/TechPackManager';
+
+import RendererStats from '@xailabs/three-renderer-stats';
 import screenfull from 'screenfull';
 import MobileDetect from 'mobile-detect';
 
@@ -173,6 +175,17 @@ export default class ClosetViewer {
       setter: this.setter,
     });
 
+    this.techPack = new TechPackManager({
+      scene: this.scene,
+      camera: this.camera,
+      renderer: this.renderer,
+      controls: this.controls,
+      updateRenderer: this.updateRenderer,
+      setter: this.setter,
+    });
+
+    console.log(this.updateRenderer);
+
     // canvas event
     var canvas = this.setter;
     canvas.addEventListener("mouseout", this.onPanControls, false);
@@ -297,33 +310,21 @@ export default class ClosetViewer {
 
   getPatternList() {
     const patternList = this.patternList;
-    const r = this.zrest.matMeshList.filter((matMesh) => { return matMesh.userData.TYPE === MATMESH_TYPE.PATTERN_MATMESH });
+    const patternsOnMatMeshList = this.zrest.matMeshList.filter((matMesh) => { return matMesh.userData.TYPE === MATMESH_TYPE.PATTERN_MATMESH });
 
-    if (r.length % 3 !== 0) {
+    if (patternsOnMatMeshList.length % 3 !== 0) {
       alert('Wrong patterns');
     } else {
-      for (let i = 0; i < r.length; i += 3) {
-        const pattern = new Array(r[i], r[i+1], r[i+2]);
+      for (let i = 0; i < patternsOnMatMeshList.length; i += 3) {
+        const pattern = new Array(patternsOnMatMeshList[i], patternsOnMatMeshList[i+1], patternsOnMatMeshList[i+2]);
         const merged = THREE.BufferGeometryUtils.mergeBufferGeometries([pattern[0].geometry, pattern[1].geometry, pattern[2].geometry], false);
         merged.computeBoundingSphere();
-        const center = merged.boundingSphere.center;
-        pattern.center = center;
+        pattern.center = merged.boundingSphere.center;
         patternList.push(pattern);
       }
-
-      // FOR TEST
-      // let wholeMerged = r[0].geometry;
-      // for (let i = 1; i < r.length; i++) {
-      //   wholeMerged = THREE.BufferGeometryUtils.mergeBufferGeometries([wholeMerged, r[i].geometry], false);
-      // }
-      // wholeMerged.computeBoundingSphere();
-      // const center = wholeMerged.boundingSphere.center;
-      // console.log(center);
-      // const pattern = new Array(r[0], r[1], r[2]);
-      // pattern.center = center;
-      // patternList.push(pattern);
     }
 
+    console.log(patternList);
     return patternList;
   }
 
@@ -391,7 +392,7 @@ export default class ClosetViewer {
   }
 
   render() {
-    if (this.annotation) this.annotation.updateAnnotationPointerSize(); // update annotation pointer size
+    if (this.annotation || this.marker) this.annotation.updateAnnotationPointerSize(); // update annotation pointer size
 
     this.renderer.autoClear = false;
     this.renderer.clear();
@@ -491,12 +492,9 @@ export default class ClosetViewer {
   }
 
   setTechPackMarker() {
-    console.log('setTechPackMarker() @ viewer');
     this.getPatternList();
 
     for(let i = 0; i < this.patternList.length; i++) {
-      console.log(this.patternList[i].center);
-
       const position = {
         pointerPos: this.patternList[i].center,
         faceNormal: this.camera.position, // TEMP
@@ -505,8 +503,10 @@ export default class ClosetViewer {
         cameraQuaternion: this.camera.quaternion,
       };
 
-      this.annotation.createAnnotation({...position, message: (i + 1)});
+      this.techPack.createMarker({...position, message: (i + 1)});
     }
+
+    this.updateRenderer();
   }
 
   getColorwaySize() {
