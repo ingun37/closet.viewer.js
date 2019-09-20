@@ -1,11 +1,15 @@
 /* eslint-disable require-jsdoc */
 import * as THREE from '@/lib/threejs/three';
 import {TweenMax} from 'gsap/TweenMax';
-
+import {Marker, makeTextSprite} from '@/lib/marker/Marker';
 
 const pointerScaleVector = new THREE.Vector3();
 const pointerScaleFactor = 65;
 
+// variables for animation between annotation markers
+let tween;
+const startQuaternion = new THREE.Quaternion();
+const endQuaternion = new THREE.Quaternion();
 
 class AnnotationManager {
   constructor({scene, camera, renderer, controls, updateRenderer, setter}) {
@@ -104,7 +108,7 @@ class AnnotationManager {
       this.annotationPointerList.push(sprite);
       id = sprite.id;
 
-      const annotation = new Annotation(pointerPos, faceNormal, cameraPos, this.controls.target, this.camera.quaternion, message, sprite);
+      const annotation = new Marker(pointerPos, faceNormal, cameraPos, this.controls.target, this.camera.quaternion, message, sprite);
       this.annotationList.push(annotation);
       this.updateRenderer();
     }
@@ -121,7 +125,6 @@ class AnnotationManager {
 
     this.updateRenderer();
   }
-
 
   deleteAllAnnotation() {
     const names = this.annotationContainer.children.map((item) => item.name);
@@ -283,7 +286,7 @@ class AnnotationManager {
   animateCamera(annotationItem) {
     this.controls.enabled = false;
 
-    const to = {
+    const dest = {
       x: annotationItem.cameraPos.x,
       y: annotationItem.cameraPos.y,
       z: annotationItem.cameraPos.z,
@@ -310,26 +313,20 @@ class AnnotationManager {
 
     // TODO: remove vars on follows
     // 여기서 interpolation 해야할게, camera position, camera upVector
-    if (this.camera.position.x !== to.x || this.camera.position.y !== to.y || this.camera.position.z !== to.z) {
-      // eslint-disable-next-line prefer-const
-      var startQuaternion = new THREE.Quaternion();
+    if (this.camera.position.x !== dest.x || this.camera.position.y !== dest.y || this.camera.position.z !== dest.z) {
       startQuaternion.copy(this.camera.quaternion);
       startQuaternion.normalize();
 
-      // eslint-disable-next-line prefer-const
-      var endQuaternion = new THREE.Quaternion();
       endQuaternion.copy(annotationItem.cameraQuaternion);
       endQuaternion.normalize();
 
-      // eslint-disable-next-line prefer-const
-      let target = new THREE.Vector3();
+      const target = new THREE.Vector3();
       target.copy(annotationItem.cameraTarget);
 
-      // eslint-disable-next-line prefer-const
-      var tween = TweenMax.to(this.camera.position, 0.8, {
-        x: to.x,
-        y: to.y,
-        z: to.z,
+      tween = TweenMax.to(this.camera.position, 0.8, {
+        x: dest.x,
+        y: dest.y,
+        z: dest.z,
         ease: Power1.easeInOut,
         onUpdate: onUpdate,
         onComplete: onComplete,
@@ -406,129 +403,6 @@ class AnnotationManager {
 
     return intersectPos;
   }
-}
-
-
-function Annotation(pointerPosition, normal, cameraPosition, cameraTarget, cameraQuaternion, _message, _sprite) {
-  this.pointerPos = new THREE.Vector3(); // DB
-  this.pointerPos.copy(pointerPosition);
-
-  this.faceNormal = new THREE.Vector3(); // DB
-  this.faceNormal.copy(normal);
-
-  this.cameraPos = new THREE.Vector3(); // DB
-  this.cameraPos.copy(cameraPosition);
-
-  this.cameraTarget = new THREE.Vector3(); // DB
-  this.cameraTarget.copy(cameraTarget);
-
-  this.cameraQuaternion = new THREE.Quaternion(); // DB
-  this.cameraQuaternion.copy(cameraQuaternion);
-
-  this.message = _message; // DB
-  this.sprite = _sprite;
-}
-
-function makeTextSprite(message, parameters) {
-  if (parameters === undefined) parameters = {};
-
-  const fontface = parameters.hasOwnProperty('fontface') ?
-    parameters['fontface'] : 'Arial';
-
-  const fontsize = parameters.hasOwnProperty('fontsize') ?
-    parameters['fontsize'] : 18;
-
-  const borderThickness = parameters.hasOwnProperty('borderThickness') ?
-    parameters['borderThickness'] : 8;
-
-  const borderColor = parameters.hasOwnProperty('borderColor') ?
-    parameters['borderColor'] : {r: 0, g: 0, b: 0, a: 1.0};
-
-  const backgroundColor = parameters.hasOwnProperty('backgroundColor') ?
-    parameters['backgroundColor'] : {r: 255, g: 255, b: 255, a: 1.0};
-
-  // var spriteAlignment = THREE.SpriteAlignment.topLeft;
-
-  const canvas = document.createElement('canvas');
-  const size = 100;
-  canvas.width = size;
-  canvas.height = size;
-  const context = canvas.getContext('2d');
-  context.font = 'Bold ' + fontsize + 'px ' + fontface;
-
-  // get size data (height depends only on font size)
-  const metrics = context.measureText(message);
-  const textWidth = metrics.width;
-
-  // background color
-  context.fillStyle = 'rgba(' + backgroundColor.r + ',' + backgroundColor.g + ','
-    + backgroundColor.b + ',' + backgroundColor.a + ')';
-  // border color
-  context.strokeStyle = 'rgba(' + borderColor.r + ',' + borderColor.g + ','
-    + borderColor.b + ',' + borderColor.a + ')';
-
-  context.lineWidth = borderThickness;
-  // roundRect(context, borderThickness/2, borderThickness/2, textWidth + borderThickness, fontsize * 1.4 + borderThickness, 6);
-  // circle(context, 0, 0, 50, 0, 2*Math.PI, false);
-
-  circle(context, canvas.width / 2, canvas.height / 2, canvas.width / 2 - borderThickness, 0, 2 * Math.PI);
-  // circle(context, 0, 0, 50, 0, 2*Math.PI);
-  // 1.4 is extra height factor for text below baseline: g,j,p,q.
-
-  // text color
-  context.fillStyle = 'rgba(255, 255, 255, 1.0)';
-
-  context.textAlign = 'center';
-  context.textBaseline = 'middle';
-  context.fillText(message, canvas.width / 2 - 2, canvas.height / 2 + 4);
-
-  // canvas contents will be used for a texture
-  const texture = new THREE.Texture(canvas);
-  texture.needsUpdate = true;
-
-  const spriteMaterial = new THREE.SpriteMaterial(
-      {map: texture, useScreenCoordinates: false, depthTest: false});
-
-  const sprite = new THREE.Sprite(spriteMaterial);
-  sprite.scale.set(50, 50, 1.0);
-  sprite.name = 'annotation_' + message;
-  return sprite;
-}
-
-
-/*
- * x: The x-coordinate of the center of the circle
- * y: The y-coordinate of the center of the circle
- * r: The radius of the circle
- * sAngle: The starting angle, in radians (0 is at the 3 o'clock position of the arc's circle)
- * eAngle: The ending angle, in radians
- * counterclockwise: Optional.
- *                   Specifies whether the drawing should be counterclockwise or clockwise.
- *                   False is default, and indicates clockwise, while true indicates counter-clockwise.
-*/
-function circle(ctx, x, y, r, sAngle, eAngle, counterclockwise) {
-  ctx.beginPath();
-  ctx.arc(x, y, r, sAngle, eAngle, counterclockwise);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-}
-
-// function for drawing rounded rectangles
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
 }
 
 export default AnnotationManager;
