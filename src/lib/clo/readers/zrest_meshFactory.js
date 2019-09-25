@@ -33,8 +33,6 @@ MeshFactory.prototype = {
 
     console.log('version: ' + this.version);
 
-    // console.log(map);
-
     this.materialInformationMap = new Map();
 
     const camLtoW = map.get('m4CameraLocalToWorldMatrix');
@@ -108,9 +106,7 @@ MeshFactory.prototype = {
     tf = await this.matmeshManager.getMatMeshs(mapGeometry, zip, true, this.materialInformationMap, this.currentColorwayIndex, this.camera, version);
     retObject.add(tf);
 
-    console.log(this.matmeshManager.matShapeList);
     this.matShapeList = this.matmeshManager.matShapeList;
-    console.log(this.matShapeList);
 
     // FIXME: synchronize return type
     return retObject;

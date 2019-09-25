@@ -19,8 +19,6 @@ export default function MatMeshManager({matMeshList, materialList, matShapeList}
   this.version = version;
   this.colorwayIndex = 0;
   this.styleLineMap = new Map();
-
-  console.log({matMeshList, materialList, matShapeList});
 }
 
 MatMeshManager.prototype = {
@@ -303,7 +301,6 @@ MatMeshManager.prototype = {
 
     const addStyleLines = (dracoGeometry, patternIdx, listLine) => {
       if (!listLine) {
-        console.log('listLine is not exist');
         return;
       }
 
