@@ -6,10 +6,12 @@ import {readByteArray} from '@/lib/clo/file/KeyValueMapReader';
 import {RENDER_FACE_TYPE} from '@/lib/clo/readers/predefined';
 
 import MatMeshManager from './zrest_matMesh';
+import {Scene} from 'three';
 
-export default function MeshFactory(matMeshList, materialList, materialInformationMap, loadedCamera, drawMode, seamPuckeringNormalMap, nameToTextureMap, version) {
+export default function MeshFactory({matMeshList, materialList, matShapeList}, materialInformationMap, loadedCamera, drawMode, seamPuckeringNormalMap, nameToTextureMap, version) {
   this.matMeshList = matMeshList;
   this.materialList = materialList;
+  this.matShapeList = matShapeList;
   this.materialInformationMap = materialInformationMap;
   this.camera = loadedCamera;
   this.drawMode = drawMode;
@@ -18,8 +20,8 @@ export default function MeshFactory(matMeshList, materialList, materialInformati
   this.version = version;
   this.colorwaySize = 0;
 
-  this.matmeshManager = new MatMeshManager(matMeshList, materialList, materialInformationMap, loadedCamera, drawMode, seamPuckeringNormalMap, nameToTextureMap, version);
-};
+  this.matmeshManager = new MatMeshManager({matMeshList: this.matMeshList, materialList: this.materialList, matShapeList: this.matShapeList}, materialInformationMap, loadedCamera, drawMode, seamPuckeringNormalMap, nameToTextureMap, version);
+}
 
 MeshFactory.prototype = {
   constructor: MeshFactory,
@@ -30,6 +32,9 @@ MeshFactory.prototype = {
     this.version = version;
 
     console.log('version: ' + this.version);
+
+    // console.log(map);
+
     this.materialInformationMap = new Map();
 
     const camLtoW = map.get('m4CameraLocalToWorldMatrix');
@@ -103,8 +108,16 @@ MeshFactory.prototype = {
     tf = await this.matmeshManager.getMatMeshs(mapGeometry, zip, true, this.materialInformationMap, this.currentColorwayIndex, this.camera, version);
     retObject.add(tf);
 
+    console.log(this.matmeshManager.matShapeList);
+    this.matShapeList = this.matmeshManager.matShapeList;
+    console.log(this.matShapeList);
+
     // FIXME: synchronize return type
     return retObject;
+  },
+
+  getStyleLineMap() {
+    return this.matmeshManager.getStyleLineMap();
   },
 
   getColorwaySize() {
@@ -169,7 +182,7 @@ const setMaterial = (source) => {
   };
 
   // For high version only
-  // TODO: consider removing this module 
+  // TODO: consider removing this module
   const element = source.get('mapElement');
   if (element !== undefined) {
     material.id = element.get('uiID');
@@ -349,5 +362,3 @@ const setZRestColorwayMaterials = (source) => {
 
   return zRestColorwayMaterials;
 };
-
-

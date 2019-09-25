@@ -18,7 +18,6 @@ let windowHalfX = window.innerWidth / 2;
 let windowHalfY = window.innerHeight / 2;
 
 let rendererStats = null;
-let patternList = [];
 
 checkFileReaderSyncSupport();
 
@@ -65,10 +64,7 @@ export default class ClosetViewer {
     this.fullscreen = this.fullscreen.bind(this);
 
     this.object3D = null;
-    this.patternList = patternList;
-
-    this.getPatternList = this.getPatternList.bind(this);
-    this.setTechPackMarker = this.setTechPackMarker.bind(this);
+    this.loadTechPack = this.loadTechPack.bind(this);
   }
 
   init({width, height, element, cameraPosition = null, stats}) {
@@ -104,7 +100,9 @@ export default class ClosetViewer {
     this.controls.target = new THREE.Vector3(0, cameraHeight, 0);
     this.controls.update();
     this.controls.addEventListener('change', () => {
-      if (this.updateCamera) this.updateCamera({target: this.controls.target, position: this.camera.position, id: this.id});
+      if (this.updateCamera) {
+        this.updateCamera({target: this.controls.target, position: this.camera.position, id: this.id});
+      }
       this.render();
     });
 
@@ -113,7 +111,7 @@ export default class ClosetViewer {
     this.scene = new THREE.Scene();
 
     /*
-    * 이제 version 3 이후 파일에 대해서는 shader에서 light 설정을 hard coding해서 사용한다. 
+    * 이제 version 3 이후 파일에 대해서는 shader에서 light 설정을 hard coding해서 사용한다.
     * 하지만 version 2 이하 파일을 위해 여기에서도 설정한다.
     * by Jaden
     */
@@ -124,13 +122,13 @@ export default class ClosetViewer {
 
     const DirLight1 = new THREE.DirectionalLight(0x6e6e6e);
     DirLight1.position.set(1500, 3000, 1500);
-    DirLight1.castShadow = (mobileDetect.os() === "iOS")? false : true;
+    DirLight1.castShadow = (mobileDetect.os() === 'iOS')? false : true;
 
     // set up shadow properties for the light
-    DirLight1.shadow.mapSize.width = 2048;  // default
+    DirLight1.shadow.mapSize.width = 2048; // default
     DirLight1.shadow.mapSize.height = 2048; // default
-    DirLight1.shadow.camera.near = 2000;    // default
-    DirLight1.shadow.camera.far = 7000;     // default
+    DirLight1.shadow.camera.near = 2000; // default
+    DirLight1.shadow.camera.far = 7000; // default
     DirLight1.shadow.camera.right = 1500;
     DirLight1.shadow.camera.left = -1500;
     DirLight1.shadow.camera.top = 1500;
@@ -140,7 +138,7 @@ export default class ClosetViewer {
 
     /*
     * scene.add(new THREE.AmbientLight(0x8c8c8c));
-    * amibent light은 추가하지 않고 shader에서 하드코딩으로 처리한다. 
+    * amibent light은 추가하지 않고 shader에서 하드코딩으로 처리한다.
     * CLO와 three.js 의 light 구조가 다르므로 이렇게 하자.
     * by Jaden
     */
@@ -184,13 +182,11 @@ export default class ClosetViewer {
       setter: this.setter,
     });
 
-    console.log(this.updateRenderer);
-
     // canvas event
-    var canvas = this.setter;
-    canvas.addEventListener("mouseout", this.onPanControls, false);
-    canvas.addEventListener("mouseover", this.offPanControls, false);
-    canvas.addEventListener("mousedown", this.onMouseDown, false);
+    const canvas = this.setter;
+    canvas.addEventListener('mouseout', this.onPanControls, false);
+    canvas.addEventListener('mouseover', this.offPanControls, false);
+    canvas.addEventListener('mousedown', this.onMouseDown, false);
     canvas.addEventListener('mousemove', this.onMouseMove, false);
     canvas.addEventListener('mouseup', this.onMouseUp, false);
     canvas.addEventListener('click', this.onMouseClick, false);
@@ -222,6 +218,7 @@ export default class ClosetViewer {
   onMouseDown( e ) {
     e.preventDefault();
     if (this.annotation && this.object3D) this.annotation.onMouseDown(e);
+    if (this.techPack) this.techPack.onMouseDown(e);
   }
 
   onMouseUp( e ) {
@@ -237,34 +234,60 @@ export default class ClosetViewer {
   setVisibleAllGarment(visibility) {
     const matMeshType = this.zrest.MATMESH_TYPE;
 
-    for(let i=0; i<this.zrest.matMeshList.length; ++i) {
-      let t = this.zrest.matMeshList[i].userData.TYPE;
+    for (let i=0; i<this.zrest.matMeshList.length; ++i) {
+      const t = this.zrest.matMeshList[i].userData.TYPE;
 
-      if(t == matMeshType.PATTERN_MATMESH || t == matMeshType.TRIM_MATMESH || t == matMeshType.PRINTOVERLAY_MATMESH || t == matMeshType.BUTTONHEAD_MATMESH || t == matMeshType.STITCH_MATMESH ) {
+      if (t == matMeshType.PATTERN_MATMESH || t == matMeshType.TRIM_MATMESH || t == matMeshType.PRINTOVERLAY_MATMESH || t == matMeshType.BUTTONHEAD_MATMESH || t == matMeshType.STITCH_MATMESH ) {
         this.zrest.matMeshList[i].visible = visibility;
       }
     }
 
+    this.updateRenderer();
+  }
+
+  setVisibleAllMarker(isVisibleTechPackMarker) {
+    if (!this.techPack) return;
+
+    this.techPack.setAllMarkerVisible(isVisibleTechPackMarker);
     this.updateRenderer();
   }
 
   isExistGarment() {
-    return isExistMatMeshType(this.zrest.MATMESH_TYPE.PATTERN_MATMESH)
+    return isExistMatMeshType(this.zrest.MATMESH_TYPE.PATTERN_MATMESH);
   }
-  
+
   isExistAvatar() {
-    return isExistMatMeshType(this.zrest.MATMESH_TYPE.AVATAR_MATMESH)
+    return isExistMatMeshType(this.zrest.MATMESH_TYPE.AVATAR_MATMESH);
+  }
+
+  isAvailableShowHide() {
+    // TODO: check this condition statement always works stable
+    return (this.zrest.gVersion >= 4);
+  }
+
+  // TODO: consider remove duplicated routine about camMatrixPushOrder with getCameraMatrix()
+  setCameraMatrix(mat, bShouldUpdateRendering) {
+    if (mat !== undefined && mat.length === 12) {
+      for (let i=0; i<camMatrixPushOrder.length; ++i) {
+        this.camera.matrix.elements[camMatrixPushOrder[i]] = mat[i];
+      }
+
+      // TODO: consider remove === operation
+      if (bShouldUpdateRendering) {
+        this.updateRenderer();
+      }
+    }
   }
 
   setVisibleAllAvatar(visibility) {
-    for(let i=0; i<this.zrest.matMeshList.length; i++) {
-      if(this.zrest.matMeshList[i].userData.TYPE == this.zrest.MATMESH_TYPE.AVATAR_MATMESH) {
+    for (let i=0; i<this.zrest.matMeshList.length; i++) {
+      if (this.zrest.matMeshList[i].userData.TYPE == this.zrest.MATMESH_TYPE.AVATAR_MATMESH) {
         this.zrest.matMeshList[i].visible = visibility;
       }
     }
     this.updateRenderer();
   }
-  
+
   getShowHideStatus(type) {
     for (let i=0; i<this.zrest.matMeshList.length; i++) {
       if (this.zrest.matMeshList[i].userData.TYPE == type) {
@@ -284,75 +307,33 @@ export default class ClosetViewer {
     return this.getShowHideStatus(this.zrest.MATMESH_TYPE.AVATAR_MATMESH);
   }
 
-  isAvailableShowHide() {
-    // TODO: check this condition statement always works stable
-    return (this.zrest.gVersion >= 4) 
-  }
-
   getCameraMatrix() {
-    let camMatrix = this.camera.matrix.elements;
-    return camMatrixPushOrder.map(index => camMatrix[index]);
+    const camMatrix = this.camera.matrix.elements;
+    return camMatrixPushOrder.map((index) => camMatrix[index]);
   }
 
-  // TODO: consider remove duplicated routine about camMatrixPushOrder with getCameraMatrix()
-  setCameraMatrix(mat, bShouldUpdateRendering) {
-    if (mat !== undefined && mat.length === 12) {
-      for (let i=0; i<camMatrixPushOrder.length; ++i) {
-        this.camera.matrix.elements[camMatrixPushOrder[i]] = mat[i];
-      }
 
-      // TODO: consider remove === operation
-      if (bShouldUpdateRendering) {
-        this.updateRenderer()
-      }
-    }
-  }
-
-  getPatternList() {
-    const patternList = this.patternList;
-    const patternsOnMatMeshList = this.zrest.matMeshList.filter((matMesh) => { return matMesh.userData.TYPE === MATMESH_TYPE.PATTERN_MATMESH });
-
-    if (patternsOnMatMeshList.length % 3 !== 0) {
-      alert('Wrong patterns');
-    } else {
-      for (let i = 0; i < patternsOnMatMeshList.length; i += 3) {
-        const pattern = new Array(patternsOnMatMeshList[i], patternsOnMatMeshList[i+1], patternsOnMatMeshList[i+2]);
-        const merged = THREE.BufferGeometryUtils.mergeBufferGeometries([pattern[0].geometry, pattern[1].geometry, pattern[2].geometry], false);
-        merged.computeBoundingSphere();
-        pattern.center = merged.boundingSphere.center;
-        patternList.push(pattern);
-      }
-    }
-
-    console.log(patternList);
-    return patternList;
-  }
-
-  clearPatternList() {
-    this.patternList = [];
-  }
-  
-  fullscreen = () => {
+  fullscreen() {
     if (!screenfull.isFullscreen) {
-      this.lastWidth = this.setter.clientWidth
-      this.lastHeight = this.setter.clientHeight
+      this.lastWidth = this.setter.clientWidth;
+      this.lastHeight = this.setter.clientHeight;
     }
 
-    const elem = this.setter
+    const elem = this.setter;
     if (screenfull.enabled) {
       screenfull.on('change', () => {
-        if(screenfull.isFullscreen) {
-          this.setWindowSize(screen.width, screen.height)
+        if (screenfull.isFullscreen) {
+          this.setWindowSize(screen.width, screen.height);
         } else {
-          this.setWindowSize(this.lastWidth, this.lastHeight)
+          this.setWindowSize(this.lastWidth, this.lastHeight);
         }
       });
 
-      screenfull.toggle(elem)
+      screenfull.toggle(elem);
     }
   }
 
-  setWindowSize = (w, h) => {
+  setWindowSize(w, h) {
     windowHalfX = w / 2;
     windowHalfY = h / 2;
 
@@ -361,18 +342,18 @@ export default class ClosetViewer {
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
-    this.render()
+    this.render();
   }
 
   onWindowResize(datas) {
-    var data = {
-      width : screen.width,
-      height : screen.height,
-      fullscreen : false,
-      marketplace : false,
-      reponsive : false,
-    }
-    $.extend(data, datas);    // TODO: Is it necessary using jQuery? Why?
+    const data = {
+      width: screen.width,
+      height: screen.height,
+      fullscreen: false,
+      marketplace: false,
+      reponsive: false,
+    };
+    $.extend(data, datas); // TODO: Is it necessary using jQuery? Why?
 
     if (data.fullscreen || data.responsive) {
       setRenderSize(data.width, data.height);
@@ -393,6 +374,7 @@ export default class ClosetViewer {
 
   render() {
     if (this.annotation || this.marker) this.annotation.updateAnnotationPointerSize(); // update annotation pointer size
+    if (this.techPack) this.techPack.updatePointerSize();
 
     this.renderer.autoClear = false;
     this.renderer.clear();
@@ -491,22 +473,9 @@ export default class ClosetViewer {
     this.updateRenderer();
   }
 
-  setTechPackMarker() {
-    this.getPatternList();
-
-    for(let i = 0; i < this.patternList.length; i++) {
-      const position = {
-        pointerPos: this.patternList[i].center,
-        faceNormal: this.camera.position, // TEMP
-        cameraPos: this.camera.position,
-        cameraTarget: this.controls.target,
-        cameraQuaternion: this.camera.quaternion,
-      };
-
-      this.techPack.createMarker({...position, message: (i + 1)});
-    }
-
-    this.updateRenderer();
+  loadTechPack() {
+    const matMeshList = this.zrest.getMatShapeList();
+    this.techPack.loadTechPackFromMatMeshList(matMeshList);
   }
 
   getColorwaySize() {
@@ -535,7 +504,7 @@ export default class ClosetViewer {
     }
 
     this.zrest.currentColorwayIndex = number;
-    console.log("selected colorway index: " + number);
+    console.log('selected colorway index: ' + number);
 
     const matMeshList = this.zrest.matMeshList;
 
@@ -568,17 +537,17 @@ export default class ClosetViewer {
       nontype_cb(object);
     }
   }
-};
+}
 
 function isExistMatMeshType(type) {
   console.log('isExistMatMeshType');
-  for(let i=0; i<this.zrest.matMeshList.length; ++i) {
-    if(this.zrest.matMeshList[i].userData.TYPE == type) {
+  for (let i=0; i<this.zrest.matMeshList.length; ++i) {
+    if (this.zrest.matMeshList[i].userData.TYPE == type) {
       return true;
     }
   }
   return false;
-};
+}
 
 function clearThree(obj) {
   while (obj.children.length > 0) {
@@ -587,8 +556,9 @@ function clearThree(obj) {
   }
 
   const disposeIfExists = (component) => {
-    if(component !== undefined)
+    if (component !== undefined) {
       component.dispose();
+    }
   };
 
   disposeIfExists(obj.geometry);
