@@ -7,9 +7,10 @@ import {readByteArray} from '@/lib/clo/file/KeyValueMapReader';
 import {MATMESH_TYPE} from '@/lib/clo/readers/predefined';
 import {makeMaterial} from '@/lib/clo/readers/zrest_material';
 
-export default function MatMeshManager(matMeshList, materialList, materialInformationMap, loadedCamera, drawMode, seamPuckeringNormalMap, nameToTextureMap, version) {
+export default function MatMeshManager({matMeshList, materialList, matShapeList}, materialInformationMap, loadedCamera, drawMode, seamPuckeringNormalMap, nameToTextureMap, version) {
   this.matMeshList = matMeshList;
   this.materialList = materialList;
+  this.matShapeList = matShapeList;
   this.materialInformationMap = materialInformationMap;
   this.camera = loadedCamera;
   this.drawMode = drawMode;
@@ -17,7 +18,10 @@ export default function MatMeshManager(matMeshList, materialList, materialInform
   this.nameToTextureMap = nameToTextureMap;
   this.version = version;
   this.colorwayIndex = 0;
-};
+  this.styleLineMap = new Map();
+
+  console.log({matMeshList, materialList, matShapeList});
+}
 
 MatMeshManager.prototype = {
   constructor: MatMeshManager,
@@ -55,6 +59,8 @@ MatMeshManager.prototype = {
     tf.applyMatrix(mat4);
 
     const listMatShape = map.get('listMatShape');
+    this.matShapeList = listMatShape;
+
     if (listMatShape) {
       await this.addMatMeshList(zip, listMatShape, tf, bLoadTransparentObject, materialInformationMap);
     }
@@ -295,10 +301,15 @@ MatMeshManager.prototype = {
       return dracoLoader.decodeDracoFile(drcArrayBuffer);
     };
 
-    const addStyleLines = (listLine) => {
-      if (! listLine) {
+    const addStyleLines = (dracoGeometry, patternIdx, listLine) => {
+      if (!listLine) {
+        console.log('listLine is not exist');
         return;
       }
+
+      const styleLineMaterial = new THREE.LineBasicMaterial({color: 0x00ffff});
+      const currentStyleLineSet = new Set();
+
       for (let k = 0; k < listLine.length; ++k) {
         const frontStyleLineGeometry = new THREE.Geometry();
         const backStyleLineGeometry = new THREE.Geometry();
@@ -325,18 +336,19 @@ MatMeshManager.prototype = {
           frontStyleLineGeometry.computeFaceNormals();
           frontStyleLineGeometry.computeVertexNormals();
           const frontStyleLine = new THREE.Line(frontStyleLineGeometry, styleLineMaterial);
-          this.scene.add(frontStyleLine);
+          currentStyleLineSet.add(frontStyleLine);
 
           backStyleLineGeometry.computeFaceNormals();
           backStyleLineGeometry.computeVertexNormals();
           const backStyleLine = new THREE.Line(backStyleLineGeometry, styleLineMaterial);
-          this.scene.add(backStyleLine);
+          currentStyleLineSet.add(backStyleLine);
         }
+
+        this.styleLineMap.set(patternIdx, currentStyleLineSet);
       }
     };
 
     let frontVertexCount = 0;
-    const styleLineMaterial = new THREE.LineBasicMaterial({color: 0x0000ff});
 
     for (let i = 0; i < listMatShape.length; ++i) {
       const listMatMeshIDOnIndexedMesh = listMatShape[i].get('listMatMeshIDOnIndexedMesh');
@@ -362,7 +374,11 @@ MatMeshManager.prototype = {
 
       await splitMatSpaceToMatMesh(listMatMeshIDOnIndexedMesh, totalIndexCount, listIndexCount, dracoGeometry, bVisiable, this.drawMode);
 
-      addStyleLines(listMatShape[i].get('listLine'));
+      addStyleLines(dracoGeometry, i, listMatShape[i].get('listLine'));
     }
+  },
+
+  getStyleLineMap() {
+    return this.styleLineMap;
   },
 };

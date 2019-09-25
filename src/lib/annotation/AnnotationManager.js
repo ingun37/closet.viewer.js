@@ -337,7 +337,6 @@ class AnnotationManager {
   }
 
   setVisibleContainer(visible) {
-    console.log('visible', visible);
     this.annotationContainer.visible = visible;
     this.updateRenderer();
   }

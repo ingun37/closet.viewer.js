@@ -36,7 +36,6 @@ export default function ZRestLoader({scene, camera, controls, cameraPosition}, m
   this.meshFactory = new MeshFactory({
     matMeshList: this.matMeshList,
     materialList: this.materialList,
-    matShapeList: this.matShapeList,
   },
   this.materialInformationMap, camera, _drawMode, _seamPuckeringNormalMap, _nameToTextureMap, _version),
   this.MATMESH_TYPE = MATMESH_TYPE;
@@ -77,6 +76,10 @@ ZRestLoader.prototype = {
 
   getMatShapeList() {
     return this.meshFactory.matShapeList;
+  },
+
+  getMatMeshList() {
+    return this.matMeshList;
   },
 
   parse(data, onLoad) {
@@ -149,7 +152,7 @@ ZRestLoader.prototype = {
           };
 
           await this.meshFactory.build(rootMap, zip, object3D, loadedCamera);
-          this.addStyleLinesToScene(this.scene, this.meshFactory.getStyleLineMap(), false);
+          // this.addStyleLinesToScene(this.scene, this.meshFactory.getStyleLineMap(), false);
 
           // 여기가 실질적으로 Zrest 로드 완료되는 시점
           this.onLoad(object3D, loadedCamera, this.data);
@@ -166,21 +169,6 @@ ZRestLoader.prototype = {
     };
 
     reader.readAsArrayBuffer(contentBlob);
-  },
-
-  addStyleLinesToScene(scene, styleLineMap, bVisible = true) {
-    styleLineMap.forEach((styleLineSet) => {
-      styleLineSet.forEach((line) => {
-        line.visible = bVisible;
-        scene.add(line);
-      });
-    });
-  },
-
-  setStyleLineVisible(styleLineMap, index, bVisible) {
-    styleLineMap.get(index).forEach((line) => {
-      line.visible = bVisible;
-    });
   },
 
   getObjectsCenter(scene) {
