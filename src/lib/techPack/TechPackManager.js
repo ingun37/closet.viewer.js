@@ -6,22 +6,53 @@ const pointerScaleVector = new THREE.Vector3();
 const pointerScaleFactor = 65;
 
 class TechPackManager {
-  constructor({scene, camera, renderer, controls, updateRenderer, setter}) {
+  constructor({scene, camera, renderer, controls}) {
     this.scene = scene;
     this.camera = camera;
     this.renderer = renderer;
     this.controls = controls;
 
-    this.markerList = [];
-    this.markerPointerList = [];
+    this.markerMap = new Map();
+    this.markerGeometryList = [];
+
+    this.raycaster = new THREE.Raycaster();
+
+    this.loadTechPackFromMatMeshList = this.loadTechPackFromMatMeshList.bind(this);
+    this.addPatternMarker = this.addPatternMarker.bind(this);
+    this.onMouseDown = this.onMouseDown.bind(this);
+    this.refreshMarkerGeometryList = this.refreshMarkerGeometryList.bind(this);
+    this.checkIntersectObject = this.checkIntersectObject.bind(this);
   }
 
-  buildFromZRest(zrest) {
+  loadTechPackFromMatMeshList(matMeshList) {
+    if (!matMeshList) {
+      return;
+    }
 
-  }
+    this.markerMap.clear();
 
-  init({zrest}) {
-    this.zrest = zrest;
+    //  NOTE: All elements in mapShape array have the same value.
+    //  This module will be modified by TKAY and Daniel.
+    for (let i = 0; i < matMeshList.length; ++i) {
+      const mapShape = matMeshList[i].get('listMatMeshIDOnIndexedMesh');
+      const center = mapShape[0].get('v3Center');
+      const normal = mapShape[0].get('v3Normal');
+
+      if (!center || !normal) {
+        continue;
+      }
+
+      const position = {
+        pointerPos: center,
+        faceNormal: normal,
+        cameraPos: this.camera.position,
+        cameraTarget: this.controls.target,
+        cameraQuaternion: this.camera.quaternion,
+      };
+
+      const index = i + 1;
+      this.addPatternMarker(index, {...position, message: index}, false);
+    }
   }
 
   bindEventListener({onCompleteMove, onCompleteAnimation}) {
@@ -29,74 +60,67 @@ class TechPackManager {
     this.onCompleteAnimation = onCompleteAnimation;
   }
 
-  getMarkerList() {
-    return this.markerList.map((item) => {
-      const {message, sprite, ...data} = item;
-      return data;
-    });
-  }
-
-  setMarkerList(listArray) {
-    listArray.map((item) => {
-      this.createMarker(item);
-    });
-  }
 
   updatePointerSize() {
-    for (let i = 0; i < this.markerList.length; i++) {
-      const scale = pointerScaleVector.subVectors(this.markerList[i].sprite.position, this.camera.position).length() / pointerScaleFactor;
-      this.markerList[i].sprite.scale.set(scale / 2, scale / 2, 1);
+    this.markerMap.forEach( (marker) => {
+      const scale = pointerScaleVector.subVectors(marker.sprite.position, this.camera.position).length() / pointerScaleFactor;
+      marker.sprite.scale.set(scale / 2, scale / 2, 1);
+    });
+  }
+
+  refreshMarkerGeometryList() {
+    this.markerGeometryList = [];
+
+    // NOTE: Index of a marker begins at 1
+    for (let i = 0; i < this.markerMap.size; i++) {
+      const marker = this.markerMap.get(i + 1).sprite;
+      this.markerGeometryList.push(marker);
     }
   }
 
-  createMarker({pointerPos, faceNormal, cameraPos, cameraTarget, cameraQuaternion, message}, isVisible = true) {
-    let id = undefined;
-
+  addPatternMarker(index, {pointerPos, faceNormal, cameraPos, cameraTarget, cameraQuaternion, message}, isVisible = true) {
     // pointer 좌표만 들고있다가 render 할때마다 만드는건 개 비효율이겠지? 그냥 그때 그때 계속 추가하자.
     const sprite = makeTextSprite(message,
         {fontsize: 48, borderColor: {r: 255, g: 255, b: 255, a: 0.5}, backgroundColor: {r: 0, g: 0, b: 0, a: 0.5}});
     sprite.position.set(pointerPos.x, pointerPos.y, pointerPos.z);
     sprite.visible = isVisible;
+
     this.scene.add(sprite);
-    this.markerPointerList.push(sprite);
-    id = sprite.id;
 
-    const marker = new Marker(pointerPos, faceNormal, cameraPos, cameraTarget, cameraQuaternion, message, sprite);
-    this.markerList.push(marker);
+    // NOTE: A message of a marker replaced with a index.
+    const marker = new Marker(pointerPos, faceNormal, cameraPos, cameraTarget, cameraQuaternion, index, sprite);
+    this.markerMap.set(index, marker);
 
-    return id;
+    this.refreshMarkerGeometryList();
+
+    return sprite.id;
   }
 
-  showMarker(arr) {
-    this.markerPointerList.map((item) => {
-      const names = arr ? arr.filter((o) => 'marker_'+o === item.name) : [];
-      if (names.length) {
-        this.scene.getObjectByName('marker_'+names[0]).visible = true;
-      } else {
-        this.scene.getObjectByName(item.name).visible = false;
+  setMarkerVisible(index, bVisible) {
+    if (!this.markerMap.get(index).sprite.visible) {
+      return;
+    }
+
+    this.markerMap.get(index).sprite.visible = bVisible;
+  }
+
+  setAllMarkerVisible(bVisible) {
+    this.markerMap.forEach( (marker) => {
+      if (!marker.sprite) {
+        return;
       }
+      marker.sprite.visible = bVisible;
     });
-
-    this.updateRender();
-  }
-
-  showAllMarker() {
-    this.markerPointerList.map((item) => {
-      const sprite = this.scene.getObjectByName(item.name);
-      sprite.visible = true;
-    });
-    this.updateRender();
   }
 
   // viewer에서 canvas 클릭시 실행
   onMouseDown(e) {
-    console.log('onMouseDown on MM');
     this.mouseButtonDown = true;
     const item = this.checkIntersectObject(e);
     if (item) {
       this.pickedMarker = item;
       this.isMouseMoved = false;
-      // this.animateCamera(annotationItem)
+      console.log(item);
     }
   }
 
@@ -104,38 +128,20 @@ class TechPackManager {
     // FIXME: This function does nothing
   }
 
-  onMouseUp(e) {
-    this.mouseButtonDown = false;
-    this.controls.enabled = true;
-
-    if (this.isMouseMoved) {
-      this.onCompleteMove(this.pickedMarker);
-    } else {
-      const item = this.checkIntersectObject(e);
-      if (item) {
-        this.pickedMarker = item;
-        this.animateCamera(item);
-      }
-      this.isMouseMoved = false;
-    }
-  }
-
   checkIntersectObject({clientX, clientY}) {
-    // test code : annotation pointer부터 검사하자.
-    if (this.markerPointerList.length) {
-      const mouse = this.getMousePosition({clientX, clientY});
+    if (this.markerMap.length <= 0) {
+      return;
+    }
+    const mouse = this.getMousePosition({clientX, clientY});
+    this.raycaster.setFromCamera(mouse, this.camera);
+    const intersects = this.raycaster.intersectObjects(this.markerGeometryList, true);
 
-      this.raycaster.setFromCamera(mouse, this.camera);
-      const intersects = this.raycaster.intersectObjects(this.markerPointerList, true);
-
-      if (intersects.length > 0) {
-        // 처리할거 하고 return;
-        // for(var i=0; i<this.annotationPointerList.length; i++)
-        for (let i = 0; i < this.markerList.length; i++) {
-          if (intersects[0].object === this.markerList[i].sprite) {
-            return this.markerList[i];
-            // this.animateCamera(this.annotationList[i].cameraPos)
-          }
+    if (intersects.length > 0) {
+      // 처리할거 하고 return;
+      for (let i = 1; i <= this.markerMap.size; ++i) {
+        const marker = this.markerMap.get(i);
+        if (intersects[0].object === marker.sprite) {
+          return marker;
         }
       }
     }
@@ -145,20 +151,8 @@ class TechPackManager {
     const canvasBounds = this.renderer.context.canvas.getBoundingClientRect();
     const x = ((clientX - canvasBounds.left) / (canvasBounds.right - canvasBounds.left)) * 2 - 1;
     const y = -((clientY - canvasBounds.top) / (canvasBounds.bottom - canvasBounds.top)) * 2 + 1;
+
     return {x, y};
-    // return this.createIntersectPosition({x, y})
-  }
-
-  GetCameraDirection() {
-    const directionVector = new THREE.Vector3();
-    directionVector.x = this.controls.target.x - this.camera.position.x;
-    directionVector.y = this.controls.target.y - this.camera.position.y;
-    directionVector.z = this.controls.target.z - this.camera.position.z;
-
-    const normalizedCameraDirVector = new THREE.Vector3();
-    normalizedCameraDirVector.copy(directionVector.normalize());
-
-    return normalizedCameraDirVector;
   }
 }
 

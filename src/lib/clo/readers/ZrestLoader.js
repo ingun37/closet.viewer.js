@@ -29,12 +29,18 @@ export default function ZRestLoader({scene, camera, controls, cameraPosition}, m
 
   this.materialList = [];
   this.matMeshList = [];
+  this.matShapeList = [];
   this.currentColorwayIndex = 0;
   this.jsZip = null;
 
-  this.meshFactory = new MeshFactory(this.matMeshList, this.materialList, this.materialInformationMap, camera, _drawMode, _seamPuckeringNormalMap, _nameToTextureMap, _version),
+  this.meshFactory = new MeshFactory({
+    matMeshList: this.matMeshList,
+    materialList: this.materialList,
+    matShapeList: this.matShapeList,
+  },
+  this.materialInformationMap, camera, _drawMode, _seamPuckeringNormalMap, _nameToTextureMap, _version),
   this.MATMESH_TYPE = MATMESH_TYPE;
-};
+}
 
 ZRestLoader.prototype = {
   constructor: ZRestLoader,
@@ -67,6 +73,10 @@ ZRestLoader.prototype = {
 
   getMaterialInformationMap() {
     return this.meshFactory.materialInformationMap;
+  },
+
+  getMatShapeList() {
+    return this.meshFactory.matShapeList;
   },
 
   parse(data, onLoad) {
@@ -119,7 +129,7 @@ ZRestLoader.prototype = {
             case 'pos':
               break;
             default:
-          };
+          }
         });
 
         const fileOffset = {Offset: 0};
@@ -139,6 +149,7 @@ ZRestLoader.prototype = {
           };
 
           await this.meshFactory.build(rootMap, zip, object3D, loadedCamera);
+          this.addStyleLinesToScene(this.scene, this.meshFactory.getStyleLineMap(), false);
 
           // 여기가 실질적으로 Zrest 로드 완료되는 시점
           this.onLoad(object3D, loadedCamera, this.data);
@@ -155,6 +166,21 @@ ZRestLoader.prototype = {
     };
 
     reader.readAsArrayBuffer(contentBlob);
+  },
+
+  addStyleLinesToScene(scene, styleLineMap, bVisible = true) {
+    styleLineMap.forEach((styleLineSet) => {
+      styleLineSet.forEach((line) => {
+        line.visible = bVisible;
+        scene.add(line);
+      });
+    });
+  },
+
+  setStyleLineVisible(styleLineMap, index, bVisible) {
+    styleLineMap.get(index).forEach((line) => {
+      line.visible = bVisible;
+    });
   },
 
   getObjectsCenter(scene) {

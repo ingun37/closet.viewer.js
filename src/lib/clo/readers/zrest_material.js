@@ -320,5 +320,5 @@ export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeri
     // FIXME: check to assign and dispose of 'texture' variable correctly. It seems works but not matched.
     texture && texture.dispose();
   }
-};
+}
 
