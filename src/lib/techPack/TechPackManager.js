@@ -14,18 +14,19 @@ class TechPackManager {
 
     this.markerMap = new Map();
     this.markerGeometryList = [];
+    this.styleLineMap = new Map();
 
     this.raycaster = new THREE.Raycaster();
 
-    this.loadTechPackFromMatMeshList = this.loadTechPackFromMatMeshList.bind(this);
+    this.loadTechPackFromMatMeshList = this.loadTechPackFromMatShapeList.bind(this);
     this.addPatternMarker = this.addPatternMarker.bind(this);
     this.onMouseDown = this.onMouseDown.bind(this);
     this.refreshMarkerGeometryList = this.refreshMarkerGeometryList.bind(this);
     this.checkIntersectObject = this.checkIntersectObject.bind(this);
   }
 
-  loadTechPackFromMatMeshList(matMeshList) {
-    if (!matMeshList) {
+  loadTechPackFromMatShapeList(matShapeList) {
+    if (!matShapeList) {
       return;
     }
 
@@ -33,8 +34,8 @@ class TechPackManager {
 
     //  NOTE: All elements in mapShape array have the same value.
     //  This module will be modified by TKAY and Daniel.
-    for (let i = 0; i < matMeshList.length; ++i) {
-      const mapShape = matMeshList[i].get('listMatMeshIDOnIndexedMesh');
+    for (let i = 0; i < matShapeList.length; ++i) {
+      const mapShape = matShapeList[i].get('listMatMeshIDOnIndexedMesh');
       const center = mapShape[0].get('v3Center');
       const normal = mapShape[0].get('v3Normal');
 
@@ -53,13 +54,14 @@ class TechPackManager {
       const index = i + 1;
       this.addPatternMarker(index, {...position, message: index}, false);
     }
+
+    this.loadStyleLineFromMatShapeList(matShapeList);
   }
 
   bindEventListener({onCompleteMove, onCompleteAnimation}) {
     this.onCompleteMove = onCompleteMove;
     this.onCompleteAnimation = onCompleteAnimation;
   }
-
 
   updatePointerSize() {
     this.markerMap.forEach( (marker) => {
@@ -113,14 +115,49 @@ class TechPackManager {
     });
   }
 
+  setPatternVisible(patternIdx, matMeshList, bVisible) {
+    patternIdx *= 3;
+
+    for (let i = patternIdx; i < patternIdx + 3; ++i) {
+      matMeshList[i].visible = bVisible;
+    }
+  }
+
+  setAllPatternVisible(matMeshList, bVisible) {
+    for (let i = 0; i < matMeshList.length; ++i) {
+      matMeshList[i].visible = bVisible;
+    }
+  }
+
+  loadStyleLineFromMatShapeList(matShapeList) {
+    console.log(matShapeList);
+  }
+
+
+  addStyleLinesToScene(scene, styleLineMap, bVisible = true) {
+    styleLineMap.forEach((styleLineSet) => {
+      styleLineSet.forEach((line) => {
+        line.visible = bVisible;
+        scene.add(line);
+      });
+    });
+  }
+
+  setStyleLineVisible(styleLineMap, index, bVisible) {
+    styleLineMap.get(index).forEach((line) => {
+      line.visible = bVisible;
+    });
+  }
+
   // viewer에서 canvas 클릭시 실행
-  onMouseDown(e) {
+  onMouseDown(e, action) {
     this.mouseButtonDown = true;
     const item = this.checkIntersectObject(e);
     if (item) {
       this.pickedMarker = item;
       this.isMouseMoved = false;
       console.log(item);
+      return item;
     }
   }
 

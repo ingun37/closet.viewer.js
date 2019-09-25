@@ -218,7 +218,15 @@ export default class ClosetViewer {
   onMouseDown( e ) {
     e.preventDefault();
     if (this.annotation && this.object3D) this.annotation.onMouseDown(e);
-    if (this.techPack) this.techPack.onMouseDown(e);
+    if (this.techPack) {
+      const selectedMarker = this.techPack.onMouseDown(e);
+      if (selectedMarker) {
+        // For testing only
+        const selectedIndex = selectedMarker.message - 1;
+        const bVisible = this.zrest.matMeshList[selectedIndex *3].visible;
+        this.setVisiblePattern(selectedIndex, !bVisible);
+      }
+    }
   }
 
   onMouseUp( e ) {
@@ -288,6 +296,16 @@ export default class ClosetViewer {
     this.updateRenderer();
   }
 
+  setVisiblePattern(patternIdx, bVisible) {
+    this.techPack.setPatternVisible(patternIdx, this.zrest.getMatMeshList(), bVisible);
+    this.updateRenderer();
+  }
+
+  setVisibleAllPattern(bVisible) {
+    this.techPack.setAllPatternVisible(this.zrest.getMatMeshList(), bVisible);
+    this.updateRenderer();
+  }
+
   getShowHideStatus(type) {
     for (let i=0; i<this.zrest.matMeshList.length; i++) {
       if (this.zrest.matMeshList[i].userData.TYPE == type) {
@@ -311,7 +329,6 @@ export default class ClosetViewer {
     const camMatrix = this.camera.matrix.elements;
     return camMatrixPushOrder.map((index) => camMatrix[index]);
   }
-
 
   fullscreen() {
     if (!screenfull.isFullscreen) {
@@ -475,7 +492,7 @@ export default class ClosetViewer {
 
   loadTechPack() {
     const matMeshList = this.zrest.getMatShapeList();
-    this.techPack.loadTechPackFromMatMeshList(matMeshList);
+    this.techPack.loadTechPackFromMatShapeList(matMeshList);
   }
 
   getColorwaySize() {
