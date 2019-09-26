@@ -245,7 +245,7 @@ export default class ClosetViewer {
     for (let i=0; i<this.zrest.matMeshList.length; ++i) {
       const t = this.zrest.matMeshList[i].userData.TYPE;
 
-      if (t == matMeshType.PATTERN_MATMESH || t == matMeshType.TRIM_MATMESH || t == matMeshType.PRINTOVERLAY_MATMESH || t == matMeshType.BUTTONHEAD_MATMESH || t == matMeshType.STITCH_MATMESH ) {
+      if (t === matMeshType.PATTERN_MATMESH || t === matMeshType.TRIM_MATMESH || t === matMeshType.PRINTOVERLAY_MATMESH || t === matMeshType.BUTTONHEAD_MATMESH || t === matMeshType.STITCH_MATMESH ) {
         this.zrest.matMeshList[i].visible = visibility;
       }
     }
@@ -261,11 +261,11 @@ export default class ClosetViewer {
   }
 
   isExistGarment() {
-    return isExistMatMeshType(this.zrest.MATMESH_TYPE.PATTERN_MATMESH);
+    return this.isExistMatMeshType(this.zrest.MATMESH_TYPE.PATTERN_MATMESH);
   }
 
   isExistAvatar() {
-    return isExistMatMeshType(this.zrest.MATMESH_TYPE.AVATAR_MATMESH);
+    return this.isExistMatMeshType(this.zrest.MATMESH_TYPE.AVATAR_MATMESH);
   }
 
   isAvailableShowHide() {
@@ -289,7 +289,7 @@ export default class ClosetViewer {
 
   setVisibleAllAvatar(visibility) {
     for (let i=0; i<this.zrest.matMeshList.length; i++) {
-      if (this.zrest.matMeshList[i].userData.TYPE == this.zrest.MATMESH_TYPE.AVATAR_MATMESH) {
+      if (this.zrest.matMeshList[i].userData.TYPE === this.zrest.MATMESH_TYPE.AVATAR_MATMESH) {
         this.zrest.matMeshList[i].visible = visibility;
       }
     }
@@ -308,7 +308,7 @@ export default class ClosetViewer {
 
   getShowHideStatus(type) {
     for (let i=0; i<this.zrest.matMeshList.length; i++) {
-      if (this.zrest.matMeshList[i].userData.TYPE == type) {
+      if (this.zrest.matMeshList[i].userData.TYPE === type) {
         if (this.zrest.matMeshList[i].visible) {
           return true;
         }
@@ -390,7 +390,7 @@ export default class ClosetViewer {
   }
 
   render() {
-    if (this.annotation || this.marker) this.annotation.updateAnnotationPointerSize(); // update annotation pointer size
+    if (this.annotation) this.annotation.updateAnnotationPointerSize(); // update annotation pointer size
     if (this.techPack) this.techPack.updatePointerSize();
 
     this.renderer.autoClear = false;
@@ -499,6 +499,18 @@ export default class ClosetViewer {
     return this.zrest.getColorwaySize();
   }
 
+  isExistMatMeshType(type) {
+    console.log('isExistMatMeshType');
+    const list = this.zrest.matMeshList;
+    for (let i=0; i<list.length; ++i) {
+      if (list[i].userData.TYPE === type) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
   // TODO: This function should be moved to zrestReader.js
   async changeColorway(number) {
     if (number === undefined) {
@@ -556,15 +568,6 @@ export default class ClosetViewer {
   }
 }
 
-function isExistMatMeshType(type) {
-  console.log('isExistMatMeshType');
-  for (let i=0; i<this.zrest.matMeshList.length; ++i) {
-    if (this.zrest.matMeshList[i].userData.TYPE == type) {
-      return true;
-    }
-  }
-  return false;
-}
 
 function clearThree(obj) {
   while (obj.children.length > 0) {
