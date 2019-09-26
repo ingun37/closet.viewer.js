@@ -16,6 +16,10 @@ class TechPackManager {
     this.markerGeometryList = [];
     this.styleLineMap = new Map();
 
+    this.markerContainer = new THREE.Object3D();
+    this.markerContainer.name = 'annotationContainer';
+    this.scene.add(this.markerContainer);
+
     this.raycaster = new THREE.Raycaster();
 
     this.loadTechPackFromMatMeshList = this.loadTechPackFromMatShapeList.bind(this);
@@ -87,7 +91,7 @@ class TechPackManager {
     sprite.position.set(pointerPos.x, pointerPos.y, pointerPos.z);
     sprite.visible = isVisible;
 
-    this.scene.add(sprite);
+    this.markerContainer.add(sprite);
 
     // NOTE: A message of a marker replaced with a index.
     const marker = new Marker(pointerPos, faceNormal, cameraPos, cameraTarget, cameraQuaternion, index, sprite);
@@ -104,6 +108,15 @@ class TechPackManager {
     }
 
     this.markerMap.get(index).sprite.visible = bVisible;
+  }
+
+  deleteAllMarker() {
+    this.markerMap.clear();
+    const names = this.markerContainer.children.map((item) => item.name);
+    names.map((name) => {
+      const sprite = this.markerContainer.getObjectByName(name);
+      this.markerContainer.remove(sprite);
+    });
   }
 
   setAllMarkerVisible(bVisible) {
