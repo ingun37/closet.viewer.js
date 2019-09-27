@@ -299,7 +299,7 @@ MatMeshManager.prototype = {
       return dracoLoader.decodeDracoFile(drcArrayBuffer);
     };
 
-    const addStyleLines = (dracoGeometry, patternIdx, listLine) => {
+    const buildStyleLines = (dracoGeometry, patternIdx, listLine) => {
       if (!listLine) {
         return;
       }
@@ -371,7 +371,7 @@ MatMeshManager.prototype = {
 
       await splitMatSpaceToMatMesh(listMatMeshIDOnIndexedMesh, totalIndexCount, listIndexCount, dracoGeometry, bVisiable, this.drawMode);
 
-      addStyleLines(dracoGeometry, i, listMatShape[i].get('listLine'));
+      buildStyleLines(dracoGeometry, i, listMatShape[i].get('listLine'));
     }
   },
 

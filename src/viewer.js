@@ -221,10 +221,15 @@ export default class ClosetViewer {
     if (this.techPack) {
       const selectedMarker = this.techPack.onMouseDown(e);
       if (selectedMarker) {
-        // For testing only
+        // For testing only (Pattern Marker)
         const selectedIndex = selectedMarker.message - 1;
         const bVisible = this.zrest.matMeshList[selectedIndex *3].visible;
         this.setVisiblePattern(selectedIndex, !bVisible);
+
+        // For testing only (Style Line)
+        if (this.techPack.styleLineMap.get(selectedIndex)) {
+          this.setVisibleStyleLine(selectedIndex, bVisible);
+        }
       }
     }
   }
@@ -303,6 +308,11 @@ export default class ClosetViewer {
 
   setVisibleAllPattern(bVisible) {
     this.techPack.setAllPatternVisible(this.zrest.getMatMeshList(), bVisible);
+    this.updateRenderer();
+  }
+
+  setVisibleStyleLine(patternIdx, bVisible) {
+    this.techPack.setStyleLineVisible(patternIdx, bVisible);
     this.updateRenderer();
   }
 
@@ -484,15 +494,20 @@ export default class ClosetViewer {
     }
   }
 
+  loadTechPack() {
+    const matMeshList = this.zrest.getMatShapeList();
+    this.techPack.loadTechPackFromMatShapeList(matMeshList);
+  }
+
+  loadStyleLine() {
+    const styleLineMap = this.zrest.getStyleLineMap();
+    this.techPack.loadStyleLine(styleLineMap);
+  }
+
   setCameraPosition(position, target) {
     this.camera.position.copy(position);
     if (target) this.controls.target.copy(target);
     this.updateRenderer();
-  }
-
-  loadTechPack() {
-    const matMeshList = this.zrest.getMatShapeList();
-    this.techPack.loadTechPackFromMatShapeList(matMeshList);
   }
 
   getColorwaySize() {
@@ -500,7 +515,6 @@ export default class ClosetViewer {
   }
 
   isExistMatMeshType(type) {
-    console.log('isExistMatMeshType');
     const list = this.zrest.matMeshList;
     for (let i=0; i<list.length; ++i) {
       if (list[i].userData.TYPE === type) {

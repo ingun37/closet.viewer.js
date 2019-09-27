@@ -82,6 +82,10 @@ ZRestLoader.prototype = {
     return this.matMeshList;
   },
 
+  getStyleLineMap() {
+    return this.meshFactory.getStyleLineMap();
+  },
+
   parse(data, onLoad) {
     this.data = data;
     this.onLoad = onLoad;
@@ -152,7 +156,6 @@ ZRestLoader.prototype = {
           };
 
           await this.meshFactory.build(rootMap, zip, object3D, loadedCamera);
-          // this.addStyleLinesToScene(this.scene, this.meshFactory.getStyleLineMap(), false);
 
           // 여기가 실질적으로 Zrest 로드 완료되는 시점
           this.onLoad(object3D, loadedCamera, this.data);
