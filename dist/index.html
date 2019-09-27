@@ -117,7 +117,9 @@
                     <button onclick="fullscreen()" id="fullscreen" type="button" class="ui button">fullscreen</button>
                 </div>
                 <div class="field">
-                  <button type="button" onclick="loadTechPack()" data-on="false" id="setTechPackMarker" class="ui button">Load 3D Tech pack Marker
+                  <button type="button" onclick="loadTechPack()" data-on="false" id="loadTechPackMarker" class="ui button">Load TechPackMarker
+                  </button>
+                  <button type="button" onclick="loadStyleLine()" data-on="false" id="loadStyleLine" class="ui button">Load StyleLine
                   </button>
                 </div>
                 <div class="field">
@@ -327,14 +329,23 @@
     closet.viewer.annotation.setVisibleContainer(isVisibleAnnotation)
   }
 
-  function loadTechPack() {
+  function checkZRestLoaded() {
     if (!closet.viewer.zrest) {
-      alert('Load zrest file first.');
-      return;
+      alert('Load ZRest file first.');
+      return false;
     } else {
-      closet.viewer.loadTechPack();
-      return;
+      return true;
     }
+  }
+
+  function loadTechPack() {
+    if (!checkZRestLoaded()) return; 
+    closet.viewer.loadTechPack();
+  }
+
+  function loadStyleLine() {
+    if (!checkZRestLoaded()) return; 
+    closet.viewer.loadStyleLine();
   }
 
   function setVisibleTechPackMarkers() {
