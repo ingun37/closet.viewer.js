@@ -33,24 +33,14 @@ uniform sampler2D sNormal; //normal map texture. 가장 마지막에서 두번�
 uniform sampler2D sSeamPuckeringNormal;
 uniform sampler2D sTransparent;
 uniform sampler2D sGlossiness;
-//uniform sampler2D sMetalness;
+
 uniform samplerCube sDiffuseEnvironmentMap;
 uniform samplerCube sSpecularEnvironmentMap;
-//uniform samplerCube sSpecularEnvironmentMap1;
-//uniform samplerCube sSpecularEnvironmentMap2;
-//uniform samplerCube sSpecularEnvironmentMap3;
-//uniform samplerCube sSpecularEnvironmentMap4;
-//uniform samplerCube sSpecularEnvironmentMap5;
-//uniform samplerCube sSpecularEnvironmentMap6;
-//uniform samplerCube sSpecularEnvironmentMap7;
-//uniform sampler2D sAmbientOcclusionMap;
 
 uniform vec3 materialBaseColor;
 uniform vec3 materialSpecular;
 uniform float materialOpacity;
 uniform float normalMapIntensityInPercentage;
-
-//uniform vec2 m_ScreenSize; // in pixel
 
 // 다음 불러줘야 한다. three.js 버전 업 후에 #include <lights_pars_begin> 로 대체하면 됨
 #if NUM_DIR_LIGHTS > 0
@@ -311,7 +301,7 @@ void main( void )
 
     if (m_RoughnessUIType == 0)
     {
-    glossiness = m_Glossiness;
+        glossiness = m_Glossiness;
     }
     else
     {
@@ -378,36 +368,18 @@ void main( void )
     #ifdef GL_EXT_shader_texture_lod
     vec3 specularEnvColor = m_EnvironmentLightIntensity * RGBEToVec3(textureCubeLodEXT(sSpecularEnvironmentMap, worldR, mipLevel));           
     #else
+    
     // 지원 안될 경우는 다음과 같이 glsl 120 만 지원하는 pc 버전 코드와 동일한 결과 나오게 하기
     vec3 specularEnvColor = diffuseEnvColor;
-        // 다음은 왠지 부작용 있을 것 같아서 주석 처리. 뭔가 그럴싸하게 나오긴 한다.
-    //vec3 specularEnvColor = m_EnvironmentLightIntensity * RGBEToVec3(textureCube(sSpecularEnvironmentMap, worldR, mipLevel)); 
-
-    /*if(mipLevel < 1.0)
-    specularEnvColor = (1.0 - mipLevel) * RGBEToVec3(textureCube(sSpecularEnvironmentMap0, worldR)) + mipLevel * RGBEToVec3(textureCube(sSpecularEnvironmentMap1, worldR));
-    else if(mipLevel < 2.0)
-    specularEnvColor = (2.0 - mipLevel) * RGBEToVec3(textureCube(sSpecularEnvironmentMap1, worldR)) + (mipLevel - 1.0) * RGBEToVec3(textureCube(sSpecularEnvironmentMap2, worldR));
-    else if(mipLevel < 3.0)
-    specularEnvColor = (3.0 - mipLevel) * RGBEToVec3(textureCube(sSpecularEnvironmentMap2, worldR)) + (mipLevel - 2.0) * RGBEToVec3(textureCube(sSpecularEnvironmentMap3, worldR));
-    else if(mipLevel < 4.0)
-    specularEnvColor = (4.0 - mipLevel) * RGBEToVec3(textureCube(sSpecularEnvironmentMap3, worldR)) + (mipLevel - 3.0) * RGBEToVec3(textureCube(sSpecularEnvironmentMap4, worldR));
-    else if(mipLevel < 5.0)
-    specularEnvColor = (5.0 - mipLevel) * RGBEToVec3(textureCube(sSpecularEnvironmentMap4, worldR)) + (mipLevel - 4.0) * RGBEToVec3(textureCube(sSpecularEnvironmentMap5, worldR));
-    else if(mipLevel < 6.0)
-    specularEnvColor = (6.0 - mipLevel) * RGBEToVec3(textureCube(sSpecularEnvironmentMap5, worldR)) + (mipLevel - 5.0) * RGBEToVec3(textureCube(sSpecularEnvironmentMap6, worldR));
-    else
-    specularEnvColor = (7.0 - mipLevel) * RGBEToVec3(textureCube(sSpecularEnvironmentMap6, worldR)) + (mipLevel - 6.0) * RGBEToVec3(textureCube(sSpecularEnvironmentMap7, worldR));
-
-    specularEnvColor = m_EnvironmentLightIntensity * specularEnvColor;*/
     #endif
 
     // 이 조건 없으면 back face에 대해 Fresnel 값이 최대치로 나오므로 이 조건 넣어줘야 한다. FresnelSchlick 함수 안에서 max 사용해도 안됨
     // dot(N,E) 대신 gl_FrontFacing으로 검사하자. 안그러면 노말맵 있는 material의 경우 앞면인데도 불구하고 normal은 뒤로 돌아가서 fresnel 적용안되어서 새까맣게 나오는 경우 발생한다.
     if (gl_FrontFacing)
-    specular.rgb += FresnelSchlick(specularColor, dotNE, 0.25 * m_ReflectionIntensity) * specularEnvColor.rgb;
+        specular.rgb += FresnelSchlick(specularColor, dotNE, 0.25 * m_ReflectionIntensity) * specularEnvColor.rgb;
 
     // direct light
-    for (int i=0; i < 2; ++i)
+    for (int i = 0; i < 2; ++i)
     {
         vec3 lightColor;
 
@@ -415,7 +387,7 @@ void main( void )
         vec3 L = vec3(0.0);
         if(i == 0)
         {
-            L=E;
+            L = E;
             lightColor = vec3(m_CameraLightIntensity);
         }
         else
@@ -431,8 +403,10 @@ void main( void )
         if(i != 0)        
         {
             // ios 에서는 shadow map 접근하면 옷이 메탈처럼 보이고 아바타가 사라져 버리는 버그 생긴다. shadow map 과 sSpecularEnvironmentMap 을 같이 쓸때 버그 생긴다. ios에서는 shadow 끄는 식으로 처리하자. 2019.04.12
-            shadowIntensity = getShadowMask();
-            //shadowIntensity = texture2DProj(directionalShadowMap[i], vDirectionalShadowCoord[i]).r;
+            // FIXME: This causes poor performance
+            // shadowIntensity = getShadowMask(); 
+            // shadowIntensity = 1.0;
+            shadowIntensity = texture2DProj(directionalShadowMap[i], vDirectionalShadowCoord[i]).r;
         }
 
         vec3 H = normalize(L + E);
