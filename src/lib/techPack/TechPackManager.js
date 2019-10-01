@@ -149,6 +149,15 @@ class TechPackManager {
     }
   }
 
+  togglePatternTransparency(patternIdx, selectedOpacity, defaultOpacity) {
+    patternIdx *= 3;
+
+    for (let i = patternIdx; i < patternIdx + 3; ++i) {
+      const opacity = (matMeshList[i].material.uniforms.materialOpacity.value >= defaultOpacity) ? selectedOpacity : defaultOpacity;
+      matMeshList[i].material.uniforms.materialOpacity = {type: 'f', value: opacity};
+    }
+  }
+
   addStyleLinesToScene(bVisible = true) {
     this.styleLineMap.forEach((styleLineSet) => {
       styleLineSet.forEach((line) => {
