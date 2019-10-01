@@ -20,22 +20,24 @@ class TechPackManager {
     this.markerContainer.name = 'annotationContainer';
     this.scene.add(this.markerContainer);
 
+    this.styleLineContainer = new THREE.Object3D();
+    this.styleLineContainer.name = 'styleLineContainer';
+    this.scene.add(this.styleLineContainer);
+
     this.raycaster = new THREE.Raycaster();
 
     this.loadTechPackFromMatMeshList = this.loadTechPackFromMatShapeList.bind(this);
-    this.addPatternMarker = this.addPatternMarker.bind(this);
+    this.loadStyleLine = this.loadStyleLine.bind(this);
+    this.addMarker = this.addMarker.bind(this);
     this.onMouseDown = this.onMouseDown.bind(this);
     this.refreshMarkerGeometryList = this.refreshMarkerGeometryList.bind(this);
     this.checkIntersectObject = this.checkIntersectObject.bind(this);
   }
 
   loadTechPackFromMatShapeList(matShapeList) {
-    if (!matShapeList) {
-      return;
-    }
+    if (!matShapeList) return;
 
     this.markerMap.clear();
-
     //  NOTE: All elements in mapShape array have the same value.
     //  This module will be modified by TKAY and Daniel.
     for (let i = 0; i < matShapeList.length; ++i) {
@@ -56,10 +58,15 @@ class TechPackManager {
       };
 
       const index = i + 1;
-      this.addPatternMarker(index, {...position, message: index}, false);
+      this.addMarker(index, {...position, message: index}, false);
     }
+  }
 
-    this.loadStyleLineFromMatShapeList(matShapeList);
+  loadStyleLine(styleLineMap) {
+    if (!styleLineMap) return;
+
+    this.styleLineMap = styleLineMap;
+    this.addStyleLinesToScene(false);
   }
 
   bindEventListener({onCompleteMove, onCompleteAnimation}) {
@@ -84,7 +91,7 @@ class TechPackManager {
     }
   }
 
-  addPatternMarker(index, {pointerPos, faceNormal, cameraPos, cameraTarget, cameraQuaternion, message}, isVisible = true) {
+  addMarker(index, {pointerPos, faceNormal, cameraPos, cameraTarget, cameraQuaternion, message}, isVisible = true) {
     // pointer 좌표만 들고있다가 render 할때마다 만드는건 개 비효율이겠지? 그냥 그때 그때 계속 추가하자.
     const sprite = makeTextSprite(message,
         {fontsize: 48, borderColor: {r: 255, g: 255, b: 255, a: 0.5}, backgroundColor: {r: 0, g: 0, b: 0, a: 0.5}});
@@ -142,23 +149,35 @@ class TechPackManager {
     }
   }
 
-  loadStyleLineFromMatShapeList(matShapeList) {
-    console.log(matShapeList);
+  togglePatternTransparency(patternIdx, selectedOpacity, defaultOpacity) {
+    patternIdx *= 3;
+
+    for (let i = patternIdx; i < patternIdx + 3; ++i) {
+      const opacity = (matMeshList[i].material.uniforms.materialOpacity.value >= defaultOpacity) ? selectedOpacity : defaultOpacity;
+      matMeshList[i].material.uniforms.materialOpacity = {type: 'f', value: opacity};
+    }
   }
 
-
-  addStyleLinesToScene(scene, styleLineMap, bVisible = true) {
-    styleLineMap.forEach((styleLineSet) => {
+  addStyleLinesToScene(bVisible = true) {
+    this.styleLineMap.forEach((styleLineSet) => {
       styleLineSet.forEach((line) => {
         line.visible = bVisible;
-        scene.add(line);
+        this.styleLineContainer.add(line);
       });
     });
   }
 
-  setStyleLineVisible(styleLineMap, index, bVisible) {
-    styleLineMap.get(index).forEach((line) => {
+  setStyleLineVisible(patternIdx, bVisible) {
+    this.styleLineMap.get(patternIdx).forEach((line) => {
       line.visible = bVisible;
+    });
+  }
+
+  setAllStyleLineVisible(bVisible) {
+    this.styleLineMap.forEach((styleLineSet) => {
+      styleLineSet.forEach((line) => {
+        line.visible = bVisible;
+      });
     });
   }
 
