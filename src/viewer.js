@@ -52,7 +52,7 @@ export default class ClosetViewer {
     this.onMouseClick = this.onMouseClick.bind(this);
 
     this.setVisibleAllGarment = this.setVisibleAllGarment.bind(this);
-    this.setVisibleAllAvatar = this.setVisibleAllAvatar.bind(this);
+    this.setVisibleAllAvatar = this.setAllAvatarVisible.bind(this);
     this.isExistGarment = this.isExistGarment.bind(this);
     this.isExistAvatar = this.isExistAvatar.bind(this);
     this.getGarmentShowHideStatus = this.getGarmentShowHideStatus.bind(this);
@@ -87,7 +87,7 @@ export default class ClosetViewer {
     this.renderer.setSize(w, h);
     this.renderer.sortObjects = false; // 투명 object 제대로 렌더링하려면 자동 sort 꺼야 한다
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.VSMShadowMap; // NOTE: THREE.PCFSoftShadowMap causes performance problem on Android;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     this.setter.appendChild(this.renderer.domElement);
 
@@ -221,10 +221,16 @@ export default class ClosetViewer {
     if (this.techPack) {
       const selectedMarker = this.techPack.onMouseDown(e);
       if (selectedMarker) {
-        // For testing only
+        // For testing only (Pattern Marker and transparency)
         const selectedIndex = selectedMarker.message - 1;
         const bVisible = this.zrest.matMeshList[selectedIndex *3].visible;
-        this.setVisiblePattern(selectedIndex, !bVisible);
+        // this.setVisiblePattern(selectedIndex, !bVisible);
+        this.togglePatternTranparency(selectedIndex);
+
+        // For testing only (Style Line)
+        if (this.techPack.styleLineMap.get(selectedIndex)) {
+          this.setStyleLineVisible(selectedIndex, bVisible);
+        }
       }
     }
   }
@@ -280,14 +286,13 @@ export default class ClosetViewer {
         this.camera.matrix.elements[camMatrixPushOrder[i]] = mat[i];
       }
 
-      // TODO: consider remove === operation
       if (bShouldUpdateRendering) {
         this.updateRenderer();
       }
     }
   }
 
-  setVisibleAllAvatar(visibility) {
+  setAllAvatarVisible(visibility) {
     for (let i=0; i<this.zrest.matMeshList.length; i++) {
       if (this.zrest.matMeshList[i].userData.TYPE === this.zrest.MATMESH_TYPE.AVATAR_MATMESH) {
         this.zrest.matMeshList[i].visible = visibility;
@@ -296,13 +301,23 @@ export default class ClosetViewer {
     this.updateRenderer();
   }
 
-  setVisiblePattern(patternIdx, bVisible) {
+  setPatternVisible(patternIdx, bVisible) {
     this.techPack.setPatternVisible(patternIdx, this.zrest.getMatMeshList(), bVisible);
     this.updateRenderer();
   }
 
-  setVisibleAllPattern(bVisible) {
+  setAllPatternVisible(bVisible) {
     this.techPack.setAllPatternVisible(this.zrest.getMatMeshList(), bVisible);
+    this.updateRenderer();
+  }
+
+  setStyleLineVisible(patternIdx, bVisible) {
+    this.techPack.setStyleLineVisible(patternIdx, bVisible);
+    this.updateRenderer();
+  }
+
+  togglePatternTranparency(patternIdx) {
+    this.techPack.togglePatternTransparency(patternIdx, this.zrest.getMatMeshList());
     this.updateRenderer();
   }
 
@@ -473,15 +488,27 @@ export default class ClosetViewer {
     }
 
     if (url.constructor === ArrayBuffer) {
-      this.zrest = new ZRestLoader({scene: this.scene, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition});
+      this.zrest = new ZRestLoader({
+        scene: this.scene, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition});
       this.zrest.parse(url, loaded);
       return;
     }
 
     if (url.constructor === String) {
-      this.zrest = new ZRestLoader({scene: this.scene, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition});
+      this.zrest = new ZRestLoader({
+        scene: this.scene, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition});
       this.zrest.load(url, loaded, progress, error);
     }
+  }
+
+  loadTechPack() {
+    const matMeshList = this.zrest.getMatShapeList();
+    this.techPack.loadTechPackFromMatShapeList(matMeshList);
+  }
+
+  loadStyleLine() {
+    const styleLineMap = this.zrest.getStyleLineMap();
+    this.techPack.loadStyleLine(styleLineMap);
   }
 
   setCameraPosition(position, target) {
@@ -490,17 +517,11 @@ export default class ClosetViewer {
     this.updateRenderer();
   }
 
-  loadTechPack() {
-    const matMeshList = this.zrest.getMatShapeList();
-    this.techPack.loadTechPackFromMatShapeList(matMeshList);
-  }
-
   getColorwaySize() {
     return this.zrest.getColorwaySize();
   }
 
   isExistMatMeshType(type) {
-    console.log('isExistMatMeshType');
     const list = this.zrest.matMeshList;
     for (let i=0; i<list.length; ++i) {
       if (list[i].userData.TYPE === type) {
