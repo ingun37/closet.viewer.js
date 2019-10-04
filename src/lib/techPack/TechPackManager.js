@@ -149,11 +149,12 @@ class TechPackManager {
     }
   }
 
-  togglePatternTransparency(patternIdx, selectedOpacity, defaultOpacity) {
+  togglePatternTransparency(patternIdx, matMeshList, selectedOpacity = 0.5, defaultOpacity = 1.0) {
     patternIdx *= 3;
 
     for (let i = patternIdx; i < patternIdx + 3; ++i) {
-      const opacity = (matMeshList[i].material.uniforms.materialOpacity.value >= defaultOpacity) ? selectedOpacity : defaultOpacity;
+      const currentOpacity = matMeshList[i].material.uniforms.materialOpacity.value;
+      const opacity = (currentOpacity >= defaultOpacity) ? selectedOpacity : defaultOpacity;
       matMeshList[i].material.uniforms.materialOpacity = {type: 'f', value: opacity};
     }
   }
