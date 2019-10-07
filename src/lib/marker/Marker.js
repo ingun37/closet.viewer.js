@@ -66,7 +66,7 @@ function makeTextSprite(message, parameters) {
   // 1.4 is extra height factor for text below baseline: g,j,p,q.
 
   // text color
-  context.fillStyle = 'rgba(255, 255, 255, 1.0)';
+  context.fillStyle = 'rgba(25, 25, 26, 1.0)';
 
   context.textAlign = 'center';
   context.textBaseline = 'middle';
@@ -81,7 +81,7 @@ function makeTextSprite(message, parameters) {
 
   const sprite = new THREE.Sprite(spriteMaterial);
   sprite.scale.set(50, 50, 1.0);
-  sprite.name = 'annotation_' + message;
+  sprite.name = 'techpack_' + message;
   return sprite;
 }
 
