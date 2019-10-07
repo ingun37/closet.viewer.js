@@ -87,7 +87,7 @@ export default class ClosetViewer {
     this.renderer.setSize(w, h);
     this.renderer.sortObjects = false; // 투명 object 제대로 렌더링하려면 자동 sort 꺼야 한다
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.type = THREE.VSMShadowMap; // NOTE: THREE.PCFSoftShadowMap causes performance problem on Android;
 
     this.setter.appendChild(this.renderer.domElement);
 
