@@ -400,13 +400,14 @@ void main( void )
 
         // 쉐도우 켜져 있고 쉐도우 조명이면
         float shadowIntensity = 1.0;
-        if(i != 0)        
+        if (i != 0)        
         {
-            // ios 에서는 shadow map 접근하면 옷이 메탈처럼 보이고 아바타가 사라져 버리는 버그 생긴다. shadow map 과 sSpecularEnvironmentMap 을 같이 쓸때 버그 생긴다. ios에서는 shadow 끄는 식으로 처리하자. 2019.04.12
+            // ios 에서는 shadow map 접근하면 옷이 메탈처럼 보이고 아바타가 사라져 버리는 버그 생긴다. 
+            // shadow map 과 sSpecularEnvironmentMap 을 같이 쓸때 버그 생긴다. 
+            // ios에서는 shadow 끄는 식으로 처리하자. 2019.04.12 
+            // -> viewer.js에 관련 처리 부분 있음
             // FIXME: This causes poor performance
-            // shadowIntensity = getShadowMask(); 
-            // shadowIntensity = 1.0;
-            shadowIntensity = texture2DProj(directionalShadowMap[i], vDirectionalShadowCoord[i]).r;
+            shadowIntensity = getShadowMask(); 
         }
 
         vec3 H = normalize(L + E);
@@ -415,7 +416,7 @@ void main( void )
         float dotNH = max(dot(N, H), 0.0);
 
         diffuse.rgb += faceIntensity * shadowIntensity * diffuseColor * Fd_Burley(1.0 - glossiness, dotNE, dotNL, dotLH) * lightColor * dotNL;
-
+        
         // dot(L, H)는 항상 양수이므로 위에 specular environment 처리때처럼 음수일 때 조건문으로 걸러줄 필요 없다.
         // light.specular 는 사용하지 않는다. diffuse 하나로 통일해서 사용한다. 실제처럼.
         // direct 라잇의 경우 Fresnel 최대값은 glossiness가 아닌 1.0으로
@@ -433,6 +434,5 @@ void main( void )
     // tone mapping 해 줘야 HDR (shader가 output하는 linear RGB space color) 이미지를 사실적으로 보여줄 수 있다.
     // 안에서 감마 코렉션(linear -> sRGB) 도 수행한다
     gl_FragColor.rgb = Tonemapping(gl_FragColor.rgb);
-
     gl_FragColor.a = materialOpacity * texAlpha;
 }
