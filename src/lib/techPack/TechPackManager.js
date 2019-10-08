@@ -93,8 +93,15 @@ class TechPackManager {
 
   addMarker(index, {pointerPos, faceNormal, cameraPos, cameraTarget, cameraQuaternion, message}, isVisible = true) {
     // pointer 좌표만 들고있다가 render 할때마다 만드는건 개 비효율이겠지? 그냥 그때 그때 계속 추가하자.
-    const sprite = makeTextSprite(message,
-        {fontsize: 48, borderColor: {r: 255, g: 255, b: 255, a: 0.07}, backgroundColor: {r: 255, g: 245, b: 0, a: 1}});
+    const params = {
+      fontsize: 48,
+      borderColor: {r: 255, g: 255, b: 255, a: 0.07},
+      backgroundColor: {r: 255, g: 245, b: 0, a: 1},
+      fillStyle: 'rgba(25, 25, 26, 1.0)',
+      name: 'techpack'
+    }
+
+    const sprite = makeTextSprite(message, params);
     sprite.position.set(pointerPos.x, pointerPos.y, pointerPos.z);
     sprite.visible = isVisible;
 
