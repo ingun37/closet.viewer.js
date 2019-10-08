@@ -29,12 +29,17 @@ export default function ZRestLoader({scene, camera, controls, cameraPosition}, m
 
   this.materialList = [];
   this.matMeshList = [];
+  this.matShapeList = [];
   this.currentColorwayIndex = 0;
   this.jsZip = null;
 
-  this.meshFactory = new MeshFactory(this.matMeshList, this.materialList, this.materialInformationMap, camera, _drawMode, _seamPuckeringNormalMap, _nameToTextureMap, _version),
+  this.meshFactory = new MeshFactory({
+    matMeshList: this.matMeshList,
+    materialList: this.materialList,
+  },
+  this.materialInformationMap, camera, _drawMode, _seamPuckeringNormalMap, _nameToTextureMap, _version),
   this.MATMESH_TYPE = MATMESH_TYPE;
-};
+}
 
 ZRestLoader.prototype = {
   constructor: ZRestLoader,
@@ -67,6 +72,18 @@ ZRestLoader.prototype = {
 
   getMaterialInformationMap() {
     return this.meshFactory.materialInformationMap;
+  },
+
+  getMatShapeList() {
+    return this.meshFactory.matShapeList;
+  },
+
+  getMatMeshList() {
+    return this.matMeshList;
+  },
+
+  getStyleLineMap() {
+    return this.meshFactory.getStyleLineMap();
   },
 
   parse(data, onLoad) {
@@ -119,7 +136,7 @@ ZRestLoader.prototype = {
             case 'pos':
               break;
             default:
-          };
+          }
         });
 
         const fileOffset = {Offset: 0};

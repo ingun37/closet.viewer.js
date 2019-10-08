@@ -1,13 +1,12 @@
-    
-        #include    <shadowmap_pars_vertex>
-        attribute vec2 uv2;
-        uniform mat4 gRotMatrix;
-        uniform mat4 gTransMatrix;
+#include    <shadowmap_pars_vertex>
+attribute vec2 uv2;
+uniform mat4 gRotMatrix;
+uniform mat4 gTransMatrix;
 
-        varying vec2 vUV;
-        varying vec2 vUV2;
-        varying vec3 vNormal;
-        varying vec3 posAtEye;
+varying vec2 vUV;
+varying vec2 vUV2;
+varying vec3 vNormal;
+varying vec3 posAtEye;
 
 uniform float positionOffset;
 uniform float cameraNear;
@@ -39,7 +38,6 @@ void main(void)
     vUV2 = uv2.st;
 
     #include <begin_vertex>
-                    #include <worldpos_vertex>
-                        #include <shadowmap_vertex>
-
+    #include <worldpos_vertex>
+    #include <shadowmap_vertex>
 }
