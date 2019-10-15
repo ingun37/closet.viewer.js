@@ -25,7 +25,7 @@ function Marker(pointerPosition, normal, cameraPosition, cameraTarget, cameraQua
 function makeTextSprite(message, { fontface = 'Arial', fontsize = 18, borderThickness = 8, borderColor = {r: 0, g: 0, b: 0, a: 1.0}, backgroundColor = {r: 255, g: 255, b: 255, a: 1.0}, fillStyle, name }) {
 
   const canvas = document.createElement('canvas');
-  const size = 128; // Power of 2 has good performance on three.js
+  const size = 100; // Power of 2 has good performance on three.js
   canvas.width = size;
   canvas.height = size;
   const context = canvas.getContext('2d');
