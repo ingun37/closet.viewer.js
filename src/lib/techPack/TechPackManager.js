@@ -95,7 +95,7 @@ class TechPackManager {
     // pointer 좌표만 들고있다가 render 할때마다 만드는건 개 비효율이겠지? 그냥 그때 그때 계속 추가하자.
     const params = {
       fontsize: 48,
-      borderColor: {r: 255, g: 255, b: 255, a: 0.07},
+      borderColor: {r: 255, g: 255, b: 255, a: 0.5},
       backgroundColor: {r: 255, g: 245, b: 0, a: 1},
       fillStyle: 'rgba(25, 25, 26, 1.0)',
       name: 'techpack'
