@@ -22,28 +22,10 @@ function Marker(pointerPosition, normal, cameraPosition, cameraTarget, cameraQua
 }
 
 
-function makeTextSprite(message, parameters) {
-  if (parameters === undefined) parameters = {};
-
-  const fontface = parameters.hasOwnProperty('fontface') ?
-      parameters['fontface'] : 'Arial';
-
-  const fontsize = parameters.hasOwnProperty('fontsize') ?
-      parameters['fontsize'] : 18;
-
-  const borderThickness = parameters.hasOwnProperty('borderThickness') ?
-      parameters['borderThickness'] : 8;
-
-  const borderColor = parameters.hasOwnProperty('borderColor') ?
-      parameters['borderColor'] : {r: 0, g: 0, b: 0, a: 1.0};
-
-  const backgroundColor = parameters.hasOwnProperty('backgroundColor') ?
-      parameters['backgroundColor'] : {r: 255, g: 255, b: 255, a: 1.0};
-
-  // var spriteAlignment = THREE.SpriteAlignment.topLeft;
+function makeTextSprite(message, { fontface = 'Arial', fontsize = 18, borderThickness = 8, borderColor = {r: 0, g: 0, b: 0, a: 1.0}, backgroundColor = {r: 255, g: 255, b: 255, a: 1.0}, fillStyle, name }) {
 
   const canvas = document.createElement('canvas');
-  const size = 128; // Power of 2 has good performance on three.js
+  const size = 100; // Power of 2 has good performance on three.js
   canvas.width = size;
   canvas.height = size;
   const context = canvas.getContext('2d');
@@ -66,7 +48,7 @@ function makeTextSprite(message, parameters) {
   // 1.4 is extra height factor for text below baseline: g,j,p,q.
 
   // text color
-  context.fillStyle = 'rgba(255, 255, 255, 1.0)';
+  context.fillStyle = fillStyle;
 
   context.textAlign = 'center';
   context.textBaseline = 'middle';
@@ -81,7 +63,7 @@ function makeTextSprite(message, parameters) {
 
   const sprite = new THREE.Sprite(spriteMaterial);
   sprite.scale.set(50, 50, 1.0);
-  sprite.name = 'annotation_' + message;
+  sprite.name = `${name}_${message}`;
   return sprite;
 }
 
