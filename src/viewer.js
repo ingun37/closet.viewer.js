@@ -87,7 +87,8 @@ export default class ClosetViewer {
     this.renderer.setSize(w, h);
     this.renderer.sortObjects = false; // 투명 object 제대로 렌더링하려면 자동 sort 꺼야 한다
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    // NOTE: THREE.PCFSoftShadowMap causes performance problem on Android;
+    this.renderer.shadowMap.type = THREE.VSMShadowMap;
 
     this.setter.appendChild(this.renderer.domElement);
 
@@ -246,12 +247,16 @@ export default class ClosetViewer {
   }
 
   setVisibleAllGarment(visibility) {
-    const matMeshType = this.zrest.MATMESH_TYPE;
+    if (!this.zrest) return;
+
+    const isGarment = (patternType) => {
+      return (this.mapGarmentType.indexOf(patternType) > -1);
+    };
 
     for (let i=0; i<this.zrest.matMeshList.length; ++i) {
       const t = this.zrest.matMeshList[i].userData.TYPE;
 
-      if (t === matMeshType.PATTERN_MATMESH || t === matMeshType.TRIM_MATMESH || t === matMeshType.PRINTOVERLAY_MATMESH || t === matMeshType.BUTTONHEAD_MATMESH || t === matMeshType.STITCH_MATMESH ) {
+      if (isGarment(t)) {
         this.zrest.matMeshList[i].visible = visibility;
       }
     }
@@ -478,6 +483,9 @@ export default class ClosetViewer {
       this.zrest.zoomToObjects(loadedCamera, this.scene);
 
       if (onLoad) onLoad(this);
+
+      const matMeshType = this.zrest.MATMESH_TYPE;
+      this.mapGarmentType = [matMeshType.PATTERN_MATMESH, matMeshType.TRIM_MATMESH, matMeshType.PRINTOVERLAY_MATMESH, matMeshType.BUTTONHEAD_MATMESH, matMeshType.STITCH_MATMESH, matMeshType.BUTTONHOLE_MATMESH];
 
       this.updateRenderer();
     };
