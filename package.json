@@ -37,6 +37,8 @@
     "@xailabs/three-renderer-stats": "^1.0.4",
     "babel-preset-es2017": "^6.24.1",
     "mixin-deep": "^2.0.1",
+    "eslint": "^6.5.1",
+    "eslint-config-google": "^0.14.0",
     "s3": "^4.4.0",
     "serialize-javascript": "^2.1.2",
     "set-value": "^3.0.1",
