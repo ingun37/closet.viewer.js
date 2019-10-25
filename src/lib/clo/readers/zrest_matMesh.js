@@ -299,7 +299,7 @@ MatMeshManager.prototype = {
       return dracoLoader.decodeDracoFile(drcArrayBuffer);
     };
 
-    const addStyleLines = (dracoGeometry, patternIdx, listLine) => {
+    const buildStyleLines = (dracoGeometry, patternIdx, listLine) => {
       if (!listLine) {
         return;
       }
@@ -346,7 +346,7 @@ MatMeshManager.prototype = {
     };
 
     let frontVertexCount = 0;
-
+    let patternIdx = 0;
     for (let i = 0; i < listMatShape.length; ++i) {
       const listMatMeshIDOnIndexedMesh = listMatShape[i].get('listMatMeshIDOnIndexedMesh');
       const mapShape = listMatShape[i].get('mapShape');
@@ -371,7 +371,10 @@ MatMeshManager.prototype = {
 
       await splitMatSpaceToMatMesh(listMatMeshIDOnIndexedMesh, totalIndexCount, listIndexCount, dracoGeometry, bVisiable, this.drawMode);
 
-      addStyleLines(dracoGeometry, i, listMatShape[i].get('listLine'));
+      const listLine = listMatShape[i].get('listLine');
+      if (listLine) {
+        buildStyleLines(dracoGeometry, patternIdx++, listLine);
+      }
     }
   },
 

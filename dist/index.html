@@ -43,6 +43,9 @@
             right: 5px;
             cursor: pointer;
         }
+        .ui.button {
+            margin-bottom: 5px;
+        }
         .colorwayBtn {
             margin-right: 5px;
         }
@@ -149,6 +152,14 @@
                         <label>On Mouse Event</label>
                     </div>
                 </div>
+                <div class="field">
+                  <h4 class="ui header">Debug</h4>
+                  <button type="button" onclick="test()" data-on="false" id="test" class="ui button">Launch test code</button><br>
+                  <button type="button" onclick="loadPatterns()" data-on="false" id="test" class="ui button">Load patterns</button>
+                  <label>Pattern index</label>
+                  <div class="menu" id="patternIdx"></div>
+              </div>
+
             </div>
 
         </div>
@@ -352,9 +363,6 @@
     isVisibleTechPackMarker = !isVisibleTechPackMarker;
     closet.viewer.setVisibleAllMarker(isVisibleTechPackMarker);
   }
-  function setVisibleAllTechPackMarkers() {
-
-  }
 
   function createClosetViewer(id) {
     var cv = new closet.ClosetViewer()
@@ -401,6 +409,52 @@
     console.log(closet.viewer.getCameraMatrix())
   }
 
+  let patternList = [];
+  function loadPatterns() {
+    if (closet.viewer.techPack && closet.viewer.zrest) {
+      patternList = closet.viewer.techPack.extractPatternsFromMatMeshList(closet.viewer.zrest.matMeshList);
+    }
+
+    document.getElementById('patternIdx').innerHTML = "";
+    for (let i = 0; i < patternList.length ; ++i) {
+      document.getElementById('patternIdx').innerHTML += "<button type='button' onclick='setPatternVisible(" + i + ")' class='ui button'>" + i + "</button>";
+    }
+  }
+
+  function setPatternVisible(patternIdx, subIdx) {
+    if (patternIdx < 0 || patternIdx > patternList.length) return;
+
+    if (subIdx !== undefined && subIdx >= 0 && subIdx < 3) {
+      patternList[patternIdx][subIdx].visible = !patternList[patternIdx][subIdx].visible;
+    } else {
+      for (let i = 0; i < 3; ++i) {
+        patternList[patternIdx][i].visible = !patternList[patternIdx][i].visible;
+        console.log(patternList[patternIdx][i]);
+        }
+    }
+    closet.viewer.updateRenderer();
+  }
+
+  function test() {
+    // Write test code here temporary as you need.
+    load('shadow.zrest');
+    setTimeout(function() {
+      closet.viewer.setAllPatternVisible(false);
+      closet.viewer.setPatternVisible(6, true);
+      closet.viewer.setPatternVisible(7, true);
+    }, 3000);
+  }
+
+  function setOpacity(opacity) {
+    const list = closet.viewer.zrest.matMeshList;
+    
+    for (let i = 0; i < list.length; ++i) {
+        list[i].material.opacity = opacity;
+        list[i].material.alphaTest = 0.5;
+    }
+
+    closet.viewer.updateRenderer();
+  }
 </script>
 </body>
 </html>
