@@ -1,6 +1,7 @@
 /* eslint-disable require-jsdoc */
 import * as THREE from '@/lib/threejs/three';
 import {Marker, makeTextSprite} from '@/lib/marker/Marker';
+import {MATMESH_TYPE} from '@/lib/clo/readers/predefined';
 
 const pointerScaleVector = new THREE.Vector3();
 const pointerScaleFactor = 65;
@@ -26,12 +27,20 @@ class TechPackManager {
 
     this.raycaster = new THREE.Raycaster();
 
-    this.loadTechPackFromMatMeshList = this.loadTechPackFromMatShapeList.bind(this);
+    this.loadTechPack = this.loadTechPack.bind(this);
     this.loadStyleLine = this.loadStyleLine.bind(this);
     this.addMarker = this.addMarker.bind(this);
     this.onMouseDown = this.onMouseDown.bind(this);
     this.refreshMarkerGeometryList = this.refreshMarkerGeometryList.bind(this);
     this.checkIntersectObject = this.checkIntersectObject.bind(this);
+
+    this.extractPatternsFromMatMeshList = this.extractPatternsFromMatMeshList.bind(this);
+    this.patternList = [];
+  }
+
+  loadTechPack(matShapeList, matMeshList) {
+    this.loadTechPackFromMatShapeList(matShapeList);
+    this.extractPatternsFromMatMeshList(matMeshList);
   }
 
   loadTechPackFromMatShapeList(matShapeList) {
@@ -40,12 +49,14 @@ class TechPackManager {
     this.markerMap.clear();
     //  NOTE: All elements in mapShape array have the same value.
     //  This module will be modified by TKAY and Daniel.
+    let labelCounter = 1;
     for (let i = 0; i < matShapeList.length; ++i) {
-      const mapShape = matShapeList[i].get('listMatMeshIDOnIndexedMesh');
-      const center = mapShape[0].get('v3Center');
-      const normal = mapShape[0].get('v3Normal');
+      const matShape = matShapeList[i].get('listMatMeshIDOnIndexedMesh');
+      const center = matShape[0].get('v3Center');
+      const normal = matShape[0].get('v3Normal');
+      const isPatternMesh = matShape.length === 3;
 
-      if (!center || !normal) {
+      if (!center || !normal || !isPatternMesh) {
         continue;
       }
 
@@ -57,7 +68,7 @@ class TechPackManager {
         cameraQuaternion: this.camera.quaternion,
       };
 
-      const index = i + 1;
+      const index = labelCounter++;
       this.addMarker(index, {...position, message: index}, false);
     }
   }
@@ -98,8 +109,8 @@ class TechPackManager {
       borderColor: {r: 255, g: 255, b: 255, a: 0.5},
       backgroundColor: {r: 255, g: 245, b: 0, a: 1},
       fillStyle: 'rgba(25, 25, 26, 1.0)',
-      name: 'techpack'
-    }
+      name: 'techpack',
+    };
 
     const sprite = makeTextSprite(message, params);
     sprite.position.set(pointerPos.x, pointerPos.y, pointerPos.z);
@@ -142,27 +153,65 @@ class TechPackManager {
     });
   }
 
-  setPatternVisible(patternIdx, matMeshList, bVisible) {
-    patternIdx *= 3;
+  extractPatternsFromMatMeshList(matMeshList) {
+    if (!matMeshList) return;
 
-    for (let i = patternIdx; i < patternIdx + 3; ++i) {
-      matMeshList[i].visible = bVisible;
-    }
-  }
-
-  setAllPatternVisible(matMeshList, bVisible) {
+    const meshListWithoutAvater = [];
     for (let i = 0; i < matMeshList.length; ++i) {
-      matMeshList[i].visible = bVisible;
+      if (matMeshList[i].userData.TYPE == MATMESH_TYPE.PATTERN_MATMESH) {
+        meshListWithoutAvater.push(matMeshList[i]);
+      }
+    }
+
+    this.patternList = [];
+    if (meshListWithoutAvater.length % 3 != 0) {
+      console.log('Pattern extract failed.');
+    } else {
+      for (let i = 0; i < meshListWithoutAvater.length; i+=3) {
+        this.patternList.push([meshListWithoutAvater[i], meshListWithoutAvater[i + 1], meshListWithoutAvater[i + 2]]);
+      }
+    }
+    return this.patternList;
+  }
+
+  setPatternVisible(patternIdx, bVisible) {
+    for (let i = 0; i < 3; ++i) {
+      this.patternList[patternIdx][i].visible = bVisible;
     }
   }
 
-  togglePatternTransparency(patternIdx, matMeshList, selectedOpacity = 0.5, defaultOpacity = 1.0) {
-    patternIdx *= 3;
+  setAllPatternVisible(bVisible) {
+    for (let i = 0; i < this.patternList.length; ++i) {
+      this.setPatternVisible(i, bVisible);
+    }
+  }
 
-    for (let i = patternIdx; i < patternIdx + 3; ++i) {
-      const currentOpacity = matMeshList[i].material.uniforms.materialOpacity.value;
+  isValidPatternIdx(patternIdx) {
+    return patternIdx >= 0 && patternIdx <= this.patternList.length;
+  }
+
+  setAllPatternTransparency(opacity) {
+    for (let i = 0; i < this.patternList.length; ++i) {
+      this.setPatternTransparency(i, opacity);
+    }
+  }
+
+  setPatternTransparency(patternIdx, opacity) {
+    if (!this.isValidPatternIdx) return;
+
+    for (let i = 0; i < 3; ++i) {
+      this.patternList[patternIdx][i].material.uniforms.materialOpacity = {type: 'f', value: opacity};
+    }
+  }
+
+  togglePatternTransparency(patternIdx, selectedOpacity = 0.5, defaultOpacity = 1.0) {
+    if (!this.isValidPatternIdx) return;
+
+    for (let i = 0; i < 3; ++i) {
+      const currentPattern = this.patternList[patternIdx][i];
+      const currentOpacity = currentPattern.material.uniforms.materialOpacity.value;
       const opacity = (currentOpacity >= defaultOpacity) ? selectedOpacity : defaultOpacity;
-      matMeshList[i].material.uniforms.materialOpacity = {type: 'f', value: opacity};
+      currentPattern.material.uniforms.materialOpacity = {type: 'f', value: opacity};
     }
   }
 

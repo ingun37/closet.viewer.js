@@ -24,6 +24,7 @@ checkFileReaderSyncSupport();
 const cameraHeight = 1100;
 const cameraDistance = 5000;
 const camMatrixPushOrder = [0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14];
+const config = {selectedMarkerOpacity: 0.5, INF: 999999};
 
 let requestId = null;
 
@@ -65,6 +66,8 @@ export default class ClosetViewer {
 
     this.object3D = null;
     this.loadTechPack = this.loadTechPack.bind(this);
+
+    this.recentSelectedMarkerIdx = -999;
   }
 
   init({width, height, element, cameraPosition = null, stats}) {
@@ -219,19 +222,29 @@ export default class ClosetViewer {
   onMouseDown( e ) {
     e.preventDefault();
     if (this.annotation && this.object3D) this.annotation.onMouseDown(e);
+
     if (this.techPack) {
       const selectedMarker = this.techPack.onMouseDown(e);
       if (selectedMarker) {
-        // For testing only (Pattern Marker and transparency)
-        const selectedIndex = selectedMarker.message - 1;
-        const bVisible = this.zrest.matMeshList[selectedIndex *3].visible;
-        // this.setVisiblePattern(selectedIndex, !bVisible);
-        this.togglePatternTranparency(selectedIndex);
+        const selectedMarkerIdx = selectedMarker.message - 1;
+        this.techPack.setAllPatternTransparency(1.0);
 
-        // For testing only (Style Line)
-        if (this.techPack.styleLineMap.get(selectedIndex)) {
-          this.setStyleLineVisible(selectedIndex, bVisible);
+        console.log(this.recentSelectedMarkerIdx, selectedMarkerIdx);
+
+        if (this.recentSelectedMarkerIdx == selectedMarkerIdx) {
+          this.setStyleLineVisible(selectedMarkerIdx, false);
+          this.recentSelectedMarkerIdx = -999;
+        } else {
+          if (this.recentSelectedMarkerIdx >= 0) {
+            this.setStyleLineVisible(this.recentSelectedMarkerIdx, false);
+          }
+          this.setStyleLineVisible(selectedMarkerIdx, true);
+
+          this.setSelectedPatternTranparency(selectedMarkerIdx);
+          this.recentSelectedMarkerIdx = selectedMarkerIdx;
         }
+
+        this.updateRenderer();
       }
     }
   }
@@ -307,7 +320,7 @@ export default class ClosetViewer {
   }
 
   setPatternVisible(patternIdx, bVisible) {
-    this.techPack.setPatternVisible(patternIdx, this.zrest.getMatMeshList(), bVisible);
+    this.techPack.setPatternVisible(patternIdx, bVisible);
     this.updateRenderer();
   }
 
@@ -321,8 +334,9 @@ export default class ClosetViewer {
     this.updateRenderer();
   }
 
-  togglePatternTranparency(patternIdx) {
-    this.techPack.togglePatternTransparency(patternIdx, this.zrest.getMatMeshList());
+  setSelectedPatternTranparency(patternIdx) {
+    this.techPack.setAllPatternTransparency(config.selectedMarkerOpacity);
+    this.techPack.togglePatternTransparency(patternIdx);
     this.updateRenderer();
   }
 
@@ -510,8 +524,9 @@ export default class ClosetViewer {
   }
 
   loadTechPack() {
-    const matMeshList = this.zrest.getMatShapeList();
-    this.techPack.loadTechPackFromMatShapeList(matMeshList);
+    const matShapeList = this.zrest.getMatShapeList();
+    const matMeshList = this.zrest.getMatMeshList();
+    this.techPack.loadTechPack(matShapeList, matMeshList);
   }
 
   loadStyleLine() {
