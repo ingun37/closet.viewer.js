@@ -229,8 +229,6 @@ export default class ClosetViewer {
         const selectedMarkerIdx = selectedMarker.message - 1;
         this.techPack.setAllPatternTransparency(1.0);
 
-        console.log(this.recentSelectedMarkerIdx, selectedMarkerIdx);
-
         if (this.recentSelectedMarkerIdx == selectedMarkerIdx) {
           this.setStyleLineVisible(selectedMarkerIdx, false);
           this.recentSelectedMarkerIdx = -999;
@@ -325,7 +323,7 @@ export default class ClosetViewer {
   }
 
   setAllPatternVisible(bVisible) {
-    this.techPack.setAllPatternVisible(this.zrest.getMatMeshList(), bVisible);
+    this.techPack.setAllPatternVisible(bVisible);
     this.updateRenderer();
   }
 
@@ -337,6 +335,12 @@ export default class ClosetViewer {
   setSelectedPatternTranparency(patternIdx) {
     this.techPack.setAllPatternTransparency(config.selectedMarkerOpacity);
     this.techPack.togglePatternTransparency(patternIdx);
+    this.updateRenderer();
+  }
+
+  setAllPatternTransparency(shouldReset = true) {
+    const opacity = (shouldReset) ? 1.0 : config.selectedMarkerOpacity;
+    this.techPack.setAllPatternTransparency(opacity);
     this.updateRenderer();
   }
 

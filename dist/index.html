@@ -425,6 +425,7 @@
     if (subIdx !== undefined && subIdx >= 0 && subIdx < 3) {
       patternList[patternIdx][subIdx].visible = !patternList[patternIdx][subIdx].visible;
     } else {
+      //closet.viewer.setPatternVisible
       for (let i = 0; i < 3; ++i) {
         patternList[patternIdx][i].visible = !patternList[patternIdx][i].visible;
         console.log(patternList[patternIdx][i]);
@@ -437,9 +438,11 @@
     // Write test code here temporary as you need.
     load('shadow.zrest');
     setTimeout(function() {
+      closet.viewer.loadTechPack();
+    }, 2000);
+    setTimeout(function() {
       closet.viewer.setAllPatternVisible(false);
       closet.viewer.setPatternVisible(6, true);
-      closet.viewer.setPatternVisible(7, true);
     }, 3000);
   }
 

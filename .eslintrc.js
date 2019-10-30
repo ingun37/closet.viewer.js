@@ -16,6 +16,7 @@ module.exports = {
     'sourceType': 'module',
   },
   'rules': {
-    'max-len': ["error", { "code": 120 }]
+    'max-len': ["error", { "code": 120 }],
+    'linebrak-style': 0,
   },
 };
