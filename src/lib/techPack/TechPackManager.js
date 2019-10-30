@@ -16,14 +16,7 @@ class TechPackManager {
     this.markerMap = new Map();
     this.markerGeometryList = [];
     this.styleLineMap = new Map();
-
-    this.markerContainer = new THREE.Object3D();
-    this.markerContainer.name = 'annotationContainer';
-    this.scene.add(this.markerContainer);
-
-    this.styleLineContainer = new THREE.Object3D();
-    this.styleLineContainer.name = 'styleLineContainer';
-    this.scene.add(this.styleLineContainer);
+    this.patternList = [];
 
     this.raycaster = new THREE.Raycaster();
 
@@ -35,10 +28,38 @@ class TechPackManager {
     this.checkIntersectObject = this.checkIntersectObject.bind(this);
 
     this.extractPatternsFromMatMeshList = this.extractPatternsFromMatMeshList.bind(this);
+
+    this.init();
+  }
+
+  init() {
+    this.markerContainer = new THREE.Object3D();
+    this.markerContainer.name = 'annotationContainer';
+    this.scene.add(this.markerContainer);
+
+    this.styleLineContainer = new THREE.Object3D();
+    this.styleLineContainer.name = 'styleLineContainer';
+    this.scene.add(this.styleLineContainer);
+  }
+
+  clearTechPack() {
+    this.markerMap = new Map();
+    this.markerGeometryList = [];
+    this.styleLineMap = new Map();
     this.patternList = [];
+
+    this.scene.remove(this.markerContainer);
+    this.scene.remove(this.styleLineContainer);
+
+    delete this.markerContainer;
+    delete this.styleLineContainer;
+
+    this.init();
   }
 
   loadTechPack(matShapeList, matMeshList) {
+    // this.clearTechPack();
+
     this.loadTechPackFromMatShapeList(matShapeList);
     this.extractPatternsFromMatMeshList(matMeshList);
   }
@@ -128,11 +149,10 @@ class TechPackManager {
   }
 
   setMarkerVisible(index, bVisible) {
-    if (!this.markerMap.get(index).sprite.visible) {
-      return;
+    const marker = this.markerMap.get(index);
+    if (marker) {
+      marker.sprite.visible = bVisible;
     }
-
-    this.markerMap.get(index).sprite.visible = bVisible;
   }
 
   deleteAllMarker() {
@@ -175,6 +195,8 @@ class TechPackManager {
   }
 
   setPatternVisible(patternIdx, bVisible) {
+    if (!this.isValidPatternIdx) return;
+
     for (let i = 0; i < 3; ++i) {
       this.patternList[patternIdx][i].visible = bVisible;
     }
@@ -225,9 +247,11 @@ class TechPackManager {
   }
 
   setStyleLineVisible(patternIdx, bVisible) {
-    this.styleLineMap.get(patternIdx).forEach((line) => {
-      line.visible = bVisible;
-    });
+    if (this.styleLineMap.get(patternIdx)) {
+      this.styleLineMap.get(patternIdx).forEach((line) => {
+        line.visible = bVisible;
+      });
+    }
   }
 
   setAllStyleLineVisible(bVisible) {
