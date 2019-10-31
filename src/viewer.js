@@ -24,7 +24,7 @@ checkFileReaderSyncSupport();
 const cameraHeight = 1100;
 const cameraDistance = 5000;
 const camMatrixPushOrder = [0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14];
-const config = {selectedMarkerOpacity: 0.5, INF: 999999};
+
 
 let requestId = null;
 
@@ -156,7 +156,7 @@ export default class ClosetViewer {
         new THREE.PlaneGeometry(2, 2, 0),
         new THREE.MeshBasicMaterial({
           map: texture,
-        })
+        }),
     );
 
     this.backgroundMesh.material.depthTest = false;
@@ -226,22 +226,8 @@ export default class ClosetViewer {
     if (this.techPack) {
       const selectedMarker = this.techPack.onMouseDown(e);
       if (selectedMarker) {
-        const selectedMarkerIdx = selectedMarker.message - 1;
-        this.techPack.setAllPatternTransparency(1.0);
-
-        if (this.recentSelectedMarkerIdx == selectedMarkerIdx) {
-          this.setStyleLineVisible(selectedMarkerIdx, false);
-          this.recentSelectedMarkerIdx = -999;
-        } else {
-          if (this.recentSelectedMarkerIdx >= 0) {
-            this.setStyleLineVisible(this.recentSelectedMarkerIdx, false);
-          }
-          this.setStyleLineVisible(selectedMarkerIdx, true);
-
-          this.setSelectedPatternTranparency(selectedMarkerIdx);
-          this.recentSelectedMarkerIdx = selectedMarkerIdx;
-        }
-
+        const selectedMarkerIdx = selectedMarker.message-1;
+        this.techPack.onMarker(selectedMarkerIdx);
         this.updateRenderer();
       }
     }

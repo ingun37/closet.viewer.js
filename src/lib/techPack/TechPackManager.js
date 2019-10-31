@@ -5,6 +5,7 @@ import {MATMESH_TYPE} from '@/lib/clo/readers/predefined';
 
 const pointerScaleVector = new THREE.Vector3();
 const pointerScaleFactor = 65;
+const config = {selectedMarkerOpacity: 0.5, INF: 999999};
 
 class TechPackManager {
   constructor({scene, camera, renderer, controls}) {
@@ -12,6 +13,7 @@ class TechPackManager {
     this.camera = camera;
     this.renderer = renderer;
     this.controls = controls;
+    this.recentSelectedMarkerIdx = -999;
 
     this.markerMap = new Map();
     this.markerGeometryList = [];
@@ -28,7 +30,7 @@ class TechPackManager {
     this.checkIntersectObject = this.checkIntersectObject.bind(this);
 
     this.extractPatternsFromMatMeshList = this.extractPatternsFromMatMeshList.bind(this);
-
+    this.onMarker = this.onMarker.bind(this);
     this.init();
   }
 
@@ -149,7 +151,7 @@ class TechPackManager {
   }
 
   setMarkerVisible(index, bVisible) {
-    const marker = this.markerMap.get(index);
+    const marker = this.markerMap.get(index+1);
     if (marker) {
       marker.sprite.visible = bVisible;
     }
@@ -260,6 +262,31 @@ class TechPackManager {
         line.visible = bVisible;
       });
     });
+  }
+
+  onMarker(selectedMarkerIdx) {
+    if (selectedMarkerIdx > -1) {
+      this.setAllPatternTransparency(1.0);
+
+      if (this.recentSelectedMarkerIdx === selectedMarkerIdx) {
+        this.setMarkerVisible(selectedMarkerIdx, false);
+        this.setStyleLineVisible(selectedMarkerIdx, false);
+        this.recentSelectedMarkerIdx = -999;
+        return;
+      }
+
+      if (this.recentSelectedMarkerIdx >= 0) {
+        this.setMarkerVisible(this.recentSelectedMarkerIdx, false);
+        this.setStyleLineVisible(this.recentSelectedMarkerIdx, false);
+      }
+      this.setMarkerVisible(selectedMarkerIdx, true);
+      this.setStyleLineVisible(selectedMarkerIdx, true);
+
+      this.setAllPatternTransparency(config.selectedMarkerOpacity);
+      this.togglePatternTransparency(selectedMarkerIdx);
+
+      this.recentSelectedMarkerIdx = selectedMarkerIdx;
+    }
   }
 
   // viewer에서 canvas 클릭시 실행
