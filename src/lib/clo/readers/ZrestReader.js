@@ -1145,62 +1145,6 @@ ZRestLoader.prototype = {
 
                 //console.log(indexOffset);
             }
-
-            // style line
-            var styleLineMaterial = new THREE.LineBasicMaterial({color: 0x0000ff})
-
-            var listLine = listMatShape[i].get("listLine")
-            if (listLine !== undefined && listLine !== null)
-            {
-                for (var k = 0; k < listLine.length; ++k)
-                {
-                    var frontStyleLineGeometry = new THREE.Geometry()
-                    var backStyleLineGeometry = new THREE.Geometry()
-
-                    var listMeshPointIndex = listLine[k].get("listMeshPointIndex")
-                    if(listMeshPointIndex !== undefined && listMeshPointIndex !== null)
-                    {
-                        for(var h=0; h<listMeshPointIndex.length; ++h)
-                        {
-                            var vIndex = listMeshPointIndex[h].get("uiMeshPointIndex")
-                            if(vIndex !== undefined && vIndex !== null)
-                            {
-                                //var newIndex = changeVertexIndex[vIndex]
-
-                                var frontStyleLinePos = new THREE.Vector3()
-
-                                //linePos.x = threeMesh.geometry.attributes.position.array[newIndex*3]
-                                //linePos.y = threeMesh.geometry.attributes.position.array[newIndex*3+1]
-                                //linePos.z = threeMesh.geometry.attributes.position.array[newIndex*3+2]
-                                frontStyleLinePos.x = dracoGeometry.vertices[vIndex*3]
-                                frontStyleLinePos.y = dracoGeometry.vertices[vIndex*3+1]
-                                frontStyleLinePos.z = dracoGeometry.vertices[vIndex*3+2]
-
-                                frontStyleLineGeometry.vertices.push(frontStyleLinePos)
-
-                                //
-                                var backStyleLinePos = new THREE.Vector3()
-                                vIndex += frontVertexCount
-                                backStyleLinePos.x = dracoGeometry.vertices[vIndex*3]
-                                backStyleLinePos.y = dracoGeometry.vertices[vIndex*3+1]
-                                backStyleLinePos.z = dracoGeometry.vertices[vIndex*3+2]
-
-                                //backStyleLineGeometry.vertices.push(backStyleLinePos)
-                            }
-                        }
-
-                        frontStyleLineGeometry.computeFaceNormals()
-                        frontStyleLineGeometry.computeVertexNormals()
-                        var frontStyleLine = new THREE.Line(frontStyleLineGeometry, styleLineMaterial)
-                        this.scene.add(frontStyleLine)
-
-                        backStyleLineGeometry.computeFaceNormals()
-                        backStyleLineGeometry.computeVertexNormals()
-                        var backStyleLine = new THREE.Line(backStyleLineGeometry, styleLineMaterial)
-                        this.scene.add(backStyleLine)
-                    }
-                }
-            }
         }
 
 
