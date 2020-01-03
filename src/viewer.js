@@ -97,8 +97,8 @@ export default class ClosetViewer {
     windowHalfY = h / 2;
 
     //create webgl renderer
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true  });
-    this.renderer.setClearColor(0xcccccc);
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, alpha: true  });
+    this.renderer.setClearAlpha(0);
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(w, h);
     this.renderer.sortObjects = false; // 투명 object 제대로 렌더링하려면 자동 sort 꺼야 한다
@@ -158,23 +158,23 @@ export default class ClosetViewer {
     this.scene.add(DirLight0);
     this.scene.add(DirLight1);
 
-    var loader = new THREE.TextureLoader();
-    var texture = loader.load(require('@/lib/clo/background/img_3dwindow_bg_Designer.png'));
-    this.backgroundMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(2, 2, 0),
-      new THREE.MeshBasicMaterial({
-        map: texture
-      })
-    );
+    // var loader = new THREE.TextureLoader();
+    // var texture = loader.load(require('@/lib/clo/background/img_3dwindow_bg_Designer.png'));
+    // this.backgroundMesh = new THREE.Mesh(
+    //   new THREE.PlaneGeometry(2, 2, 0),
+    //   new THREE.MeshBasicMaterial({
+    //     map: texture
+    //   })
+    // );
 
-    this.backgroundMesh.material.depthTest = false;
-    this.backgroundMesh.material.depthWrite = false;
+    // this.backgroundMesh.material.depthTest = false;
+    // this.backgroundMesh.material.depthWrite = false;
 
     this.background_scene = new THREE.Scene();
     this.background_camera = new THREE.Camera();
 
-    this.background_scene.add(this.background_camera);
-    this.background_scene.add(this.backgroundMesh);
+    // this.background_scene.add(this.background_camera);
+    // this.background_scene.add(this.backgroundMesh);
 
 
     this.annotation = new AnnotationManager({
@@ -199,7 +199,7 @@ export default class ClosetViewer {
     });
 
 
-    
+
 
 
     //var lineGeometry = new THREE.Geometry();
@@ -339,7 +339,7 @@ export default class ClosetViewer {
         this.zrest.matMeshList[i].visible = visibility;
       }
     }
-    
+
     this.updateRender();
   }
 
@@ -365,7 +365,7 @@ export default class ClosetViewer {
         this.zrest.matMeshList[i].visible = visibility;
       }
     }
-    
+
     this.updateRender();
   }
 
@@ -541,7 +541,7 @@ export default class ClosetViewer {
   }
 
   render() {
-    
+
     if(this.annotation) this.annotation.updateAnnotationPointerSize() // update annotation pointer size
 
     if(this.marker) this.marker.updatePointerSize() // update pointer size
@@ -549,7 +549,7 @@ export default class ClosetViewer {
     this.renderer.autoClear = false;
     this.renderer.clear();
 
-    this.renderer.render(this.background_scene, this.background_camera); // draw background
+    // this.renderer.render(this.background_scene, this.background_camera); // draw background
     this.renderer.render(this.scene, this.camera); // draw object
     if(!PRODUCTION) rendererStats.update(this.renderer);
   }
