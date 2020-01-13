@@ -10,7 +10,7 @@ import screenfull from 'screenfull'
 import MarkerManager from "@/lib/Marker/MarkerManager"
 import MobileDetect from 'mobile-detect'
 
-THREE.Cache.enabled = true;
+// THREE.Cache.enabled = true;
 
 var container, states;
 var camera, scene, renderer, controls;
@@ -580,6 +580,7 @@ export default class ClosetViewer {
   loadZrestUrl(url, onProgress, onLoad, colorwayIndex) {
     if(!url) return
     this.loadZrestUrlWithParameters(url, onProgress, onLoad, colorwayIndex);
+    console.log('THREE.Cache.files', THREE.Cache.files)
   }
 
   loadZrestData(data, onLoad, colorwayIndex) {
