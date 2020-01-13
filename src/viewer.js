@@ -10,7 +10,7 @@ import screenfull from 'screenfull'
 import MarkerManager from "@/lib/Marker/MarkerManager"
 import MobileDetect from 'mobile-detect'
 
-THREE.Cache.enabled = true;
+// THREE.Cache.enabled = true;
 
 var container, states;
 var camera, scene, renderer, controls;
