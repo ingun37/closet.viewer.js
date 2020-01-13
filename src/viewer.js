@@ -1,18 +1,21 @@
 ﻿/* eslint-disable require-jsdoc */
-import ZRestLoader, {dataWorkerFunction, checkFileReaderSyncSupport} from './lib/clo/readers/ZrestLoader';
-import * as THREE from '@/lib/threejs/three';
-import '@/lib/threejs/OrbitControls';
-import '@/lib/draco/DRACOLoader';
+import ZRestLoader, {
+  dataWorkerFunction,
+  checkFileReaderSyncSupport
+} from "@/lib/clo/readers/ZrestLoader";
+import * as THREE from "@/lib/threejs/three";
+import "@/lib/threejs/OrbitControls";
+import "@/lib/draco/DRACOLoader";
 
-import AnnotationManager from '@/lib/annotation/AnnotationManager';
-import TechPackManager from '@/lib/techPack/TechPackManager';
+import AnnotationManager from "@/lib/annotation/AnnotationManager";
+import TechPackManager from "@/lib/techPack/TechPackManager";
 
-import RendererStats from '@xailabs/three-renderer-stats';
-import screenfull from 'screenfull';
-import MobileDetect from 'mobile-detect';
+import RendererStats from "@xailabs/three-renderer-stats";
+import screenfull from "screenfull";
+import MobileDetect from "mobile-detect";
 
-import {MATMESH_TYPE} from '@/lib/clo/readers/predefined';
-import '@/lib/threejs/BufferGeometryUtils';
+import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
+import "@/lib/threejs/BufferGeometryUtils";
 
 let windowHalfX = window.innerWidth / 2;
 let windowHalfY = window.innerHeight / 2;
@@ -24,7 +27,6 @@ checkFileReaderSyncSupport();
 const cameraHeight = 1100;
 const cameraDistance = 5000;
 const camMatrixPushOrder = [0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14];
-
 
 let requestId = null;
 
@@ -66,16 +68,16 @@ export default class ClosetViewer {
 
     this.object3D = null;
     this.loadTechPack = this.loadTechPack.bind(this);
-
-    this.recentSelectedMarkerIdx = -999;
+    this.loadTechPackJsonFromAPI = this.loadTechPackJsonFromAPI.bind(this);
   }
 
-  init({width, height, element, cameraPosition = null, stats}) {
+  init({ width, height, element, cameraPosition = null, stats }) {
     const mobileDetect = new MobileDetect(window.navigator.userAgent);
-    const w = this.defaultWidth = width;
-    const h = this.defaultHeight = height;
+    const w = (this.defaultWidth = width);
+    const h = (this.defaultHeight = height);
 
-    this.setter = document.getElementById(element) || document.querySelector(element);
+    this.setter =
+      document.getElementById(element) || document.querySelector(element);
     this.id = element;
     this.cameraPosition = cameraPosition;
     this.stats = stats;
@@ -84,7 +86,10 @@ export default class ClosetViewer {
     windowHalfY = h / 2;
 
     // create webgl renderer
-    this.renderer = new THREE.WebGLRenderer({antialias: true, preserveDrawingBuffer: true});
+    this.renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      preserveDrawingBuffer: true
+    });
     this.renderer.setClearColor(0xcccccc);
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(w, h);
@@ -100,25 +105,31 @@ export default class ClosetViewer {
     this.camera.position.set(0, cameraHeight, cameraDistance);
 
     // create camera controller
-    this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+    this.controls = new THREE.OrbitControls(
+      this.camera,
+      this.renderer.domElement
+    );
     this.controls.target = new THREE.Vector3(0, cameraHeight, 0);
     this.controls.update();
-    this.controls.addEventListener('change', () => {
+    this.controls.addEventListener("change", () => {
       if (this.updateCamera) {
-        this.updateCamera({target: this.controls.target, position: this.camera.position, id: this.id});
+        this.updateCamera({
+          target: this.controls.target,
+          position: this.camera.position,
+          id: this.id
+        });
       }
       this.render();
     });
-
 
     // create scenegraph
     this.scene = new THREE.Scene();
 
     /*
-    * 이제 version 3 이후 파일에 대해서는 shader에서 light 설정을 hard coding해서 사용한다.
-    * 하지만 version 2 이하 파일을 위해 여기에서도 설정한다.
-    * by Jaden
-    */
+     * 이제 version 3 이후 파일에 대해서는 shader에서 light 설정을 hard coding해서 사용한다.
+     * 하지만 version 2 이하 파일을 위해 여기에서도 설정한다.
+     * by Jaden
+     */
     const DirLight0 = new THREE.DirectionalLight(0xd2d2d2);
     DirLight0.position.set(0, 0, 1).normalize();
     DirLight0.castShadow = false;
@@ -126,7 +137,7 @@ export default class ClosetViewer {
 
     const DirLight1 = new THREE.DirectionalLight(0x6e6e6e);
     DirLight1.position.set(1500, 3000, 1500);
-    DirLight1.castShadow = (mobileDetect.os() === 'iOS')? false : true;
+    DirLight1.castShadow = mobileDetect.os() === "iOS" ? false : true;
 
     // set up shadow properties for the light
     DirLight1.shadow.mapSize.width = 2048; // default
@@ -141,22 +152,24 @@ export default class ClosetViewer {
     // specular2 : 3c3c3c
 
     /*
-    * scene.add(new THREE.AmbientLight(0x8c8c8c));
-    * amibent light은 추가하지 않고 shader에서 하드코딩으로 처리한다.
-    * CLO와 three.js 의 light 구조가 다르므로 이렇게 하자.
-    * by Jaden
-    */
+     * scene.add(new THREE.AmbientLight(0x8c8c8c));
+     * amibent light은 추가하지 않고 shader에서 하드코딩으로 처리한다.
+     * CLO와 three.js 의 light 구조가 다르므로 이렇게 하자.
+     * by Jaden
+     */
 
     this.scene.add(DirLight0);
     this.scene.add(DirLight1);
 
     const textureLoader = new THREE.TextureLoader();
-    const texture = textureLoader.load(require('@/lib/clo/background/img_3dwindow_bg_Designer.png'));
+    const texture = textureLoader.load(
+      require("@/lib/clo/background/img_3dwindow_bg_Designer.png")
+    );
     this.backgroundMesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(2, 2, 0),
-        new THREE.MeshBasicMaterial({
-          map: texture,
-        }),
+      new THREE.PlaneGeometry(2, 2, 0),
+      new THREE.MeshBasicMaterial({
+        map: texture
+      })
     );
 
     this.backgroundMesh.material.depthTest = false;
@@ -174,7 +187,7 @@ export default class ClosetViewer {
       renderer: this.renderer,
       controls: this.controls,
       updateRenderer: this.updateRenderer,
-      setter: this.setter,
+      setter: this.setter
     });
 
     this.techPack = new TechPackManager({
@@ -183,17 +196,17 @@ export default class ClosetViewer {
       renderer: this.renderer,
       controls: this.controls,
       updateRenderer: this.updateRenderer,
-      setter: this.setter,
+      setter: this.setter
     });
 
     // canvas event
     const canvas = this.setter;
-    canvas.addEventListener('mouseout', this.onPanControls, false);
-    canvas.addEventListener('mouseover', this.offPanControls, false);
-    canvas.addEventListener('mousedown', this.onMouseDown, false);
-    canvas.addEventListener('mousemove', this.onMouseMove, false);
-    canvas.addEventListener('mouseup', this.onMouseUp, false);
-    canvas.addEventListener('click', this.onMouseClick, false);
+    canvas.addEventListener("mouseout", this.onPanControls, false);
+    canvas.addEventListener("mouseover", this.offPanControls, false);
+    canvas.addEventListener("mousedown", this.onMouseDown, false);
+    canvas.addEventListener("mousemove", this.onMouseMove, false);
+    canvas.addEventListener("mouseup", this.onMouseUp, false);
+    canvas.addEventListener("click", this.onMouseClick, false);
 
     function appendDefaultCamera() {
       const fov = 15;
@@ -205,40 +218,46 @@ export default class ClosetViewer {
     }
 
     if (!PRODUCTION && this.stats) {
-      rendererStats.domElement.style.position	= 'absolute';
-      rendererStats.domElement.style.left	= '-100px';
-      rendererStats.domElement.style.top	= '0px';
-      this.setter.appendChild( rendererStats.domElement );
+      rendererStats.domElement.style.position = "absolute";
+      rendererStats.domElement.style.left = "-100px";
+      rendererStats.domElement.style.top = "0px";
+      this.setter.appendChild(rendererStats.domElement);
     }
 
     this.updateRenderer(1);
   }
 
-  onMouseMove( e ) {
+  onMouseMove(e) {
     e.preventDefault();
     if (this.annotation && this.object3D) this.annotation.onMouseMove(e);
   }
 
-  onMouseDown( e ) {
+  onMouseDown(e) {
+    // NOTE: This module works to test only
     e.preventDefault();
+
     if (this.annotation && this.object3D) this.annotation.onMouseDown(e);
 
     if (this.techPack) {
       const selectedMarker = this.techPack.onMouseDown(e);
       if (selectedMarker) {
-        const selectedMarkerIdx = selectedMarker.message-1;
-        this.techPack.onMarker(selectedMarkerIdx);
+        console.log("selectedMarker");
+        console.log(selectedMarker);
+        const selectedMarkerIdx = selectedMarker.message - 1;
+        this.techPack.onMarker([
+          { index: selectedMarkerIdx, id: selectedMarker.message }
+        ]);
         this.updateRenderer();
       }
     }
   }
 
-  onMouseUp( e ) {
+  onMouseUp(e) {
     e.preventDefault();
     if (this.annotation && this.object3D) this.annotation.onMouseUp(e);
   }
 
-  onMouseClick( e ) {
+  onMouseClick(e) {
     e.preventDefault();
     if (this.annotation && this.object3D) this.annotation.onMouseClick(e);
   }
@@ -246,11 +265,11 @@ export default class ClosetViewer {
   setVisibleAllGarment(visibility) {
     if (!this.zrest) return;
 
-    const isGarment = (patternType) => {
-      return (this.mapGarmentType.indexOf(patternType) > -1);
+    const isGarment = patternType => {
+      return this.mapGarmentType.indexOf(patternType) > -1;
     };
 
-    for (let i=0; i<this.zrest.matMeshList.length; ++i) {
+    for (let i = 0; i < this.zrest.matMeshList.length; ++i) {
       const t = this.zrest.matMeshList[i].userData.TYPE;
 
       if (isGarment(t)) {
@@ -278,13 +297,13 @@ export default class ClosetViewer {
 
   isAvailableShowHide() {
     // TODO: check this condition statement always works stable
-    return (this.zrest.gVersion >= 4);
+    return this.zrest.gVersion >= 4;
   }
 
   // TODO: consider remove duplicated routine about camMatrixPushOrder with getCameraMatrix()
   setCameraMatrix(mat, bShouldUpdateRendering) {
     if (mat !== undefined && mat.length === 12) {
-      for (let i=0; i<camMatrixPushOrder.length; ++i) {
+      for (let i = 0; i < camMatrixPushOrder.length; ++i) {
         this.camera.matrix.elements[camMatrixPushOrder[i]] = mat[i];
       }
 
@@ -295,11 +314,12 @@ export default class ClosetViewer {
   }
 
   setAllAvatarVisible(visibility) {
-    for (let i=0; i<this.zrest.matMeshList.length; i++) {
-      if (this.zrest.matMeshList[i].userData.TYPE === this.zrest.MATMESH_TYPE.AVATAR_MATMESH) {
-        this.zrest.matMeshList[i].visible = visibility;
+    this.zrest.matMeshMap.forEach(matMesh => {
+      if (matMesh.userData.TYPE === MATMESH_TYPE.AVATAR_MATMESH) {
+        matMesh.visible = visibility;
       }
-    }
+    });
+
     this.updateRenderer();
   }
 
@@ -319,23 +339,21 @@ export default class ClosetViewer {
   }
 
   setSelectedPatternTranparency(patternIdx) {
-    this.techPack.setAllPatternTransparency(config.selectedMarkerOpacity);
+    this.techPack.setAllPatternTransparency(this.config.selectedMarkerOpacity);
     this.techPack.togglePatternTransparency(patternIdx);
     this.updateRenderer();
   }
 
   setAllPatternTransparency(shouldReset = true) {
-    const opacity = (shouldReset) ? 1.0 : config.selectedMarkerOpacity;
+    const opacity = shouldReset ? 1.0 : this.config.selectedMarkerOpacity;
     this.techPack.setAllPatternTransparency(opacity);
     this.updateRenderer();
   }
 
   getShowHideStatus(type) {
-    for (let i=0; i<this.zrest.matMeshList.length; i++) {
-      if (this.zrest.matMeshList[i].userData.TYPE === type) {
-        if (this.zrest.matMeshList[i].visible) {
-          return true;
-        }
+    for (const mesh of this.zrest.matMeshMap.values()) {
+      if (mesh.userData.TYPE === type) {
+        return mesh.visible;
       }
     }
     return false;
@@ -351,7 +369,7 @@ export default class ClosetViewer {
 
   getCameraMatrix() {
     const camMatrix = this.camera.matrix.elements;
-    return camMatrixPushOrder.map((index) => camMatrix[index]);
+    return camMatrixPushOrder.map(index => camMatrix[index]);
   }
 
   fullscreen() {
@@ -362,7 +380,7 @@ export default class ClosetViewer {
 
     const elem = this.setter;
     if (screenfull.enabled) {
-      screenfull.on('change', () => {
+      screenfull.on("change", () => {
         if (screenfull.isFullscreen) {
           this.setWindowSize(screen.width, screen.height);
         } else {
@@ -392,9 +410,10 @@ export default class ClosetViewer {
       height: screen.height,
       fullscreen: false,
       marketplace: false,
-      reponsive: false,
+      reponsive: false
     };
-    $.extend(data, datas); // TODO: Is it necessary using jQuery? Why?
+    // TODO: Is it necessary using jQuery? Why?
+    $.extend(data, datas);
 
     if (data.fullscreen || data.responsive) {
       setRenderSize(data.width, data.height);
@@ -458,24 +477,24 @@ export default class ClosetViewer {
   }
 
   loadZrestUrlWithParameters(url, onProgress, onLoad, colorwayIndex) {
-    const progress = function(xhr) {
+    const progress = function (xhr) {
       if (xhr.lengthComputable) {
-        const percentComplete = xhr.loaded / xhr.total * 100;
+        const percentComplete = (xhr.loaded / xhr.total) * 100;
         const percent = Math.round(percentComplete, 2);
         if (onProgress) onProgress(percent);
       }
     };
 
-    const error = function(xhr) { };
+    const error = function (xhr) { };
 
     const loaded = async (object, loadedCamera, data) => {
       this.annotation.init({
-        zrest: this.zrest,
+        zrest: this.zrest
       });
 
       // delete object3D, geometry, material dispose
       for (let i = 0; i < this.scene.children.length; i++) {
-        if (this.scene.children[i].name === 'object3D') {
+        if (this.scene.children[i].name === "object3D") {
           clearThree(this.scene.children[i]);
         }
       }
@@ -489,7 +508,14 @@ export default class ClosetViewer {
       if (onLoad) onLoad(this);
 
       const matMeshType = this.zrest.MATMESH_TYPE;
-      this.mapGarmentType = [matMeshType.PATTERN_MATMESH, matMeshType.TRIM_MATMESH, matMeshType.PRINTOVERLAY_MATMESH, matMeshType.BUTTONHEAD_MATMESH, matMeshType.STITCH_MATMESH, matMeshType.BUTTONHOLE_MATMESH];
+      this.mapGarmentType = [
+        matMeshType.PATTERN_MATMESH,
+        matMeshType.TRIM_MATMESH,
+        matMeshType.PRINTOVERLAY_MATMESH,
+        matMeshType.BUTTONHEAD_MATMESH,
+        matMeshType.STITCH_MATMESH,
+        matMeshType.BUTTONHOLE_MATMESH
+      ];
 
       this.updateRenderer();
     };
@@ -501,27 +527,48 @@ export default class ClosetViewer {
 
     if (url.constructor === ArrayBuffer) {
       this.zrest = new ZRestLoader({
-        scene: this.scene, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition});
+        scene: this.scene,
+        camera: this.camera,
+        controls: this.controls,
+        cameraPosition: this.cameraPosition
+      });
       this.zrest.parse(url, loaded);
       return;
     }
 
     if (url.constructor === String) {
       this.zrest = new ZRestLoader({
-        scene: this.scene, camera: this.camera, controls: this.controls, cameraPosition: this.cameraPosition});
+        scene: this.scene,
+        camera: this.camera,
+        controls: this.controls,
+        cameraPosition: this.cameraPosition
+      });
       this.zrest.load(url, loaded, progress, error);
     }
   }
 
   loadTechPack() {
-    const matShapeList = this.zrest.getMatShapeList();
-    const matMeshList = this.zrest.getMatMeshList();
-    this.techPack.loadTechPack(matShapeList, matMeshList);
+    const matShapeMap = this.zrest.meshFactory.matmeshManager.matShapeMap;
+    const matMeshMap = this.zrest.matMeshMap;
+    this.techPack.loadTechPack(matShapeMap, matMeshMap);
   }
 
   loadStyleLine() {
     const styleLineMap = this.zrest.getStyleLineMap();
     this.techPack.loadStyleLine(styleLineMap);
+  }
+
+  loadTechPackJsonFromAPI(
+    pattern,
+    fabric,
+    { graphic, buttonHead, buttonHole, topstitch }
+  ) {
+    this.techPack.loadJsonFromAPI(pattern, fabric, {
+      graphic,
+      buttonHead,
+      buttonHole,
+      topstitch
+    });
   }
 
   setCameraPosition(position, target) {
@@ -536,14 +583,14 @@ export default class ClosetViewer {
 
   isExistMatMeshType(type) {
     const list = this.zrest.matMeshList;
-    for (let i=0; i<list.length; ++i) {
+    // const list = this.zrest.matMeshMap;
+    for (let i = 0; i < list.length; ++i) {
       if (list[i].userData.TYPE === type) {
         return true;
       }
     }
     return false;
   }
-
 
   // TODO: This function should be moved to zrestReader.js
   async changeColorway(number) {
@@ -552,42 +599,58 @@ export default class ClosetViewer {
     }
 
     if (this.zrest.colorwaySize - 1 < number) {
-      console.log('index is over colorway size');
+      console.log("index is over colorway size");
       return;
     }
 
     if (this.zrest.currentColorwayIndex === number) {
-      console.log('index is same current index');
+      console.log("index is same current index");
       return;
     }
 
     if (this.zrest.jsZip === undefined || this.zrest.jsZip === null) {
-      console.log('zip is null');
+      console.log("zip is null");
       return;
     }
 
     this.zrest.currentColorwayIndex = number;
-    console.log('selected colorway index: ' + number);
+    console.log("selected colorway index: " + number);
 
-    const matMeshList = this.zrest.matMeshList;
+    const matMeshMap = this.zrest.matMeshMap;
 
-    for (let i = 0; i < matMeshList.length; ++i) {
-      const prevMaterial = matMeshList[i].material;
+    //matMeshMap.forEach(async matMesh => {
+    // for (let i = 0; i < matMeshList.length; ++i) {
+    for (let matMesh of matMeshMap.values()) {
+      const prevMaterial = matMesh.material;
       let bPrevUseSeamPuckeringMap = false;
       if (prevMaterial.uniforms.bUseSeamPuckeringNormal !== undefined) {
-        bPrevUseSeamPuckeringMap = prevMaterial.uniforms.bUseSeamPuckeringNormal.value;
+        bPrevUseSeamPuckeringMap =
+          prevMaterial.uniforms.bUseSeamPuckeringNormal.value;
       }
 
-      this.SafeDeallocation(prevMaterial, THREE.ShaderMaterial, function() {
-        // console.log("success deallocation");
-      }, function() {
-        // console.log("unsuccess deallocation");
-      });
+      this.SafeDeallocation(
+        prevMaterial,
+        THREE.ShaderMaterial,
+        function () {
+          // console.log("success deallocation");
+        },
+        function () {
+          // console.log("unsuccess deallocation");
+        }
+      );
 
-      const id = matMeshList[i].userData.MATMESH_ID;
+      const id = matMesh.userData.MATMESH_ID;
 
       // TODO: hide this function!
-      matMeshList[i].material = await this.zrest.makeMaterialForZrest(this.zrest.jsZip, this.zrest.getMaterialInformationMap().get(id), number, bPrevUseSeamPuckeringMap, this.zrest.camera, this.zrest.meshFactory.version);
+      matMesh.material = await this.zrest.makeMaterialForZrest(
+        // matMesh.material = this.zrest.makeMaterialForZrest(
+        this.zrest.jsZip,
+        this.zrest.getMaterialInformationMap().get(id),
+        number,
+        bPrevUseSeamPuckeringMap,
+        this.zrest.camera,
+        this.zrest.meshFactory.version
+      );
     }
 
     this.updateRenderer();
@@ -602,14 +665,13 @@ export default class ClosetViewer {
   }
 }
 
-
 function clearThree(obj) {
   while (obj.children.length > 0) {
     clearThree(obj.children[0]);
     obj.remove(obj.children[0]);
   }
 
-  const disposeIfExists = (component) => {
+  const disposeIfExists = component => {
     if (component !== undefined) {
       component.dispose();
     }
