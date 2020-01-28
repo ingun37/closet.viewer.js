@@ -1,7 +1,7 @@
 /* eslint-disable require-jsdoc */
 import * as THREE from '@/lib/threejs/three';
-import {TweenMax} from 'gsap/TweenMax';
-import {Marker, makeTextSprite} from '@/lib/marker/Marker';
+import { TweenMax } from 'gsap/TweenMax';
+import { Marker, makeTextSprite } from '@/lib/marker/Marker';
 
 const pointerScaleVector = new THREE.Vector3();
 const pointerScaleFactor = 65;
@@ -12,7 +12,7 @@ const startQuaternion = new THREE.Quaternion();
 const endQuaternion = new THREE.Quaternion();
 
 class AnnotationManager {
-  constructor({scene, camera, renderer, controls, updateRenderer, setter}) {
+  constructor({ scene, camera, renderer, controls, updateRenderer, setter }) {
     this.scene = scene;
     this.camera = camera;
     this.renderer = renderer;
@@ -58,18 +58,18 @@ class AnnotationManager {
     };
   }
 
-  init({zrest}) {
+  init({ zrest }) {
     this.zrest = zrest;
   }
 
-  bindEventListener({onCompleteAnnotationMove, onCompleteAnimation}) {
+  bindEventListener({ onCompleteAnnotationMove, onCompleteAnimation }) {
     this.onCompleteAnnotationMove = onCompleteAnnotationMove;
     this.onCompleteAnimation = onCompleteAnimation;
   }
 
   getAnnotationList() {
     return this.annotationList.map((item) => {
-      const {message, sprite, ...data} = item;
+      const { message, sprite, ...data } = item;
       return data;
     });
   }
@@ -87,28 +87,19 @@ class AnnotationManager {
     }
   }
 
-  createAnnotation({pointerPos, faceNormal, cameraPos, cameraTarget, cameraQuaternion, message}, isVisible = true) {
-    // 여기서 이미 있으면 안만들기. 검사하자.
-    const bDuplicatePos = false;
-    // for (var i = 0; i < this.annotationList.length; i++) {
-    //   var pointerPosition = this.annotationList[i].pointerPos
-    //   if (pointerPosition.equals(pointerPos)) {
-    //     bDuplicatePos = true
-    //   }
-    // }
-
+  createAnnotation({ pointerPos, faceNormal, cameraPos, cameraTarget, cameraQuaternion, message }, isVisible = true) {
     let id = undefined;
     if (!bDuplicatePos) {
       // pointer 좌표만 들고있다가 render 할때마다 만드는건 개 비효율이겠지? 그냥 그때 그때 계속 추가하자.
       const params = {
         fontsize: 48,
-        borderColor: {r: 255, g: 255, b: 255, a: 0.5},
-        backgroundColor: {r: 0, g: 0, b: 0, a: 0.5},
+        borderColor: { r: 255, g: 255, b: 255, a: 0.5 },
+        backgroundColor: { r: 0, g: 0, b: 0, a: 0.5 },
         fillStyle: 'rgba(255, 255, 255, 1.0)',
-        name: 'annotation'
-      }
+        name: 'annotation',
+      };
 
-      const sprite = makeTextSprite(message,params);
+      const sprite = makeTextSprite(message, params);
       sprite.position.set(pointerPos.x, pointerPos.y, pointerPos.z);
       sprite.visible = isVisible;
       this.annotationContainer.add(sprite);
@@ -170,7 +161,7 @@ class AnnotationManager {
 
   // viewer에서 canvas 클릭시 실행
   onMouseDown(e) {
-    this.mousePosition = {x: e.clientX, y: e.clientY};
+    this.mousePosition = { x: e.clientX, y: e.clientY };
     this.pickedAnnotation = this.checkIntersectObject(e);
     if (this.pickedAnnotation) {
       this.controls.enabled = false;
@@ -218,7 +209,7 @@ class AnnotationManager {
       return;
     }
 
-    const annotationItem = this.checkIntersectObject(e);
+    const annotationItem = this.checkIntersectObject(e); // FIXME: This line makes warning message
     if (annotationItem) {
       if (!this.isMouseMoved) {
         // animation
@@ -228,51 +219,56 @@ class AnnotationManager {
       // create annotation
       if (Math.abs(e.clientX - this.mousePosition.x) < 5 && Math.abs(e.clientY - this.mousePosition.y) < 5) {
         const position = this.createIntersectPosition(e);
-        if (this.isCreateAnnotation) this.createAnnotation({...position, message: '12'});
+        if (this.isCreateAnnotation) {
+          this.createAnnotation({ ...position, message: '12' });
+        }
       }
     }
     this.isMouseMoved = false;
     this.pickedAnnotation = undefined;
   }
 
-  createIntersectPosition({clientX, clientY}) {
-    if (this.zrest.matMeshList !== undefined) {
-      const mouse = this.getMousePosition({clientX: clientX, clientY: clientY - 10});
+  createIntersectPosition({ clientX, clientY }) {
+    if (this.zrest.matMeshMap === undefined) {
+      console.log('matMeshMap is missing');
+      return;
+    }
 
-      this.raycaster.setFromCamera(mouse, this.camera);
-      const intersects = this.raycaster.intersectObjects(this.zrest.matMeshList);
+    const mouse = this.getMousePosition({ clientX: clientX, clientY: clientY - 10 });
 
-      if (intersects.length > 0) {
-        return {
-          pointerPos: intersects[0].point,
-          faceNormal: intersects[0].face.normal,
-          cameraPos: this.camera.position,
-          cameraTarget: this.controls.target,
-          cameraQuaternion: this.camera.quaternion,
-        };
-      } else {
-        // 여기서 평면에다 다시 쏴야 함.
-        const pointerPos = new THREE.Vector3();
-        pointerPos.copy(this.computePointerPosition(mouse));
+    this.raycaster.setFromCamera(mouse, this.camera);
+    const intersects = this.raycaster.intersectObjects(this.zrest.matMeshMap.values());
 
-        const cameraDirection = new THREE.Vector3();
-        cameraDirection.copy(this.getCameraDirection());
+    if (intersects.length > 0) {
+      return {
+        pointerPos: intersects[0].point,
+        faceNormal: intersects[0].face.normal,
+        cameraPos: this.camera.position,
+        cameraTarget: this.controls.target,
+        cameraQuaternion: this.camera.quaternion,
+      };
+    } else {
+      // 여기서 평면에다 다시 쏴야 함.
+      const pointerPos = new THREE.Vector3();
+      pointerPos.copy(this.computePointerPosition(mouse));
 
-        return {
-          pointerPos: pointerPos,
-          faceNormal: cameraDirection.negate(),
-          cameraPos: this.camera.position,
-          cameraTarget: this.controls.target,
-          cameraQuaternion: this.camera.quaternion,
-        };
-      }
+      const cameraDirection = new THREE.Vector3();
+      cameraDirection.copy(this.getCameraDirection());
+
+      return {
+        pointerPos: pointerPos,
+        faceNormal: cameraDirection.negate(),
+        cameraPos: this.camera.position,
+        cameraTarget: this.controls.target,
+        cameraQuaternion: this.camera.quaternion,
+      };
     }
   }
 
-  checkIntersectObject({clientX, clientY}) {
+  checkIntersectObject({ clientX, clientY }) {
     // test code : annotation pointer부터 검사하자.
     if (this.annotationPointerList.length) {
-      const mouse = this.getMousePosition({clientX, clientY});
+      const mouse = this.getMousePosition({ clientX, clientY });
 
       this.raycaster.setFromCamera(mouse, this.camera);
       let intersects = this.raycaster.intersectObjects(this.annotationPointerList, true);
@@ -348,11 +344,11 @@ class AnnotationManager {
     this.updateRenderer();
   }
 
-  getMousePosition({clientX, clientY}) {
+  getMousePosition({ clientX, clientY }) {
     const canvasBounds = this.renderer.context.canvas.getBoundingClientRect();
     const x = ((clientX - canvasBounds.left) / (canvasBounds.right - canvasBounds.left)) * 2 - 1;
     const y = -((clientY - canvasBounds.top) / (canvasBounds.bottom - canvasBounds.top)) * 2 + 1;
-    return {x, y};
+    return { x, y };
     // return this.createIntersectPosition({x, y})
   }
 

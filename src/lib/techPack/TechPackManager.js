@@ -1,10 +1,14 @@
 /* eslint-disable require-jsdoc */
-import * as THREE from "@/lib/threejs/three";
+import * as THREE from '@/lib/threejs/three';
 // import {Marker, makeTextSprite} from '@/lib/marker/Marker';
-import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
-import MarkerManager from "@/lib/marker/MarkerManager";
+import { MATMESH_TYPE } from '@/lib/clo/readers/predefined';
+import MarkerManager from '@/lib/marker/MarkerManager';
 
-const config = { selectedMarkerOpacity: 0.1, INF: 999999 };
+const config = {
+  unselectedMarkerOpacity: 0.1,
+  INF: 999999,
+  boundingBoxThreshold: 15.0,
+};
 
 class TechPackManager {
   constructor({ scene, camera, renderer, controls }) {
@@ -12,17 +16,34 @@ class TechPackManager {
     this.camera = camera;
     this.renderer = renderer;
     this.controls = controls;
+
     this.matShapeMap = new Map();
     this.matMeshMap = new Map();
     this.styleLineMap = new Map();
-    this.jsonLists = {}; // NOTE: This array will be inited by clearJsonLists()
+
+    this.patternMap = new Map();
+    this.trimMapList = [];
+    this.fabricsWithPatterns = [];
+    this.stitchMeshMap = new Map(); // NOTE: This is temporary
 
     this.raycaster = new THREE.Raycaster(); // FIXME: Is this necessary?
-    this.loadTechPack = this.loadTechPack.bind(this);
+
+    this.load = this.load.bind(this);
     this.loadStyleLine = this.loadStyleLine.bind(this);
+
+    this.setActiveMarkerManager = this.setActiveMarkerManager.bind(this);
+
+    this.setPatternVisible = this.setPatternVisible.bind(this);
+    this.setAllPatternVisible = this.setAllPatternVisible.bind(this);
+    this.setPatternTransparency = this.setPatternTransparency.bind(this);
+    this.setAllPatternTransparency = this.setAllPatternTransparency.bind(this);
+
+    this.loadStyleLine = this.loadStyleLine.bind(this);
+    this.setStyleLineVisibleByPatternNo = this.setStyleLineVisibleByPatternNo.bind(this);
+
+    this.deleteAllMarker = this.deleteAllMarker.bind(this);
     this.onMouseDown = this.onMouseDown.bind(this);
 
-    // this.extractPatternListFromMatMeshList = this.extractPatternListFromMatMeshList.bind(this);
     this.init();
   }
 
@@ -31,15 +52,17 @@ class TechPackManager {
       scene: this.scene,
       camera: this.camera,
       renderer: this.renderer,
-      controls: this.controls
+      controls: this.controls,
     };
 
-    this.clearJsonLists();
+    this.initTrimMapList();
 
     // Init MarkerManagers
-    this.patternMarker = new MarkerManager("pattern", params);
-    this.fabricMarker = new MarkerManager("fabric", params);
-    this.trimMarker = new MarkerManager("trim", params);
+    this.patternMarker = new MarkerManager('pattern', params);
+    this.fabricMarker = new MarkerManager('fabric', params);
+    this.trimMarker = new MarkerManager('trim', params);
+
+    this.markerManagers = [this.patternMarker, this.fabricMarker, this.trimMarker];
 
     // Init the container for style line
     this.styleLineContainer = new THREE.Object3D();
@@ -47,23 +70,33 @@ class TechPackManager {
     this.scene.add(this.styleLineContainer);
   }
 
-  assignThreeJSContainer(beAssignedVariable, name) {
-    beAssignedVariable = new THREE.Object3D();
-    beAssignedVariable.name = name;
-    // this.scene.add(beAssignedVariable);
+  load(matShapeMap, matMeshMap, fabricsWithPatterns, trims, defaultMarker = 'pattern') {
+    // TODO: Write completely this code
+    // this.clearTechPack();
+    this.matShapeMap = matShapeMap;
+    this.matMeshMap = matMeshMap;
+    this.extractInfoFromAPI(fabricsWithPatterns, trims).then(
+      this.setActiveMarkerManager(defaultMarker),
+    );
   }
 
-  // This function also used for init to jsonLists
-  clearJsonLists() {
-    this.jsonLists = {
-      pattern: [],
-      fabric: [],
-      trim: {
-        graphic: [],
-        buttonHead: [],
-        buttonHole: [],
-        topstitch: []
+  setActiveMarkerManager(markerType) {
+    this.markerManagers.forEach((markerManager) => {
+      if (markerManager.markerName === markerType) {
+        markerManager.activate();
+        console.log(markerManager.markerName + ' activated');
+      } else {
+        markerManager.deactivate();
       }
+    });
+  }
+
+  initTrimMapList() {
+    this.trimMapList = {
+      Graphic: new Map(),
+      ButtonHead: new Map(),
+      ButtonHole: new Map(),
+      Topstitch: new Map(),
     };
   }
 
@@ -74,8 +107,9 @@ class TechPackManager {
     this.styleLineMap = new Map();
     this.patternList = [];
 
-    this.scene.remove(this.patternMarkerContainer);
-    this.scene.remove(this.styleLineContainer);
+    this.markerManagers.forEach((manager) => {
+      manager.deactivate();
+    });
 
     delete this.patternMarkerContainer;
     delete this.styleLineContainer;
@@ -83,102 +117,89 @@ class TechPackManager {
     this.init();
   }
 
-  // loadTechPackOld(matShapeMap, matMeshList) {
-  //   // TODO: Write completely this code
-  //   // this.clearTechPack();
-
-  //   this.loadTechPackFromMatShapeMap(matShapeMap);
-  //   this.extractPatternListFromMatMeshList(matMeshList);
-  // }
-
-  loadTechPack(matShapeMap, matMeshMap) {
-    // TODO: Write completely this code
-    // this.clearTechPack();
-
-    this.matShapeMap = matShapeMap;
-    this.matMeshMap = matMeshMap;
-
-    // Build pattern markers
-    this.buildMarkersFromList(
-      this.patternMarker,
-      this.jsonLists.pattern.map(pattern => {
-        return pattern.matMeshIdList[0];
-      }),
-      matShapeMap
-    );
-
-    this.buildFabricMarkers(matShapeMap);
-
-    // Build trim markers
-    const jsonTrimValueArray = Object.values(this.jsonLists.trim);
-    let labelCounter = 1;
-    jsonTrimValueArray.forEach(trimElement => {
-      if (trimElement) {
-        labelCounter = this.buildMarkersFromList(
-          this.trimMarker,
-          trimElement[0].matMeshIdList,
-          matShapeMap,
-          labelCounter,
-          0
-        );
-      }
-    });
-
-    this.setActiveMarker("pattern");
-  }
-
-  loadJsonFromAPI(
-    pattern,
-    fabric,
-    { graphic, buttonHead, buttonHole, topstitch }
-  ) {
-    this.jsonLists.pattern = pattern;
-    this.jsonLists.fabric = fabric;
-    this.jsonLists.trim = {
-      graphic: graphic,
-      buttonHead: buttonHead,
-      buttonHole: buttonHole,
-      topstitch: topstitch
-    };
-    console.log(this.jsonLists);
-  }
-
   updatePointerSize() {
-    // TODO: update active marker only
-    this.patternMarker.updatePointerSize();
-    this.fabricMarker.updatePointerSize();
-    this.trimMarker.updatePointerSize();
+    this.markerManagers.forEach((manager) => {
+      if (manager.isActivated()) {
+        manager.updatePointerSize();
+      }
+    });
   }
 
-  buildFabricMarkers(matMeshIdIndexedMatShapeMap) {
-    // Extract MATMESH_IDs from fabric list
-    const fabricIdList = [];
-    this.jsonLists.fabric.forEach(fabric => {
-      fabricIdList.push(Number(fabric.patternIdList[0]));
+  // NOTE: Prettier makes code weird. Find the solution.
+  getMousePosition({ clientX, clientY }) {
+    const canvasBounds = this.renderer.context.canvas.getBoundingClientRect();
+    const x = ((clientX - canvasBounds.left) / (canvasBounds.right - canvasBounds.left)) * 2 - 1;
+    const y = -((clientY - canvasBounds.top) / (canvasBounds.bottom - canvasBounds.top)) * 2 + 1;
+
+    return { x, y };
+  }
+
+  async extractInfoFromAPI(fabricsWithPatterns, trims) {
+    this.fabricsWithPatterns = fabricsWithPatterns;
+
+    // Build PatternMap
+    fabricsWithPatterns.forEach((fabric) => {
+      fabric.Patterns.forEach((pattern) => {
+        this.patternMap.set(parseInt(pattern.Number), pattern);
+      });
     });
 
-    // Find matched meshes with above list.
-    const matchedMatMeshList = Array(fabricIdList.length);
+    // Build TrimMapList
+    // NOTE: This filter is temperal. Filter should be removed after update topstitch.
+    trims.filter((group) => group.GroupName != 'Topstitch').forEach((group) => {
+      // Remove spaces on string
+      const groupName = group.GroupName.replace(/\s/g, '');
+      group.Trims.forEach((trim) => {
+        this.trimMapList[groupName].set(trim.Number, trim);
+      });
+    });
 
-    for (let i = 0; i < this.jsonLists.pattern.length; ++i) {
-      const fabricIdx = fabricIdList.findIndex(
-        idx => idx === this.jsonLists.pattern[i].id
-      );
-      if (fabricIdx >= 0) {
-        // NOTE: The length of matMeshIdList might be 1 to 3 depends on mesh type.
-        // TODO: Test for empty arrays
-        const currPatternMatMeshIdList = this.jsonLists.pattern[i]
-          .matMeshIdList;
-        const firstPatternIdForMarking = currPatternMatMeshIdList[0];
-        matchedMatMeshList[fabricIdx] = firstPatternIdForMarking;
+    // Build uncategorizedMeshMap
+    this.stitchMeshMap = new Map();
+    this.matMeshMap.forEach((mesh) => {
+      if (mesh.userData.TYPE == MATMESH_TYPE.STITCH_MATMESH) {
+        const matMeshID = mesh.userData.MATMESH_ID;
+        this.stitchMeshMap.set(matMeshID, mesh);
       }
-    }
+    });// filter((mesh) => {return (mesh.userData.TYPE == MATMESH_TYPE.STITCH_MATMESH)});
 
-    this.buildMarkersFromList(
-      this.fabricMarker,
-      matchedMatMeshList,
-      matMeshIdIndexedMatShapeMap
-    );
+    this.buildPatternMarkers(fabricsWithPatterns);
+    this.buildFabricMarkers(fabricsWithPatterns);
+    this.buildTrimMarkers(trims);
+  }
+
+  buildPatternMarkers(fabricsWithPatterns) {
+    const patternMeshIdList = [];
+    fabricsWithPatterns.forEach((fabric) => {
+      fabric.Patterns.forEach((pattern) => {
+        patternMeshIdList.push(pattern.MatMeshIdList[0]);
+      });
+    });
+    this.buildMarkersFromList(this.patternMarker, patternMeshIdList, this.matShapeMap);
+  }
+
+  buildFabricMarkers(fabricsWithPatterns) {
+    const fabricMeshIdList = [];
+    fabricsWithPatterns.forEach((fabric) => {
+      fabricMeshIdList.push(fabric.Patterns[0].MatMeshIdList[0]);
+    });
+    this.buildMarkersFromList(this.fabricMarker, fabricMeshIdList, this.matShapeMap);
+  }
+
+  buildTrimMarkers(trims) {
+    let labelCounter = 1;
+    trims.forEach((trimGroup) => {
+      trimGroup.Trims.forEach((trim) => {
+        if (trim.MatMeshIdList.length > 0) {
+          labelCounter = this.buildMarkersFromList(this.trimMarker, trim.MatMeshIdList, this.matShapeMap, labelCounter, 0);
+        }
+      });
+    });
+  }
+
+  isSmallerThanMarker(matMeshId) {
+    const matShape = this.matShapeMap.get(matMeshId);
+    return (matShape.get('fBoundingSphereRadius') < config.boundingBoxThreshold);
   }
 
   buildMarkersFromList(
@@ -186,19 +207,20 @@ class TechPackManager {
     matMeshIdList,
     matShapeMap,
     labelStartNumber = 1,
-    labelIncrement = 1
+    labelIncrement = 1,
   ) {
     if (!markerManager || !matMeshIdList || !matShapeMap) {
-      console.log("Some information missed to build markers");
+      console.log('Some information missed to build markers');
       return;
     }
 
     let labelCounter = labelStartNumber;
     let amountOfBuiltMarkers = 0;
 
-    matMeshIdList.forEach(matMeshId => {
+    const shouldTranslate = this.isSmallerThanMarker(matMeshIdList[0]);
+    matMeshIdList.forEach((matMeshId) => {
       const matShape = matShapeMap.get(Number(matMeshId));
-      if (this.buildMarker(matMeshId, labelCounter, markerManager, matShape)) {
+      if (this.buildMarker(labelCounter, markerManager, matShape, -1, shouldTranslate)) {
         amountOfBuiltMarkers++;
       }
       labelCounter += labelIncrement;
@@ -207,157 +229,80 @@ class TechPackManager {
     const isAlreadyIncreased = labelIncrement > 0;
     const isBuildMarkersSuccess = amountOfBuiltMarkers > 0;
 
-    return isAlreadyIncreased || !isBuildMarkersSuccess
-      ? labelCounter
-      : labelCounter + 1;
+    return isAlreadyIncreased || !isBuildMarkersSuccess ?
+      labelCounter :
+      labelCounter + 1;
   }
 
   // Return true if success
-  buildMarker(matMeshId, markerMessage, markerManager, matShape, index = -1) {
+  buildMarker(markerMessage, markerManager, matShape, index = -1, shouldTranslate = false) {
     if (!matShape) {
-      console.log("DEBUG: " + matMeshId + " is missing");
       return false;
     }
-    const center = matShape.get("v3Center");
-    const normal = matShape.get("v3Normal");
+
+    const center = matShape.get('v3Center');
+    const radius = matShape.get('fBoundingSphereRadius');
+    const translatedCenter = (shouldTranslate) ? { x: center.x + 2 * radius, y: center.y, z: center.z } : center;
+    const normal = matShape.get('v3Normal');
     const position = {
-      pointerPos: center,
+      pointerPos: translatedCenter,
       faceNormal: normal,
       cameraPos: this.camera.position,
       cameraTarget: this.controls.target,
-      cameraQuaternion: this.camera.quaternion
+      cameraQuaternion: this.camera.quaternion,
     };
 
     if (index > 0) {
       markerManager.add(index, { ...position, message: markerMessage }, false);
-    } else markerManager.insert({ ...position, message: markerMessage }, false);
+    } else {
+      markerManager.push({ ...position, message: markerMessage }, false);
+    }
 
     return true;
   }
 
-  loadTechPackFromMatShapeMap(matShapeMap) {
-    if (!matShapeMap) return;
-
-    //  NOTE: All elements in mapShape array have the same value.
-    //  This module will be modified by TKAY and Daniel.
-    let labelCounter = 1;
-    for (let i = 0; i < matShapeMap.length; ++i) {
-      const matShape = matShapeMap[i].get("listMatMeshIDOnIndexedMesh");
-      const center = matShape[0].get("v3Center");
-      const normal = matShape[0].get("v3Normal");
-      const isPatternMesh = matShape.length === 3;
-
-      if (!center || !normal || !isPatternMesh) {
-        continue;
-      }
-
-      const position = {
-        pointerPos: center,
-        faceNormal: normal,
-        cameraPos: this.camera.position,
-        cameraTarget: this.controls.target,
-        cameraQuaternion: this.camera.quaternion
-      };
-
-      const index = labelCounter++;
-      this.patternMarker.addMarker(
-        index,
-        { ...position, message: index },
-        false
-      );
-    }
-  }
-
-  setActiveMarker(markerType) {
-    this.patternMarker.container.visible = false;
-    this.fabricMarker.container.visible = false;
-    this.trimMarker.container.visible = false;
-
-    this.patternMarker.removeFromScene();
-    this.fabricMarker.removeFromScene();
-    this.trimMarker.removeFromScene();
-
-    if (markerType == "pattern") {
-      this.patternMarker.addToScene();
-      this.patternMarker.container.visible = true;
-      console.log("pattern activated");
-    } else if (markerType == "fabric") {
-      this.fabricMarker.addToScene();
-      this.fabricMarker.container.visible = true;
-      console.log("fabric activated");
-    } else if (markerType == "trim") {
-      this.trimMarker.addToScene();
-      this.trimMarker.container.visible = true;
-      console.log("trim activated");
-    }
-  }
-
-  setPatternVisible(patternIdx, bVisible) {
-    if (
-      typeof this.jsonLists.pattern === "undefined" ||
-      !this.isValidPatternIdx
-    )
+  setPatternVisible(patternNo, bVisible) {
+    if (!this.isValidPatternNo) {
       return;
-
-    const patternList = this.jsonLists.pattern;
-    console.log(patternList);
-    console.log(patternList[patternIdx]);
-    patternList[patternIdx].matMeshIdList.forEach(matMeshId => {
-      this.matMeshMap.get(matMeshId).visible = bVisible;
+    }
+    this.patternMap.get(patternNo).MatMeshIdList.forEach((matMeshId) => {
+      const mesh = this.matMeshMap.get(matMeshId);
+      if (mesh) {
+        mesh.visible = bVisible;
+      }
     });
   }
 
   setAllPatternVisible(bVisible) {
-    if (typeof this.jsonLists.pattern === "undefined") return;
+    this.patternMap.forEach((pattern) => {
+      this.setPatternVisible(pattern.Number, bVisible);
+    });
+  }
 
-    const patternList = this.jsonLists.pattern;
-    for (let i = 0; i < patternList.length; ++i) {
-      this.setPatternVisible(i, bVisible);
+  setPatternTransparency(patternNo, opacity) {
+    if (!this.isValidPatternNo) {
+      return;
     }
   }
 
-  isValidPatternIdx(patternIdx) {
-    return patternIdx >= 0 && patternIdx <= this.patternList.length;
+    const pattern = this.patternMap.get(patternNo);
+    pattern.MatMeshIdList.forEach((matMeshId) => {
+      this.setMatMeshTransparency(matMeshId, opacity);
+    });
   }
 
   setAllPatternTransparency(opacity) {
-    if (typeof this.jsonLists.pattern === "undefined") return;
-
-    const patternList = this.jsonLists.pattern;
-    for (let i = 0; i < patternList.length; ++i) {
-      this.setPatternTransparency(i, opacity);
-    }
-  }
-
-  setPatternTransparency(patternIdx, opacity) {
-    if (
-      typeof this.jsonLists.pattern === "undefined" ||
-      !this.isValidPatternIdx
-    )
-      return;
-
-    const patternList = this.jsonLists.pattern;
-    patternList[patternIdx].matMeshIdList.forEach(matMeshId => {
-      this.matMeshMap.get(matMeshId).material.uniforms.materialOpacity = {
-        type: "f",
-        value: opacity
-      };
+    this.patternMap.forEach((pattern) => {
+      this.setPatternTransparency(pattern.Number, opacity);
     });
-
-    // for (let i = 0; i < 3; ++i) {
-    //   this.patternList[patternIdx][i].material.uniforms.materialOpacity = {
-    //     type: "f",
-    //     value: opacity
-    //   };
-    // }
   }
 
   togglePatternTransparency(
     patternIdx,
     selectedOpacity = 0.5,
-    defaultOpacity = 1.0
+    defaultOpacity = 1.0,
   ) {
-    if (!this.isValidPatternIdx) return;
+    if (!this.isValidPatternNo) return;
 
     for (let i = 0; i < 3; ++i) {
       const currentPattern = this.patternList[patternIdx][i];
@@ -366,10 +311,88 @@ class TechPackManager {
       const opacity =
         currentOpacity >= defaultOpacity ? selectedOpacity : defaultOpacity;
       currentPattern.material.uniforms.materialOpacity = {
-        type: "f",
-        value: opacity
+        type: 'f',
+        value: opacity,
       };
     }
+  }
+
+  isValidPatternNo(patternNo) {
+    return patternNo > 0 && patternNo <= this.patternMap.size;
+  }
+
+  setTrimTransparency(trimGroupName, trimNo, opacity) {
+    const trim = this.trimMapList[trimGroupName];
+    if (trim == 'undefined' || trim.get(trimNo) == 'undefined') return;
+
+    trim.get(trimNo).matMeshIdList.forEach((matMeshId) => {
+      this.setMatMeshTransparency(matMeshId, opacity);
+    });
+  }
+
+  setAllStitchTransparency(opacity) {
+    this.stitchMeshMap.forEach((stitchMesh) => {
+      const matMeshId = stitchMesh.userData.MATMESH_ID;
+      this.setMatMeshTransparency(matMeshId, opacity);
+    });
+  }
+
+  setAllStitchVisible(bVisible) {
+    this.trimMapList.Topstitch.forEach((stitchMesh) => {
+      const matMeshId = stitchMesh.userData.MATMESH_ID;
+      this.setMatMeshVisible(matMeshId, bVisible);
+    });
+  }
+
+  setMatMeshTransparency(matMeshId, opacity) {
+    const mesh = this.matMeshMap.get(matMeshId);
+    if (mesh) {
+      mesh.material.uniforms.materialOpacity = {
+        type: 'f',
+        value: opacity,
+      };
+    }
+  }
+
+  setMatMeshVisible(matMeshId, bVisible) {
+    const mesh = this.matMeshMap.get(matMeshId);
+    if (mesh) {
+      mesh.visible = bVisible;
+    }
+  }
+
+  setSelectedTrimTransparency(selectedTrimNo, opacityForSelected, opacityForNotSelected) {
+    Object.entries(this.trimMapList).forEach((group) => {
+      const groupMap = group[1]; // Note: group is [trimType, Map]. for example, ["ButtonHead", Map(1)].
+      if (groupMap.size > 0) {
+        groupMap.forEach((trim) => {
+          const opacity = (trim.Number == selectedTrimNo) ? opacityForSelected : opacityForNotSelected;
+          trim.MatMeshIdList.forEach((matMeshId) => {
+            this.setMatMeshTransparency(matMeshId, opacity);
+          });
+        });
+      }
+    });
+  }
+
+  setAllTrimVisible(bVisible) {
+    Object.entries(this.trimMapList).forEach((group) => {
+      const groupMap = group[1]; // Note: group is [trimType, Map]. for example, ["ButtonHead", Map(1)].
+      if (groupMap.size > 0) {
+        groupMap.forEach((trim) => {
+          trim.MatMeshIdList.forEach((matMeshId) => {
+            this.setMatMeshVisible(matMeshId, bVisible);
+          });
+        });
+      }
+    });
+  }
+
+  loadStyleLine(styleLineMap) {
+    if (!styleLineMap) return;
+
+    this.styleLineMap = styleLineMap;
+    this.addStyleLinesToScene(false);
   }
 
   loadStyleLine(styleLineMap) {
@@ -388,9 +411,14 @@ class TechPackManager {
     });
   }
 
-  setStyleLineVisible(patternIdx, bVisible) {
-    if (this.styleLineMap.get(patternIdx)) {
-      this.styleLineMap.get(patternIdx).forEach(line => {
+  setStyleLineVisibleByPatternNo(patternNo, bVisible) {
+    const firstMatMeshIDOnMarker = this.patternMap.get(patternNo).MatMeshIdList[0];
+    this.setStyleLineVisible(firstMatMeshIDOnMarker, bVisible);
+  }
+
+  setStyleLineVisible(firstLayerMatMeshID, bVisible) {
+    if (this.styleLineMap.get(firstLayerMatMeshID)) {
+      this.styleLineMap.get(firstLayerMatMeshID).forEach((line) => {
         line.visible = bVisible;
       });
     }
@@ -405,9 +433,15 @@ class TechPackManager {
   }
 
   setAllMarkerVisible(bVisible) {
-    this.patternMarker.setVisibleForAll(bVisible);
-    this.fabricMarker.setVisibleForAll(bVisible);
-    this.trimMarker.setVisibleForAll(bVisible);
+    this.markerManagers.forEach((manager) => {
+      manager.setVisibleForAll(bVisible);
+    });
+  }
+
+  deleteAllMarker() {
+    this.markerManagers.forEach((manager) => {
+      manager.removeAll();
+    });
   }
 
   bindEventListener({ onCompleteMove, onCompleteAnimation }) {
@@ -416,19 +450,57 @@ class TechPackManager {
   }
 
   onMarker(onMarkerItems) {
-    if (onMarkerItems.length) {
-      this.setAllPatternTransparency(config.selectedMarkerOpacity);
+    const actionsForPattern = (patternIdx) => {
+      this.setAllStitchVisible(false);
+      this.setAllTrimVisible(false);
+
+      const patternNo = patternIdx + 1;
+      this.setPatternTransparency(patternNo, 1.0);
+      this.patternMarker.setVisible(patternIdx, true);
+
+      this.setStyleLineVisibleByPatternNo(patternNo, true);
+    };
+
+    const actionsForFabric = (fabricIdx) => {
+      this.setAllStitchVisible(false);
+      this.setAllTrimVisible(false);
+
+      const selectedPattern = this.fabricsWithPatterns[fabricIdx].Patterns;
+      this.fabricMarker.setVisible(fabricIdx, true);
+      selectedPattern.forEach((pattern) => {
+        const patternNo = pattern.Number;
+        this.setPatternVisible(patternNo, true);
+        this.setPatternTransparency(patternNo, 1.0);
+      });
+    };
+
+    const actionsForTrim = (trimIdx) => {
+      const trimNo = trimIdx + 1;
+      this.setSelectedTrimTransparency(trimNo, 1.0, config.unselectedMarkerOpacity);
+      this.trimMarker.setVisibleByMessage(trimNo, true);
+    };
+
+    const hasSelectedMarker = (onMarkerItems.length > 0);
+    if (hasSelectedMarker) {
+      this.setAllPatternTransparency(config.unselectedMarkerOpacity);
+      this.setAllStitchTransparency(config.unselectedMarkerOpacity);
     } else {
+      // Return to default setting
       this.setAllPatternTransparency(1.0);
+      this.setAllStitchTransparency(1.0);
+      this.setAllPatternVisible(true);
+      this.setAllStitchVisible(true);
+      this.setAllTrimVisible(true);
     }
+
     this.setAllMarkerVisible(false);
     this.setAllStyleLineVisible(false);
 
+    // TODO: Do refactoring this module
     onMarkerItems.map(({ index, id }) => {
-      this.setPatternTransparency(index, 1.0);
-      this.patternMarker.setVisible(index, true);
-      // this.setMarkerVisible(index, true); // REMEMBER: What was this?
-      this.setStyleLineVisible(index, true);
+      if (this.patternMarker.isActivated()) actionsForPattern(index);
+      if (this.fabricMarker.isActivated()) actionsForFabric(index);
+      if (this.trimMarker.isActivated()) actionsForTrim(index);
     });
   }
 
@@ -448,9 +520,12 @@ class TechPackManager {
   }
 
   checkIntersectObject({ clientX, clientY }) {
-    if (this.patternMarker) {
-      return this.patternMarker.checkIntersectObject({ clientX, clientY });
-    }
+    const mousePos = this.getMousePosition({ clientX, clientY });
+    this.markerManagers.forEach((markerManager) => {
+      if (markerManager.isActivated()) {
+        return markerManager.checkIntersect(mousePos, this.raycaster);
+      }
+    });
   }
 }
 

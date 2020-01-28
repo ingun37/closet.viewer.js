@@ -1,11 +1,11 @@
 /* eslint-disable require-jsdoc */
-"use strict";
-import * as THREE from "@/lib/threejs/three";
+'use strict';
+import * as THREE from '@/lib/threejs/three';
 
-import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
+import { readByteArray } from '@/lib/clo/file/KeyValueMapReader';
 
-import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
-import { makeMaterial } from "@/lib/clo/readers/zrest_material";
+import { MATMESH_TYPE } from '@/lib/clo/readers/predefined';
+import { makeMaterial } from '@/lib/clo/readers/zrest_material';
 
 export default function MatMeshManager(
   { matMeshMap: matMeshMap, materialList, matShapeMap: matShapeMap },
@@ -14,7 +14,7 @@ export default function MatMeshManager(
   drawMode,
   seamPuckeringNormalMap,
   nameToTextureMap,
-  version
+  version,
 ) {
   this.matMeshMap = matMeshMap;
   this.materialList = materialList;
@@ -41,7 +41,7 @@ MatMeshManager.prototype = {
     materialInformationMap,
     colorwayIndex,
     loadedCamera,
-    version
+    version,
   ) {
     this.camera = loadedCamera;
     this.version = version;
@@ -60,7 +60,7 @@ MatMeshManager.prototype = {
           materialInformationMap,
           colorwayIndex,
           loadedCamera,
-          version
+          version,
         );
         tf.add(childTF);
       }
@@ -75,14 +75,14 @@ MatMeshManager.prototype = {
         materialInformationMap,
         colorwayIndex,
         loadedCamera,
-        version
+        version,
       );
       tf = childTF;
     }
 
     const mat4 = new THREE.Matrix4().identity();
-    if (map.get("m4Matrix")) {
-      const localMatrix = map.get("m4Matrix");
+    if (map.get('m4Matrix')) {
+      const localMatrix = map.get('m4Matrix');
       mat4.set(
         localMatrix.a00,
         localMatrix.a01,
@@ -99,19 +99,19 @@ MatMeshManager.prototype = {
         localMatrix.a30,
         localMatrix.a31,
         localMatrix.a32,
-        localMatrix.a33
+        localMatrix.a33,
       );
     }
     tf.applyMatrix(mat4);
 
-    const listMatShape = map.get("listMatShape");
+    const listMatShape = map.get('listMatShape');
 
     if (listMatShape) {
       // Convert listMatShape to matShapeMap
-      listMatShape.forEach(shape => {
-        const list = shape.get("listMatMeshIDOnIndexedMesh");
-        list.forEach(l => {
-          const n = l.get("uiMatMeshID");
+      listMatShape.forEach((shape) => {
+        const list = shape.get('listMatMeshIDOnIndexedMesh');
+        list.forEach((l) => {
+          const n = l.get('uiMatMeshID');
           this.matShapeMap.set(n, l);
         });
       });
@@ -121,7 +121,7 @@ MatMeshManager.prototype = {
         listMatShape,
         tf,
         bLoadTransparentObject,
-        materialInformationMap
+        materialInformationMap,
       );
     }
 
@@ -133,7 +133,7 @@ MatMeshManager.prototype = {
     listMatShape,
     tf,
     bLoadTransparentObject,
-    materialInformationMap
+    materialInformationMap,
   ) {
     // TODO: do refactor more
     const splitMatSpaceToMatMesh = async (
@@ -142,7 +142,7 @@ MatMeshManager.prototype = {
       listIdxCount,
       dracoGeometry,
       bVisible,
-      drawMode
+      drawMode,
     ) => {
       let indexOffset = this.version > 4 ? 0 : totalIdxCount;
 
@@ -197,7 +197,7 @@ MatMeshManager.prototype = {
          * 값은 새로운 메쉬에서의 vertexIndex. 초기값은 -1.
          */
         const changeVertexIndex = new Int32Array(
-          dracoGeometry.vertices.length / 3
+          dracoGeometry.vertices.length / 3,
         );
         for (let j = 0; j < dracoGeometry.vertices.length / 3; j++) {
           changeVertexIndex[j] = -1;
@@ -219,7 +219,7 @@ MatMeshManager.prototype = {
             const threePos = new THREE.Vector3(
               dracoGeometry.vertices[index * 3],
               dracoGeometry.vertices[index * 3 + 1],
-              dracoGeometry.vertices[index * 3 + 2]
+              dracoGeometry.vertices[index * 3 + 2],
             );
             // threePos.applyMatrix4(m4);
 
@@ -248,25 +248,25 @@ MatMeshManager.prototype = {
         }
 
         bufferGeometry.addAttribute(
-          "position",
-          new THREE.BufferAttribute(new Float32Array(posAttrib), 3)
+          'position',
+          new THREE.BufferAttribute(new Float32Array(posAttrib), 3),
         );
 
         if (dracoGeometry.useNormal) {
           bufferGeometry.addAttribute(
-            "normal",
-            new THREE.BufferAttribute(new Float32Array(normalAttrib), 3)
+            'normal',
+            new THREE.BufferAttribute(new Float32Array(normalAttrib), 3),
           );
         }
 
         bufferGeometry.addAttribute(
-          "uv",
-          new THREE.BufferAttribute(new Float32Array(uvAttrib), 2)
+          'uv',
+          new THREE.BufferAttribute(new Float32Array(uvAttrib), 2),
         );
         if (dracoGeometry.numUVs >= 2) {
           bufferGeometry.addAttribute(
-            "uv2",
-            new THREE.BufferAttribute(new Float32Array(uv2Attrib), 2)
+            'uv2',
+            new THREE.BufferAttribute(new Float32Array(uv2Attrib), 2),
           );
         }
 
@@ -312,7 +312,7 @@ MatMeshManager.prototype = {
           drawMode,
           this.seamPuckeringNormalMap,
           this.nameToTextureMap,
-          this.version
+          this.version,
         );
         const threeMesh = new THREE.Mesh(bufferGeometry, material);
         const matMeshType = listMatMeshIDOnIndexedMesh[m].get("enType");
@@ -379,15 +379,6 @@ MatMeshManager.prototype = {
 
         this.matMeshMap.set(matMeshID, threeMesh);
 
-        // // TEST ONLY
-        // if (this.matMeshMap.has(matMeshID)) {
-        //   console.log(matMeshID + " found");
-        //   // console.log(matMeshMap.get(matMeshId))
-        // }
-        // // END
-
-        // this.matMeshMap.set(matMeshID, threeMesh);
-
         if (this.version > 4) {
           // marker 만들자.
           const cameraPos = new THREE.Vector3();
@@ -406,15 +397,15 @@ MatMeshManager.prototype = {
 
     const getDracoGeometry = async qsDracoFileName => {
       // Draco Compression
-      const dracoMeshFilename = readByteArray("String", qsDracoFileName);
+      const dracoMeshFilename = readByteArray('String', qsDracoFileName);
       if (!dracoMeshFilename) {
-        console.log("cannot find dracoMesh");
+        console.log('cannot find dracoMesh');
         return false;
       }
 
       const drcArrayBuffer = await zip
         .file(dracoMeshFilename)
-        .async("arrayBuffer");
+        .async('arrayBuffer');
 
       const dracoLoader = new THREE.DRACOLoader();
       // dracoLoader.setVerbosity(bLog);
@@ -428,7 +419,7 @@ MatMeshManager.prototype = {
       }
 
       const styleLineMaterial = new THREE.LineBasicMaterial({
-        color: 0x00ffff
+        color: 0xfffe00,
       });
       const currentStyleLineSet = new Set();
 
@@ -439,7 +430,7 @@ MatMeshManager.prototype = {
         const listMeshPointIndex = listLine[k].get("listMeshPointIndex");
         if (listMeshPointIndex !== undefined && listMeshPointIndex !== null) {
           for (let h = 0; h < listMeshPointIndex.length; ++h) {
-            let vIndex = listMeshPointIndex[h].get("uiMeshPointIndex");
+            let vIndex = listMeshPointIndex[h].get('uiMeshPointIndex');
             if (vIndex !== undefined && vIndex !== null) {
               const frontStyleLinePos = new THREE.Vector3();
               frontStyleLinePos.x = dracoGeometry.vertices[vIndex * 3];
@@ -459,7 +450,7 @@ MatMeshManager.prototype = {
           frontStyleLineGeometry.computeVertexNormals();
           const frontStyleLine = new THREE.Line(
             frontStyleLineGeometry,
-            styleLineMaterial
+            styleLineMaterial,
           );
           currentStyleLineSet.add(frontStyleLine);
 
@@ -467,7 +458,7 @@ MatMeshManager.prototype = {
           backStyleLineGeometry.computeVertexNormals();
           const backStyleLine = new THREE.Line(
             backStyleLineGeometry,
-            styleLineMaterial
+            styleLineMaterial,
           );
           currentStyleLineSet.add(backStyleLine);
         }
@@ -477,20 +468,20 @@ MatMeshManager.prototype = {
     };
 
     let frontVertexCount = 0;
-    let patternIdx = 0;
+
     for (let i = 0; i < listMatShape.length; ++i) {
       const listMatMeshIDOnIndexedMesh = listMatShape[i].get(
-        "listMatMeshIDOnIndexedMesh"
+        'listMatMeshIDOnIndexedMesh',
       );
-      const mapShape = listMatShape[i].get("mapShape");
+      const mapShape = listMatShape[i].get('mapShape');
       if (!mapShape) {
-        console.log("mapShape is null");
+        console.log('mapShape is null');
         return false;
       }
 
-      const listIndexCount = mapShape.get("listIndexCount");
+      const listIndexCount = mapShape.get('listIndexCount');
       if (!listIndexCount || listIndexCount.length == 0) {
-        console.log("listIndexCount is null");
+        console.log('listIndexCount is null');
         return false;
       }
 
@@ -500,9 +491,9 @@ MatMeshManager.prototype = {
       }
 
       const dracoGeometry = await getDracoGeometry(
-        mapShape.get("qsDracoFileName")
+        mapShape.get('qsDracoFileName'),
       );
-      const bVisiable = listMatShape[i].get("bMatShapeVisible") || false;
+      const bVisiable = listMatShape[i].get('bMatShapeVisible') || false;
 
       await splitMatSpaceToMatMesh(
         listMatMeshIDOnIndexedMesh,
@@ -510,12 +501,14 @@ MatMeshManager.prototype = {
         listIndexCount,
         dracoGeometry,
         bVisiable,
-        this.drawMode
+        this.drawMode,
       );
 
-      const listLine = listMatShape[i].get("listLine");
+      const listLine = listMatShape[i].get('listLine');
+      const firstMatMeshID = listMatMeshIDOnIndexedMesh[0].get('uiMatMeshID');
+
       if (listLine) {
-        buildStyleLines(dracoGeometry, patternIdx++, listLine);
+        buildStyleLines(dracoGeometry, firstMatMeshID, listLine);
       }
     }
   },

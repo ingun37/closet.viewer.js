@@ -1,9 +1,9 @@
 /* eslint-disable require-jsdoc */
-import * as THREE from "@/lib/threejs/three";
-import { Marker, makeTextSprite } from "@/lib/marker/Marker";
+import * as THREE from '@/lib/threejs/three';
+import { Marker, makeTextSprite } from '@/lib/marker/Marker';
 
 const pointerScaleVector = new THREE.Vector3();
-const pointerScaleFactor = 65;
+const pointerScaleFactor = 100;
 
 class MarkerManager {
   constructor(markerName, { scene, camera, renderer, controls }) {
@@ -19,28 +19,35 @@ class MarkerManager {
     this.refreshGeometryList = this.refreshGeometryList.bind(this);
 
     this.add = this.add.bind(this);
+    this.removeAll = this.removeAll.bind(this);
 
-    this.addToScene = this.addToScene.bind(this);
-    this.removeFromScene = this.removeFromScene.bind(this);
+    this.activate = this.activate.bind(this);
+    this.deactivate = this.deactivate.bind(this);
 
-    this.raycaster = new THREE.Raycaster();
-    this.checkIntersectObject = this.checkIntersectObject.bind(this);
+    this.checkIntersect = this.checkIntersect.bind(this);
+    this.setVisibleByMessage = this.setVisibleByMessage.bind(this);
 
-    // this.onMouseDown = this.onMouseDown.bind(this);
-    // this.onMarker = this.onMarker.bind(this);
+    this.bActivate = false;
+    this.isActivated = () => {
+      return this.bActivate;
+    };
+
     this.init();
   }
 
   init() {
     this.container = new THREE.Object3D();
-    this.container.name = this.markerName + "Container";
+    this.container.name = this.markerName + 'Container';
 
-    this.addToScene();
+    this.activate();
   }
 
   updatePointerSize() {
-    this.markerMap.forEach(marker => {
-      const scale = pointerScaleVector.subVectors(marker.sprite.position, this.camera.position).length() / pointerScaleFactor;
+    this.markerMap.forEach((marker) => {
+      const scale =
+        pointerScaleVector
+          .subVectors(marker.sprite.position, this.camera.position)
+          .length() / pointerScaleFactor;
       marker.sprite.scale.set(scale / 2, scale / 2, 1);
     });
   }
@@ -61,8 +68,8 @@ class MarkerManager {
       fontsize: 48,
       borderColor: { r: 255, g: 255, b: 255, a: 0.5 },
       backgroundColor: { r: 255, g: 245, b: 0, a: 1 },
-      fillStyle: "rgba(25, 25, 26, 1.0)",
-      name: this.markerName
+      fillStyle: 'rgba(25, 25, 26, 1.0)',
+      name: this.markerName,
     };
 
     const sprite = makeTextSprite(message, params);
@@ -80,7 +87,17 @@ class MarkerManager {
     return sprite.id;
   }
 
-  insert({ pointerPos, faceNormal, cameraPos, cameraTarget, cameraQuaternion, message }, isVisible = true) {
+  push(
+    {
+      pointerPos,
+      faceNormal,
+      cameraPos,
+      cameraTarget,
+      cameraQuaternion,
+      message,
+    },
+    isVisible = true,
+  ) {
     this.add(
       this.markerMap.size + 1,
       {
@@ -89,9 +106,9 @@ class MarkerManager {
         cameraPos,
         cameraTarget,
         cameraQuaternion,
-        message
+        message,
       },
-      isVisible
+      isVisible,
     );
   }
 
@@ -102,8 +119,16 @@ class MarkerManager {
     }
   }
 
+  setVisibleByMessage(message, bVisible) {
+    this.markerMap.forEach((marker) => {
+      if (marker.message == message) {
+        marker.sprite.visible = bVisible;
+      }
+    });
+  }
+
   setVisibleForAll(bVisible) {
-    this.markerMap.forEach(marker => {
+    this.markerMap.forEach((marker) => {
       if (!marker.sprite) {
         return;
       }
@@ -111,49 +136,43 @@ class MarkerManager {
     });
   }
 
-  deleteAll() {
+  removeAll() {
     this.markerMap.clear();
-    const names = this.container.children.map(item => item.name);
-    names.map(name => {
+    const names = this.container.children.map((item) => item.name);
+    names.map((name) => {
       const sprite = this.container.getObjectByName(name);
       this.container.remove(sprite);
     });
   }
 
-  getMousePosition({ clientX, clientY }) {
-    const canvasBounds = this.renderer.context.canvas.getBoundingClientRect();
-    const x = ((clientX - canvasBounds.left) / (canvasBounds.right - canvasBounds.left)) * 2 - 1;
-    const y = -((clientY - canvasBounds.top) / (canvasBounds.bottom - canvasBounds.top)) * 2 + 1;
-
-    return { x, y };
-  }
-
-  checkIntersectObject({ clientX, clientY }) {
+  checkIntersect(mousePosition, raycaster) {
     if (this.markerMap.length <= 0) {
       return;
     }
-    const mouse = this.getMousePosition({ clientX, clientY });
-    this.raycaster.setFromCamera(mouse, this.camera);
-    const intersects = this.raycaster.intersectObjects(this.geometryList, true);
+
+    raycaster.setFromCamera(mousePosition, this.camera);
+    const intersects = raycaster.intersectObjects(this.geometryList, true);
 
     if (intersects.length > 0) {
-      // 처리할거 하고 return;
       for (let i = 1; i <= this.markerMap.size; ++i) {
         const marker = this.markerMap.get(i);
         if (intersects[0].object === marker.sprite) {
-          console.log(marker);
           return marker;
         }
       }
     }
   }
 
-  removeFromScene() {
-    this.scene.remove(this.container);
+  activate() {
+    this.scene.add(this.container);
+    this.container.visible = true;
+    this.bActivate = true;
   }
 
-  addToScene() {
-    this.scene.add(this.container);
+  deactivate() {
+    this.scene.remove(this.container);
+    this.container.visible = false;
+    this.bActivate = false;
   }
 }
 

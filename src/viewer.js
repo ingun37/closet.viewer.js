@@ -1,11 +1,11 @@
 ﻿/* eslint-disable require-jsdoc */
 import ZRestLoader, {
   dataWorkerFunction,
-  checkFileReaderSyncSupport
-} from "@/lib/clo/readers/ZrestLoader";
-import * as THREE from "@/lib/threejs/three";
-import "@/lib/threejs/OrbitControls";
-import "@/lib/draco/DRACOLoader";
+  checkFileReaderSyncSupport,
+} from '@/lib/clo/readers/ZrestLoader';
+import * as THREE from '@/lib/threejs/three';
+import '@/lib/threejs/OrbitControls';
+import '@/lib/draco/DRACOLoader';
 
 import AnnotationManager from "@/lib/annotation/AnnotationManager";
 import TechPackManager from "@/lib/techPack/TechPackManager";
@@ -14,8 +14,8 @@ import RendererStats from "@xailabs/three-renderer-stats";
 import screenfull from "screenfull";
 import MobileDetect from "mobile-detect";
 
-import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
-import "@/lib/threejs/BufferGeometryUtils";
+import { MATMESH_TYPE } from '@/lib/clo/readers/predefined';
+import '@/lib/threejs/BufferGeometryUtils';
 
 let windowHalfX = window.innerWidth / 2;
 let windowHalfY = window.innerHeight / 2;
@@ -68,7 +68,6 @@ export default class ClosetViewer {
 
     this.object3D = null;
     this.loadTechPack = this.loadTechPack.bind(this);
-    this.loadTechPackJsonFromAPI = this.loadTechPackJsonFromAPI.bind(this);
   }
 
   init({ width, height, element, cameraPosition = null, stats }) {
@@ -88,7 +87,7 @@ export default class ClosetViewer {
     // create webgl renderer
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
-      preserveDrawingBuffer: true
+      preserveDrawingBuffer: true,
     });
     this.renderer.setClearColor(0xcccccc);
     this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -107,7 +106,7 @@ export default class ClosetViewer {
     // create camera controller
     this.controls = new THREE.OrbitControls(
       this.camera,
-      this.renderer.domElement
+      this.renderer.domElement,
     );
     this.controls.target = new THREE.Vector3(0, cameraHeight, 0);
     this.controls.update();
@@ -137,7 +136,7 @@ export default class ClosetViewer {
 
     const DirLight1 = new THREE.DirectionalLight(0x6e6e6e);
     DirLight1.position.set(1500, 3000, 1500);
-    DirLight1.castShadow = mobileDetect.os() === "iOS" ? false : true;
+    DirLight1.castShadow = mobileDetect.os() === 'iOS' ? false : true;
 
     // set up shadow properties for the light
     DirLight1.shadow.mapSize.width = 2048; // default
@@ -163,13 +162,13 @@ export default class ClosetViewer {
 
     const textureLoader = new THREE.TextureLoader();
     const texture = textureLoader.load(
-      require("@/lib/clo/background/img_3dwindow_bg_Designer.png")
+      require('@/lib/clo/background/img_3dwindow_bg_Designer.png'),
     );
     this.backgroundMesh = new THREE.Mesh(
       new THREE.PlaneGeometry(2, 2, 0),
       new THREE.MeshBasicMaterial({
-        map: texture
-      })
+        map: texture,
+      }),
     );
 
     this.backgroundMesh.material.depthTest = false;
@@ -218,9 +217,9 @@ export default class ClosetViewer {
     }
 
     if (!PRODUCTION && this.stats) {
-      rendererStats.domElement.style.position = "absolute";
-      rendererStats.domElement.style.left = "-100px";
-      rendererStats.domElement.style.top = "0px";
+      rendererStats.domElement.style.position = 'absolute';
+      rendererStats.domElement.style.left = '-100px';
+      rendererStats.domElement.style.top = '0px';
       this.setter.appendChild(rendererStats.domElement);
     }
 
@@ -236,16 +235,16 @@ export default class ClosetViewer {
     // NOTE: This module works to test only
     e.preventDefault();
 
-    if (this.annotation && this.object3D) this.annotation.onMouseDown(e);
+    if (this.annotation && this.object3D) {
+      this.annotation.onMouseDown(e);
+    }
 
     if (this.techPack) {
       const selectedMarker = this.techPack.onMouseDown(e);
       if (selectedMarker) {
-        console.log("selectedMarker");
-        console.log(selectedMarker);
         const selectedMarkerIdx = selectedMarker.message - 1;
         this.techPack.onMarker([
-          { index: selectedMarkerIdx, id: selectedMarker.message }
+          { index: selectedMarkerIdx, id: selectedMarker.message },
         ]);
         this.updateRenderer();
       }
@@ -265,34 +264,34 @@ export default class ClosetViewer {
   setVisibleAllGarment(visibility) {
     if (!this.zrest) return;
 
-    const isGarment = patternType => {
+    const isGarment = (patternType) => {
       return this.mapGarmentType.indexOf(patternType) > -1;
     };
 
-    for (let i = 0; i < this.zrest.matMeshList.length; ++i) {
-      const t = this.zrest.matMeshList[i].userData.TYPE;
-
-      if (isGarment(t)) {
-        this.zrest.matMeshList[i].visible = visibility;
+    this.zrest.matMeshMap.forEach((matMesh) => {
+      if (isGarment(matMesh.userData.TYPE)) {
+        matMesh.visible = visibility;
       }
-    }
+    });
 
     this.updateRenderer();
   }
 
   setVisibleAllMarker(isVisibleTechPackMarker) {
-    if (!this.techPack) return;
-
+    if (!this.techPack) {
+      console.log('techPack is not found');
+      return;
+    }
     this.techPack.setAllMarkerVisible(isVisibleTechPackMarker);
     this.updateRenderer();
   }
 
   isExistGarment() {
-    return this.isExistMatMeshType(this.zrest.MATMESH_TYPE.PATTERN_MATMESH);
+    return this.isExistMatMeshType(MATMESH_TYPE.PATTERN_MATMESH);
   }
 
   isExistAvatar() {
-    return this.isExistMatMeshType(this.zrest.MATMESH_TYPE.AVATAR_MATMESH);
+    return this.isExistMatMeshType(MATMESH_TYPE.AVATAR_MATMESH);
   }
 
   isAvailableShowHide() {
@@ -314,17 +313,12 @@ export default class ClosetViewer {
   }
 
   setAllAvatarVisible(visibility) {
-    this.zrest.matMeshMap.forEach(matMesh => {
+    this.zrest.matMeshMap.forEach((matMesh) => {
       if (matMesh.userData.TYPE === MATMESH_TYPE.AVATAR_MATMESH) {
         matMesh.visible = visibility;
       }
     });
 
-    this.updateRenderer();
-  }
-
-  setPatternVisible(patternIdx, bVisible) {
-    this.techPack.setPatternVisible(patternIdx, bVisible);
     this.updateRenderer();
   }
 
@@ -462,10 +456,6 @@ export default class ClosetViewer {
     }
   }
 
-  onUpdateCamera(callback) {
-    this.updateCamera = callback;
-  }
-
   loadZrestUrl(url, onProgress, onLoad, colorwayIndex) {
     if (!url) return;
     this.loadZrestUrlWithParameters(url, onProgress, onLoad, colorwayIndex);
@@ -514,7 +504,7 @@ export default class ClosetViewer {
         matMeshType.PRINTOVERLAY_MATMESH,
         matMeshType.BUTTONHEAD_MATMESH,
         matMeshType.STITCH_MATMESH,
-        matMeshType.BUTTONHOLE_MATMESH
+        matMeshType.BUTTONHOLE_MATMESH,
       ];
 
       this.updateRenderer();
@@ -530,7 +520,7 @@ export default class ClosetViewer {
         scene: this.scene,
         camera: this.camera,
         controls: this.controls,
-        cameraPosition: this.cameraPosition
+        cameraPosition: this.cameraPosition,
       });
       this.zrest.parse(url, loaded);
       return;
@@ -541,16 +531,16 @@ export default class ClosetViewer {
         scene: this.scene,
         camera: this.camera,
         controls: this.controls,
-        cameraPosition: this.cameraPosition
+        cameraPosition: this.cameraPosition,
       });
       this.zrest.load(url, loaded, progress, error);
     }
   }
 
-  loadTechPack() {
+  loadTechPack(fabricsWithPatternsFromAPI, trimsFromAPI) {
     const matShapeMap = this.zrest.meshFactory.matmeshManager.matShapeMap;
     const matMeshMap = this.zrest.matMeshMap;
-    this.techPack.loadTechPack(matShapeMap, matMeshMap);
+    this.techPack.load(matShapeMap, matMeshMap, fabricsWithPatternsFromAPI, trimsFromAPI);
   }
 
   loadStyleLine() {
@@ -558,17 +548,8 @@ export default class ClosetViewer {
     this.techPack.loadStyleLine(styleLineMap);
   }
 
-  loadTechPackJsonFromAPI(
-    pattern,
-    fabric,
-    { graphic, buttonHead, buttonHole, topstitch }
-  ) {
-    this.techPack.loadJsonFromAPI(pattern, fabric, {
-      graphic,
-      buttonHead,
-      buttonHole,
-      topstitch
-    });
+  onUpdateCamera(callback) {
+    this.updateCamera = callback;
   }
 
   setCameraPosition(position, target) {
@@ -582,10 +563,10 @@ export default class ClosetViewer {
   }
 
   isExistMatMeshType(type) {
-    const list = this.zrest.matMeshList;
-    // const list = this.zrest.matMeshMap;
-    for (let i = 0; i < list.length; ++i) {
-      if (list[i].userData.TYPE === type) {
+    if (typeof (this.zrest) === 'undefined') return false;
+
+    for (const matMesh of this.zrest.matMeshMap) {
+      if (matMesh[1].userData.TYPE === type) {
         return true;
       }
     }
@@ -618,9 +599,7 @@ export default class ClosetViewer {
 
     const matMeshMap = this.zrest.matMeshMap;
 
-    //matMeshMap.forEach(async matMesh => {
-    // for (let i = 0; i < matMeshList.length; ++i) {
-    for (let matMesh of matMeshMap.values()) {
+    for (const matMesh of matMeshMap.values()) {
       const prevMaterial = matMesh.material;
       let bPrevUseSeamPuckeringMap = false;
       if (prevMaterial.uniforms.bUseSeamPuckeringNormal !== undefined) {
@@ -636,7 +615,7 @@ export default class ClosetViewer {
         },
         function () {
           // console.log("unsuccess deallocation");
-        }
+        },
       );
 
       const id = matMesh.userData.MATMESH_ID;
@@ -649,7 +628,7 @@ export default class ClosetViewer {
         number,
         bPrevUseSeamPuckeringMap,
         this.zrest.camera,
-        this.zrest.meshFactory.version
+        this.zrest.meshFactory.version,
       );
     }
 
