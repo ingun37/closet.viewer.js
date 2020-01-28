@@ -89,28 +89,28 @@ class AnnotationManager {
 
   createAnnotation({ pointerPos, faceNormal, cameraPos, cameraTarget, cameraQuaternion, message }, isVisible = true) {
     let id = undefined;
-    if (!bDuplicatePos) {
-      // pointer 좌표만 들고있다가 render 할때마다 만드는건 개 비효율이겠지? 그냥 그때 그때 계속 추가하자.
-      const params = {
-        fontsize: 48,
-        borderColor: { r: 255, g: 255, b: 255, a: 0.5 },
-        backgroundColor: { r: 0, g: 0, b: 0, a: 0.5 },
-        fillStyle: 'rgba(255, 255, 255, 1.0)',
-        name: 'annotation',
-      };
+    
+    // pointer 좌표만 들고있다가 render 할때마다 만드는건 개 비효율이겠지? 그냥 그때 그때 계속 추가하자.
+    const params = {
+      fontsize: 48,
+      borderColor: { r: 255, g: 255, b: 255, a: 0.5 },
+      backgroundColor: { r: 0, g: 0, b: 0, a: 0.5 },
+      fillStyle: 'rgba(255, 255, 255, 1.0)',
+      name: 'annotation',
+    };
 
-      const sprite = makeTextSprite(message, params);
-      sprite.position.set(pointerPos.x, pointerPos.y, pointerPos.z);
-      sprite.visible = isVisible;
-      this.annotationContainer.add(sprite);
-      this.annotationPointerList.push(sprite);
-      id = sprite.id;
+    const sprite = makeTextSprite(message, params);
+    sprite.position.set(pointerPos.x, pointerPos.y, pointerPos.z);
+    sprite.visible = isVisible;
+    this.annotationContainer.add(sprite);
+    this.annotationPointerList.push(sprite);
+    id = sprite.id;
 
-      const annotation = new Marker(pointerPos, faceNormal, cameraPos, this.controls.target, this.camera.quaternion, message, sprite);
-      this.annotationList.push(annotation);
-      this.updateRenderer();
-    }
-    return id;
+    const annotation = new Marker(pointerPos, faceNormal, cameraPos, this.controls.target, this.camera.quaternion, message, sprite);
+    this.annotationList.push(annotation);
+    this.updateRenderer();
+
+      return id;
   }
 
   deleteAnnotation(name) {
