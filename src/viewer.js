@@ -68,10 +68,14 @@ export default class ClosetViewer {
 
     this.object3D = null;
     this.loadTechPack = this.loadTechPack.bind(this);
+
+    this.mobileDetect = null;
+    this.alertVersion = this.alertVersion.bind(this);
   }
 
   init({ width, height, element, cameraPosition = null, stats }) {
-    const mobileDetect = new MobileDetect(window.navigator.userAgent);
+    this.mobileDetect = new MobileDetect(window.navigator.userAgent);
+
     const w = (this.defaultWidth = width);
     const h = (this.defaultHeight = height);
 
@@ -136,7 +140,7 @@ export default class ClosetViewer {
 
     const DirLight1 = new THREE.DirectionalLight(0x6e6e6e);
     DirLight1.position.set(1500, 3000, 1500);
-    DirLight1.castShadow = mobileDetect.os() === 'iOS' ? false : true;
+    DirLight1.castShadow = this.mobileDetect.os() === 'iOS' ? false : true;
 
     // set up shadow properties for the light
     DirLight1.shadow.mapSize.width = 2048; // default
@@ -633,6 +637,11 @@ export default class ClosetViewer {
     }
 
     this.updateRenderer();
+  }
+
+  // TEMP
+  alertVersion() {
+    alert(this.mobileDetect.os());
   }
 
   SafeDeallocation(object, type, type_cb, nontype_cb) {
