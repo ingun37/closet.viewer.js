@@ -32,6 +32,7 @@ class TechPackManager {
     this.loadStyleLine = this.loadStyleLine.bind(this);
 
     this.setActiveMarkerManager = this.setActiveMarkerManager.bind(this);
+    this.setActiveMarker = this.setActiveMarkerManager.bind(this); // Deplicated
 
     this.setPatternVisible = this.setPatternVisible.bind(this);
     this.setAllPatternVisible = this.setAllPatternVisible.bind(this);
@@ -85,8 +86,8 @@ class TechPackManager {
   ) {
     // TODO: Write completely this code
     // this.clearTechPack();
-    this.matShapeMap = matShapeMap;
-    this.matMeshMap = matMeshMap;
+    this.matShapeMap = matShapeMap || new Map();
+    this.matMeshMap = matMeshMap || new Map();
     this.extractInfoFromAPI(fabricsWithPatterns, trims).then(
       this.setActiveMarkerManager(defaultMarker)
     );
@@ -137,21 +138,14 @@ class TechPackManager {
     });
   }
 
-  // NOTE: Prettier makes code weird. Find the solution.
+  // NOTE: Prettier makes code weird. This issue not resolve yet.
+  // prettier-ignore
   getMousePosition({ clientX, clientY }) {
     const canvasBounds = this.renderer.context.canvas.getBoundingClientRect();
     const x =
-      ((clientX - canvasBounds.left) /
-        (canvasBounds.right - canvasBounds.left)) *
-      2 -
-      1;
+      ((clientX - canvasBounds.left) / (canvasBounds.right - canvasBounds.left)) * (2 - 1);
     const y =
-      -(
-        (clientY - canvasBounds.top) /
-        (canvasBounds.bottom - canvasBounds.top)
-      ) *
-      2 +
-      1;
+      -((clientY - canvasBounds.top) / (canvasBounds.bottom - canvasBounds.top)) * (2 + 1);
 
     return { x, y };
   }
@@ -159,46 +153,83 @@ class TechPackManager {
   async extractInfoFromAPI(fabricsWithPatterns, trims) {
     this.fabricsWithPatterns = fabricsWithPatterns;
 
-    // Build PatternMap
-    fabricsWithPatterns.forEach(fabric => {
-      fabric.Patterns.forEach(pattern => {
-        this.patternMap.set(parseInt(pattern.Number), pattern);
-      });
-    });
+    const isEmpty = obj => {
+      if (typeof obj === 'undefined') return true;
+      else return (obj.length <= 0);
+    };
 
-    // Build TrimMapList
-    // NOTE: This filter is temperal. Filter should be removed after update topstitch.
-    trims
-      .filter(group => group.GroupName != "Topstitch")
-      .forEach(group => {
+    const buildPatternMap = fabricsWithPatterns => {
+      if (isEmpty(fabricsWithPatterns)) return;
+
+      fabricsWithPatterns.forEach(fabric => {
+        const patterns = fabric.Patterns;
+        if (patterns.length) {
+          patterns.forEach(pattern => {
+            this.patternMap.set(parseInt(pattern.Number), pattern);
+          });
+        }
+      });
+    };
+
+    // NOTE: This filter is temperal. 
+    // The filter should be removed when updating API with the right information about topstitch.
+    const buildTrimMapList = trims => {
+      if (!trims) return;
+
+      const trimsWithoutTopstitch = trims.filter(
+        group => group.GroupName != "Topstitch"
+      );
+
+      if (isEmpty(trimsWithoutTopstitch)) return;
+
+      trimsWithoutTopstitch.forEach(group => {
         // Remove spaces on string
         const groupName = group.GroupName.replace(/\s/g, "");
         group.Trims.forEach(trim => {
           this.trimMapList[groupName].set(trim.Number, trim);
         });
       });
+    };
 
-    // Build uncategorizedMeshMap
-    this.stitchMeshMap = new Map();
-    this.matMeshMap.forEach(mesh => {
-      if (mesh.userData.TYPE == MATMESH_TYPE.STITCH_MATMESH) {
-        const matMeshID = mesh.userData.MATMESH_ID;
-        this.stitchMeshMap.set(matMeshID, mesh);
-      }
-    }); // filter((mesh) => {return (mesh.userData.TYPE == MATMESH_TYPE.STITCH_MATMESH)});
+    const buildStitchMeshMap = () => {
+      if (this.matMeshMap.size <= 0) return;
 
+      this.stitchMeshMap = new Map();
+      this.matMeshMap.forEach(mesh => {
+        if (mesh.userData.TYPE == MATMESH_TYPE.STITCH_MATMESH) {
+          const matMeshID = mesh.userData.MATMESH_ID;
+          this.stitchMeshMap.set(matMeshID, mesh);
+        }
+      });
+    };
+
+    // Build maps from API
+    buildPatternMap(fabricsWithPatterns);
+    buildTrimMapList(trims);
+    buildStitchMeshMap();
+
+    // Build markers
     this.buildPatternMarkers(fabricsWithPatterns);
     this.buildFabricMarkers(fabricsWithPatterns);
     this.buildTrimMarkers(trims);
   }
 
   buildPatternMarkers(fabricsWithPatterns) {
+    if (!fabricsWithPatterns) return;
+
     const patternMeshIdList = [];
     fabricsWithPatterns.forEach(fabric => {
-      fabric.Patterns.forEach(pattern => {
-        patternMeshIdList.push(pattern.MatMeshIdList[0]);
-      });
+      const patterns = fabric.Patterns;
+      if (patterns) {
+        patterns.forEach(pattern => {
+          const matMeshList = pattern.MatMeshIdList;
+          if (matMeshList) {
+            patternMeshIdList.push(matMeshList[0]);
+          }
+        });
+      }
     });
+
     this.buildMarkersFromList(
       this.patternMarker,
       patternMeshIdList,
@@ -207,9 +238,17 @@ class TechPackManager {
   }
 
   buildFabricMarkers(fabricsWithPatterns) {
+    if (!fabricsWithPatterns) return;
+
     const fabricMeshIdList = [];
     fabricsWithPatterns.forEach(fabric => {
-      fabricMeshIdList.push(fabric.Patterns[0].MatMeshIdList[0]);
+      const patterns = fabric.Patterns;
+      if (patterns.length) {
+        const matMeshIdList = patterns[0].MatMeshIdList;
+        if (matMeshIdList) {
+          fabricMeshIdList.push(fabric.Patterns[0].MatMeshIdList[0]);
+        }
+      }
     });
     this.buildMarkersFromList(
       this.fabricMarker,
@@ -219,16 +258,18 @@ class TechPackManager {
   }
 
   buildTrimMarkers(trims) {
+    if (!trims) return;
+
     let labelCounter = 1;
     trims.forEach(trimGroup => {
       trimGroup.Trims.forEach(trim => {
-        if (trim.MatMeshIdList.length > 0) {
+        if (trim.MatMeshIdList) {
           labelCounter = this.buildMarkersFromList(
             this.trimMarker,
             trim.MatMeshIdList,
             this.matShapeMap,
             labelCounter,
-            0
+            0 // labelIncrement: 0
           );
         }
       });
@@ -237,7 +278,11 @@ class TechPackManager {
 
   isSmallerThanMarker(matMeshId) {
     const matShape = this.matShapeMap.get(matMeshId);
-    return matShape.get("fBoundingSphereRadius") < config.boundingBoxThreshold;
+    if (!matShape) return false;
+    else {
+      const radius = matShape.get("fBoundingSphereRadius") || config.INF;
+      return radius < config.boundingBoxThreshold;
+    }
   }
 
   buildMarkersFromList(
@@ -258,15 +303,8 @@ class TechPackManager {
     const shouldTranslate = this.isSmallerThanMarker(matMeshIdList[0]);
     matMeshIdList.forEach(matMeshId => {
       const matShape = matShapeMap.get(Number(matMeshId));
-      if (
-        this.buildMarker(
-          labelCounter,
-          markerManager,
-          matShape,
-          -1,
-          shouldTranslate
-        )
-      ) {
+      const isSucceedToBuild = this.buildMarker(labelCounter, markerManager, matShape, -1, shouldTranslate);
+      if (isSucceedToBuild) {
         amountOfBuiltMarkers++;
       }
       labelCounter += labelIncrement;
@@ -280,7 +318,7 @@ class TechPackManager {
       : labelCounter + 1;
   }
 
-  // Return true if success
+  // NOTE: Returns 'true' if success to build
   buildMarker(
     markerMessage,
     markerManager,
@@ -316,10 +354,14 @@ class TechPackManager {
   }
 
   setPatternVisible(patternNo, bVisible) {
-    if (!this.isValidPatternNo) {
-      return;
-    }
-    this.patternMap.get(patternNo).MatMeshIdList.forEach(matMeshId => {
+    if (!this.isValidPatternNo) return;
+
+    const pattern = this.patternMap.get(patternNo);
+    const matMeshIdList = pattern.MatMeshIdList;
+
+    if (!matMeshIdList) return;
+
+    matMeshIdList.forEach(matMeshId => {
       const mesh = this.matMeshMap.get(matMeshId);
       if (mesh) {
         mesh.visible = bVisible;
@@ -334,12 +376,14 @@ class TechPackManager {
   }
 
   setPatternTransparency(patternNo, opacity) {
-    if (!this.isValidPatternNo) {
-      return;
-    }
+    if (!this.isValidPatternNo) return;
 
     const pattern = this.patternMap.get(patternNo);
-    pattern.MatMeshIdList.forEach(matMeshId => {
+    const matMeshIdList = pattern.MatMeshIdList;
+
+    if (!matMeshIdList) return;
+
+    matMeshIdList.forEach(matMeshId => {
       this.setMatMeshTransparency(matMeshId, opacity);
     });
   }
@@ -472,9 +516,12 @@ class TechPackManager {
   }
 
   setStyleLineVisibleByPatternNo(patternNo, bVisible) {
-    const firstMatMeshIDOnMarker = this.patternMap.get(patternNo)
-      .MatMeshIdList[0];
-    this.setStyleLineVisible(firstMatMeshIDOnMarker, bVisible);
+    const pattern = this.patternMap.get(patternNo);
+    const matMeshIdList = pattern.MatMeshIdList;
+    if (!matMeshIdList) return;
+
+    const firstMatMeshIdOnMarker = matMeshIdList[0];
+    this.setStyleLineVisible(firstMatMeshIdOnMarker, bVisible);
   }
 
   setStyleLineVisible(firstLayerMatMeshID, bVisible) {

@@ -5,6 +5,8 @@ import { Marker, makeTextSprite } from '@/lib/marker/Marker';
 const pointerScaleVector = new THREE.Vector3();
 const pointerScaleFactor = 100;
 
+// TODO: Index and message are ambiguous and used mixed up. Have to fix.
+
 class MarkerManager {
   constructor(markerName, { scene, camera, renderer, controls }) {
     this.markerName = markerName;
@@ -79,7 +81,7 @@ class MarkerManager {
     this.container.add(sprite);
 
     // NOTE: A message of a marker replaced with a index.
-    const marker = new Marker(pointerPos, faceNormal, cameraPos, cameraTarget, cameraQuaternion, index, sprite);
+    const marker = new Marker(pointerPos, faceNormal, cameraPos, cameraTarget, cameraQuaternion, message, sprite);
     this.markerMap.set(index, marker);
 
     this.refreshGeometryList();
