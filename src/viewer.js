@@ -679,10 +679,10 @@ export default class ClosetViewer {
       return;
     }
 
-    if (this.zrest.currentColorwayIndex === number) {
-      console.log("index is same current index");
-      return;
-    }
+    // if (this.zrest.currentColorwayIndex === number) {
+    //   console.log("index is same current index");
+    //   return;
+    // }
 
     if (this.zrest.jsZip === undefined || this.zrest.jsZip === null) {
       console.log("zip is null");
