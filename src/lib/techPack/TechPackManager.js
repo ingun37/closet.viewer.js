@@ -435,7 +435,7 @@ class TechPackManager {
   }
 
   setAllStitchVisible(bVisible) {
-    this.trimMapList.Topstitch.forEach(stitchMesh => {
+    this.stitchMeshMap.forEach(stitchMesh => {
       const matMeshId = stitchMesh.userData.MATMESH_ID;
       this.setMatMeshVisible(matMeshId, bVisible);
     });
