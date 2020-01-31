@@ -92,8 +92,9 @@ export default class ClosetViewer {
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
       preserveDrawingBuffer: true,
+      alpha: true
     });
-    this.renderer.setClearColor(0xcccccc);
+    this.renderer.setClearAlpha(0);
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(w, h);
     this.renderer.sortObjects = false; // 투명 object 제대로 렌더링하려면 자동 sort 꺼야 한다
@@ -168,21 +169,6 @@ export default class ClosetViewer {
     const texture = textureLoader.load(
       require('@/lib/clo/background/img_3dwindow_bg_Designer.png'),
     );
-    this.backgroundMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(2, 2, 0),
-      new THREE.MeshBasicMaterial({
-        map: texture,
-      }),
-    );
-
-    this.backgroundMesh.material.depthTest = false;
-    this.backgroundMesh.material.depthWrite = false;
-
-    this.backgroundScene = new THREE.Scene();
-    this.backgroundCamera = new THREE.Camera();
-
-    this.backgroundScene.add(this.backgroundCamera);
-    this.backgroundScene.add(this.backgroundMesh);
 
     this.annotation = new AnnotationManager({
       scene: this.scene,
@@ -436,8 +422,6 @@ export default class ClosetViewer {
 
     this.renderer.autoClear = false;
     this.renderer.clear();
-
-    this.renderer.render(this.backgroundScene, this.backgroundCamera); // draw background
     this.renderer.render(this.scene, this.camera); // draw object
 
     if (!PRODUCTION) rendererStats.update(this.renderer);
