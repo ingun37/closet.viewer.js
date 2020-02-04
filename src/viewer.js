@@ -60,6 +60,8 @@ export default class ClosetViewer {
     this.isExistAvatar = this.isExistAvatar.bind(this);
     this.getGarmentShowHideStatus = this.getGarmentShowHideStatus.bind(this);
     this.getAvatarShowHideStatus = this.getAvatarShowHideStatus.bind(this);
+    this.GetGarmentShowHideStatus = this.getGarmentShowHideStatus.bind(this);     // Deprecated
+    this.GetAvatarShowHideStatus = this.getAvatarShowHideStatus.bind(this);    // Deprecated
     this.isAvailableShowHide = this.isAvailableShowHide.bind(this);
     this.setCameraPosition = this.setCameraPosition.bind(this);
     this.updateRenderer = this.updateRenderer.bind(this);

@@ -32,7 +32,7 @@ class TechPackManager {
     this.loadStyleLine = this.loadStyleLine.bind(this);
 
     this.setActiveMarkerManager = this.setActiveMarkerManager.bind(this);
-    this.setActiveMarker = this.setActiveMarkerManager.bind(this); // Deplicated
+    this.setActiveMarker = this.setActiveMarkerManager.bind(this); // Deprecated
 
     this.setPatternVisible = this.setPatternVisible.bind(this);
     this.setAllPatternVisible = this.setAllPatternVisible.bind(this);
