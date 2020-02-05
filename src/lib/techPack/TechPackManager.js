@@ -39,7 +39,6 @@ class TechPackManager {
     this.setPatternTransparency = this.setPatternTransparency.bind(this);
     this.setAllPatternTransparency = this.setAllPatternTransparency.bind(this);
 
-    this.loadStyleLine = this.loadStyleLine.bind(this);
     this.setStyleLineVisibleByPatternNo = this.setStyleLineVisibleByPatternNo.bind(
       this
     );
@@ -85,7 +84,9 @@ class TechPackManager {
     defaultMarker = "pattern"
   ) {
     // TODO: Write completely this code
-    // this.clearTechPack();
+    this.clear();
+    this.init();
+
     this.matShapeMap = matShapeMap || new Map();
     this.matMeshMap = matMeshMap || new Map();
     this.extractInfoFromAPI(fabricsWithPatterns, trims).then(
@@ -109,16 +110,20 @@ class TechPackManager {
       Graphic: new Map(),
       ButtonHead: new Map(),
       ButtonHole: new Map(),
-      Topstitch: new Map()
+      Topstitch: new Map(),
+      Zipper: new Map()
     };
   }
 
-  clearTechPack() {
-    // FIXME: This module not gonna work
-    this.markerMap = new Map();
-    this.markerGeometryList = [];
+  clear() {
+    this.matShapeMap = new Map();
+    this.matMeshMap = new Map();
     this.styleLineMap = new Map();
-    this.patternList = [];
+
+    this.patternMap = new Map();
+    this.trimMapList = [];
+    this.fabricsWithPatterns = [];
+    this.stitchMeshMap = new Map(); // NOTE: This is temporary    
 
     this.markerManagers.forEach(manager => {
       manager.deactivate();
@@ -126,8 +131,6 @@ class TechPackManager {
 
     delete this.patternMarkerContainer;
     delete this.styleLineContainer;
-
-    this.init();
   }
 
   updatePointerSize() {
@@ -138,7 +141,7 @@ class TechPackManager {
     });
   }
 
-  // NOTE: Prettier makes code weird. This issue not resolve yet.
+  // NOTE: Prettier makes code weird. This issue not resolved yet.
   // prettier-ignore
   getMousePosition({ clientX, clientY }) {
     const canvasBounds = this.renderer.context.canvas.getBoundingClientRect();
@@ -175,6 +178,7 @@ class TechPackManager {
     // The filter should be removed when updating API with the right information about topstitch.
     const buildTrimMapList = trims => {
       if (!trims) return;
+
 
       const trimsWithoutTopstitch = trims.filter(
         group => group.GroupName != "Topstitch"
@@ -260,8 +264,18 @@ class TechPackManager {
   buildTrimMarkers(trims) {
     if (!trims) return;
 
+    // NOTE: This is a temporary code to filter zipper. 
+    //       Because zipper needs only 1 marker, unlike other type trims.
+    const isZipper = (groupName) => {
+      return groupName === 'Zipper'
+    };
+
     let labelCounter = 1;
     trims.forEach(trimGroup => {
+      // NOTE: labelIncrement should be 0 to build to multiple markers that have the same number. 
+      //       Because trims except zipper could have many markers.
+      const labelIncrement = (isZipper(trimGroup.GroupName)) ? 1 : 0;
+
       trimGroup.Trims.forEach(trim => {
         if (trim.MatMeshIdList) {
           labelCounter = this.buildMarkersFromList(
@@ -269,7 +283,7 @@ class TechPackManager {
             trim.MatMeshIdList,
             this.matShapeMap,
             labelCounter,
-            0 // labelIncrement: 0
+            labelIncrement
           );
         }
       });
@@ -418,13 +432,17 @@ class TechPackManager {
     return patternNo > 0 && patternNo <= this.patternMap.size;
   }
 
-  setTrimTransparency(trimGroupName, trimNo, opacity) {
-    const trim = this.trimMapList[trimGroupName];
-    if (trim == "undefined" || trim.get(trimNo) == "undefined") return;
-
-    trim.get(trimNo).matMeshIdList.forEach(matMeshId => {
-      this.setMatMeshTransparency(matMeshId, opacity);
-    });
+  setTrimVisible(trimNo, bVisible) {
+    Object.values(this.trimMapList).forEach(trimMap => {
+      if (trimMap.has(trimNo)) {
+        const matMeshList = trimMap.get(trimNo).MatMeshIdList;
+        if (matMeshList) {
+          matMeshList.forEach(matMesh => {
+            this.setMatMeshVisible(matMesh, bVisible);
+          });
+        }
+      };
+    })
   }
 
   setAllStitchTransparency(opacity) {
@@ -458,30 +476,8 @@ class TechPackManager {
     }
   }
 
-  setSelectedTrimTransparency(
-    selectedTrimNo,
-    opacityForSelected,
-    opacityForNotSelected
-  ) {
-    Object.entries(this.trimMapList).forEach(group => {
-      const groupMap = group[1]; // Note: group is [trimType, Map]. for example, ["ButtonHead", Map(1)].
-      if (groupMap.size > 0) {
-        groupMap.forEach(trim => {
-          const opacity =
-            trim.Number == selectedTrimNo
-              ? opacityForSelected
-              : opacityForNotSelected;
-          trim.MatMeshIdList.forEach(matMeshId => {
-            this.setMatMeshTransparency(matMeshId, opacity);
-          });
-        });
-      }
-    });
-  }
-
   setAllTrimVisible(bVisible) {
-    Object.entries(this.trimMapList).forEach(group => {
-      const groupMap = group[1]; // Note: group is [trimType, Map]. for example, ["ButtonHead", Map(1)].
+    Object.values(this.trimMapList).forEach(groupMap => {
       if (groupMap.size > 0) {
         groupMap.forEach(trim => {
           trim.MatMeshIdList.forEach(matMeshId => {
@@ -490,13 +486,6 @@ class TechPackManager {
         });
       }
     });
-  }
-
-  loadStyleLine(styleLineMap) {
-    if (!styleLineMap) return;
-
-    this.styleLineMap = styleLineMap;
-    this.addStyleLinesToScene(false);
   }
 
   loadStyleLine(styleLineMap) {
@@ -584,11 +573,7 @@ class TechPackManager {
 
     const actionsForTrim = trimIdx => {
       const trimNo = trimIdx + 1;
-      this.setSelectedTrimTransparency(
-        trimNo,
-        1.0,
-        config.unselectedMarkerOpacity
-      );
+      this.setTrimVisible(trimNo, true);
       this.trimMarker.setVisibleByMessage(trimNo, true);
     };
 
@@ -596,6 +581,7 @@ class TechPackManager {
     if (hasSelectedMarker) {
       this.setAllPatternTransparency(config.unselectedMarkerOpacity);
       this.setAllStitchTransparency(config.unselectedMarkerOpacity);
+      this.setAllTrimVisible(false);
     } else {
       // Return to default setting
       this.setAllPatternTransparency(1.0);
@@ -604,7 +590,6 @@ class TechPackManager {
       this.setAllStitchVisible(true);
       this.setAllTrimVisible(true);
     }
-
     this.setAllMarkerVisible(false);
     this.setAllStyleLineVisible(false);
 
