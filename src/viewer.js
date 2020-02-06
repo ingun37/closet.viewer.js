@@ -324,12 +324,6 @@ export default class ClosetViewer {
     this.updateRenderer();
   }
 
-  setSelectedPatternTranparency(patternIdx) {
-    this.techPack.setAllPatternTransparency(this.config.selectedMarkerOpacity);
-    this.techPack.togglePatternTransparency(patternIdx);
-    this.updateRenderer();
-  }
-
   setAllPatternTransparency(shouldReset = true) {
     const opacity = shouldReset ? 1.0 : this.config.selectedMarkerOpacity;
     this.techPack.setAllPatternTransparency(opacity);

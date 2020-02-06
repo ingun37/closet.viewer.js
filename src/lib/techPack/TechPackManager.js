@@ -6,8 +6,11 @@ import MarkerManager from "@/lib/marker/MarkerManager";
 
 const config = {
   unselectedMarkerOpacity: 0.1,
+  defaultMarkerOpacity: 1.0,
+  meshTransparentOpacity: 0.1,
+  meshDefaultOpacity: 1.0,
+  boundingBoxThreshold: 15.0,
   INF: 999999,
-  boundingBoxThreshold: 15.0
 };
 
 class TechPackManager {
@@ -25,6 +28,7 @@ class TechPackManager {
     this.trimMapList = [];
     this.fabricsWithPatterns = [];
     this.stitchMeshMap = new Map(); // NOTE: This is temporary
+    this.opacityValueMap = new Map();
 
     this.raycaster = new THREE.Raycaster(); // FIXME: Is this necessary?
 
@@ -33,11 +37,6 @@ class TechPackManager {
 
     this.setActiveMarkerManager = this.setActiveMarkerManager.bind(this);
     this.setActiveMarker = this.setActiveMarkerManager.bind(this); // Deprecated
-
-    this.setPatternVisible = this.setPatternVisible.bind(this);
-    this.setAllPatternVisible = this.setAllPatternVisible.bind(this);
-    this.setPatternTransparency = this.setPatternTransparency.bind(this);
-    this.setAllPatternTransparency = this.setAllPatternTransparency.bind(this);
 
     this.setStyleLineVisibleByPatternNo = this.setStyleLineVisibleByPatternNo.bind(
       this
@@ -115,6 +114,9 @@ class TechPackManager {
     };
   }
 
+  // NOTE: Actually, this function does not work to 'clear'.
+  //       Generally 'clear' means function for memory deallocation.
+  //       Should be changed in the future, at least when releasing to the public.
   clear() {
     this.matShapeMap = new Map();
     this.matMeshMap = new Map();
@@ -124,6 +126,7 @@ class TechPackManager {
     this.trimMapList = [];
     this.fabricsWithPatterns = [];
     this.stitchMeshMap = new Map(); // NOTE: This is temporary    
+    this.opacityValueMap = new Map();
 
     this.markerManagers.forEach(manager => {
       manager.deactivate();
@@ -221,15 +224,30 @@ class TechPackManager {
   buildPatternMarkers(fabricsWithPatterns) {
     if (!fabricsWithPatterns) return;
 
+    const addOpacityToMap = (matMeshIdList) => {
+      matMeshIdList.forEach(matMeshId => {
+        const mesh = this.matMeshMap.get(matMeshId);
+        if (mesh) {
+          const opacity = mesh.material.uniforms.materialOpacity.value;
+          if (opacity !== config.meshDefaultOpacity) {
+            this.opacityValueMap.set(matMeshId, opacity)
+          }
+        }
+      });
+    };
+
     const patternMeshIdList = [];
     fabricsWithPatterns.forEach(fabric => {
       const patterns = fabric.Patterns;
       if (patterns) {
         patterns.forEach(pattern => {
-          const matMeshList = pattern.MatMeshIdList;
-          if (matMeshList) {
-            patternMeshIdList.push(matMeshList[0]);
-          }
+          const matMeshIdList = pattern.MatMeshIdList;
+          if (matMeshIdList) {
+            patternMeshIdList.push(matMeshIdList[0]);
+
+            // FIXME: It's working, but should be improved.
+            addOpacityToMap(matMeshIdList);
+          };
         });
       }
     });
@@ -389,7 +407,7 @@ class TechPackManager {
     });
   }
 
-  setPatternTransparency(patternNo, opacity) {
+  setPatternTransparent(patternNo, bTransparent) {
     if (!this.isValidPatternNo) return;
 
     const pattern = this.patternMap.get(patternNo);
@@ -398,34 +416,14 @@ class TechPackManager {
     if (!matMeshIdList) return;
 
     matMeshIdList.forEach(matMeshId => {
-      this.setMatMeshTransparency(matMeshId, opacity);
+      this.setMatMeshTransparent(matMeshId, bTransparent);
     });
   }
 
-  setAllPatternTransparency(opacity) {
+  setAllPatternTransparent(bTransparent) {
     this.patternMap.forEach(pattern => {
-      this.setPatternTransparency(pattern.Number, opacity);
+      this.setPatternTransparent(pattern.Number, bTransparent);
     });
-  }
-
-  togglePatternTransparency(
-    patternIdx,
-    selectedOpacity = 0.5,
-    defaultOpacity = 1.0
-  ) {
-    if (!this.isValidPatternNo) return;
-
-    for (let i = 0; i < 3; ++i) {
-      const currentPattern = this.patternList[patternIdx][i];
-      const currentOpacity =
-        currentPattern.material.uniforms.materialOpacity.value;
-      const opacity =
-        currentOpacity >= defaultOpacity ? selectedOpacity : defaultOpacity;
-      currentPattern.material.uniforms.materialOpacity = {
-        type: "f",
-        value: opacity
-      };
-    }
   }
 
   isValidPatternNo(patternNo) {
@@ -445,10 +443,10 @@ class TechPackManager {
     })
   }
 
-  setAllStitchTransparency(opacity) {
+  setAllStitchTransparent(bTransparent) {
     this.stitchMeshMap.forEach(stitchMesh => {
       const matMeshId = stitchMesh.userData.MATMESH_ID;
-      this.setMatMeshTransparency(matMeshId, opacity);
+      this.setMatMeshTransparent(matMeshId, bTransparent);
     });
   }
 
@@ -459,7 +457,26 @@ class TechPackManager {
     });
   }
 
-  setMatMeshTransparency(matMeshId, opacity) {
+  setMatMeshTransparent(matMeshId, bTransparent) {
+    const set = () => {
+      this.setMatMeshTransparencyByValue(matMeshId, config.meshTransparentOpacity);
+    }
+
+    const reset = () => {
+      const opacity = this.opacityValueMap.has(matMeshId) ?
+        this.opacityValueMap.get(matMeshId) :
+        config.meshDefaultOpacity;
+      this.setMatMeshTransparencyByValue(matMeshId, opacity);
+    }
+
+    const mesh = this.matMeshMap.get(matMeshId);
+    if (mesh) {
+      if (bTransparent) set();
+      else reset(mesh);
+    }
+  }
+
+  setMatMeshTransparencyByValue(matMeshId, opacity) {
     const mesh = this.matMeshMap.get(matMeshId);
     if (mesh) {
       mesh.material.uniforms.materialOpacity = {
@@ -554,7 +571,7 @@ class TechPackManager {
       this.setAllTrimVisible(false);
 
       const patternNo = patternIdx + 1;
-      this.setPatternTransparency(patternNo, 1.0);
+      this.setPatternTransparent(patternNo, false);
       this.patternMarker.setVisible(patternIdx, true);
 
       this.setStyleLineVisibleByPatternNo(patternNo, true);
@@ -569,7 +586,7 @@ class TechPackManager {
       selectedPattern.forEach(pattern => {
         const patternNo = pattern.Number;
         this.setPatternVisible(patternNo, true);
-        this.setPatternTransparency(patternNo, 1.0);
+        this.setPatternTransparent(patternNo, false);
       });
     };
 
@@ -581,13 +598,13 @@ class TechPackManager {
 
     const hasSelectedMarker = onMarkerItems.length > 0;
     if (hasSelectedMarker) {
-      this.setAllPatternTransparency(config.unselectedMarkerOpacity);
-      this.setAllStitchTransparency(config.unselectedMarkerOpacity);
+      this.setAllPatternTransparent(true);
+      this.setAllStitchTransparent(true);
       this.setAllTrimVisible(false);
     } else {
       // Return to default setting
-      this.setAllPatternTransparency(1.0);
-      this.setAllStitchTransparency(1.0);
+      this.setAllPatternTransparent(false);
+      this.setAllStitchTransparent(false);
       this.setAllPatternVisible(true);
       this.setAllStitchVisible(true);
       this.setAllTrimVisible(true);
