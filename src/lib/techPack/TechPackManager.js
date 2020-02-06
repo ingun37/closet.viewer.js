@@ -480,9 +480,11 @@ class TechPackManager {
     Object.values(this.trimMapList).forEach(groupMap => {
       if (groupMap.size > 0) {
         groupMap.forEach(trim => {
-          trim.MatMeshIdList.forEach(matMeshId => {
-            this.setMatMeshVisible(matMeshId, bVisible);
-          });
+          if (trim.MatMeshIdList) {
+            trim.MatMeshIdList.forEach(matMeshId => {
+              this.setMatMeshVisible(matMeshId, bVisible);
+            });
+          }
         });
       }
     });
