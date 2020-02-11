@@ -587,6 +587,7 @@ class TechPackManager {
         const patternNo = pattern.Number;
         this.setPatternVisible(patternNo, true);
         this.setPatternTransparent(patternNo, false);
+        this.setStyleLineVisibleByPatternNo(patternNo, true);
       });
     };
 
