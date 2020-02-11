@@ -2,15 +2,15 @@
 'use strict';
 import * as THREE from '@/lib/threejs/three';
 
-import {envDiffuseMap, envSpecularMap} from '@/lib/clo/file/EnvMapReader';
-import {loadTexture} from '@/lib/clo/readers/zrest_texture';
+import { envDiffuseMap, envSpecularMap } from '@/lib/clo/file/EnvMapReader';
+import { loadTexture } from '@/lib/clo/readers/zrest_texture';
 
 import fragmentShader from 'raw-loader!@/lib/clo/shader/fragmentShader.frag';
 import pbrFragmentShader from 'raw-loader!@/lib/clo/shader/pbrFragmentShader.frag';
 import vertexShader from 'raw-loader!@/lib/clo/shader/vertexShader.vert';
 import pbrVertexShader from 'raw-loader!@/lib/clo/shader/pbrVertexShader.vert';
 
-import {TEXTURE_TYPE, RENDER_FACE_TYPE} from '@/lib/clo/readers/predefined';
+import { TEXTURE_TYPE, RENDER_FACE_TYPE } from '@/lib/clo/readers/predefined';
 
 export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeringNormalMap, loadedCamera, drawMode, seamPuckeringNormalMap, nameToTextureMap, version) {
   const zRestColorwayMaterialArray = property.colorwayMaterials;
@@ -93,7 +93,7 @@ export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeri
     const tNull = buildTypeValue('t', null);
     const iZero = buildTypeValue('i', 0);
 
-    if (version <=2) {
+    if (version <= 2) {
       return {
         matGlobal: identityMatrix,
         matAmbient: identityMatrix,
@@ -211,7 +211,7 @@ export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeri
             */
           texture = nameToTextureMap.get(textureFileName);
 
-          if (! texture) {
+          if (!texture) {
             texture = await loadTexture(zip, textureFileName);
             nameToTextureMap.set(textureFileName, texture);
           }
