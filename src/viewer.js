@@ -574,11 +574,6 @@ export default class ClosetViewer {
       return;
     }
 
-    if (this.zrest.currentColorwayIndex === colorwayIdx) {
-      console.log("index is the same as current index");
-      return;
-    }
-
     if (this.zrest.jsZip === undefined || this.zrest.jsZip === null) {
       console.log("zip is null");
       return;
