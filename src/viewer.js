@@ -472,7 +472,6 @@ export default class ClosetViewer {
         if (this.scene.children[i].name === "object3D") {
           clearThree(this.scene.children[i]);
         }
-        this.scene.remove(this.scene.children[i]);
       }
 
       if (colorwayIndex > -1) {
