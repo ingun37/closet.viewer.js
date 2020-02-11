@@ -515,5 +515,9 @@ MatMeshManager.prototype = {
 
   getStyleLineMap() {
     return this.styleLineMap;
+  },
+
+  setColorwayIndex(index) {
+    this.colorwayIndex = index;
   }
 };

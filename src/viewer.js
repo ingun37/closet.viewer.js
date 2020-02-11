@@ -450,7 +450,7 @@ export default class ClosetViewer {
     this.loadZrestUrlWithParameters(data, null, onLoad, colorwayIndex);
   }
 
-  loadZrestUrlWithParameters(url, onProgress, onLoad, colorwayIndex) {
+  loadZrestUrlWithParameters(url, onProgress, onLoad, colorwayIndex = -1) {
     const progress = function (xhr) {
       if (xhr.lengthComputable) {
         const percentComplete = (xhr.loaded / xhr.total) * 100;
@@ -468,10 +468,12 @@ export default class ClosetViewer {
 
       // delete object3D, geometry, material dispose
       for (let i = 0; i < this.scene.children.length; i++) {
-        if (this.scene.children[i].name === "object3D") {
+        if (this.scene.children[i].type === "Object3D") {
           clearThree(this.scene.children[i]);
         }
+        this.scene.remove(this.scene.children[i]);
       }
+
       if (colorwayIndex > -1) {
         await this.changeColorway(colorwayIndex);
       }
@@ -546,6 +548,10 @@ export default class ClosetViewer {
     return this.zrest.getColorwaySize();
   }
 
+  getCurrentColorwayIndex() {
+    return this.zrest.meshFactory.currentColorwayIndex;
+  }
+
   isExistMatMeshType(type) {
     if (typeof (this.zrest) === 'undefined') return false;
 
@@ -558,50 +564,34 @@ export default class ClosetViewer {
   }
 
   // TODO: This function should be moved to zrestReader.js
-  async changeColorway(number) {
-    if (number === undefined) {
+  async changeColorway(colorwayIdx) {
+    if (colorwayIdx === undefined) {
       return;
     }
 
-    if (this.zrest.colorwaySize - 1 < number) {
+    if (this.zrest.colorwaySize - 1 < colorwayIdx) {
       console.log("index is over colorway size");
       return;
     }
 
-    // if (this.zrest.currentColorwayIndex === number) {
-    //   console.log("index is same current index");
-    //   return;
-    // }
+    if (this.zrest.currentColorwayIndex === colorwayIdx) {
+      console.log("index is the same as current index");
+      return;
+    }
 
     if (this.zrest.jsZip === undefined || this.zrest.jsZip === null) {
       console.log("zip is null");
       return;
     }
 
-    this.zrest.currentColorwayIndex = number;
-    console.log("selected colorway index: " + number);
+    this.zrest.currentColorwayIndex = colorwayIdx;
+    console.log("selected colorway index: " + colorwayIdx);
 
+    this.clear();
     const matMeshMap = this.zrest.matMeshMap;
-
     for (const matMesh of matMeshMap.values()) {
       const prevMaterial = matMesh.material;
-      let bPrevUseSeamPuckeringMap = false;
-      if (prevMaterial.uniforms.bUseSeamPuckeringNormal !== undefined) {
-        bPrevUseSeamPuckeringMap =
-          prevMaterial.uniforms.bUseSeamPuckeringNormal.value;
-      }
-
-      this.SafeDeallocation(
-        prevMaterial,
-        THREE.ShaderMaterial,
-        function () {
-          // console.log("success deallocation");
-        },
-        function () {
-          // console.log("unsuccess deallocation");
-        },
-      );
-
+      const bPrevUseSeamPuckeringMap = (prevMaterial.uniforms.bUseSeamPuckeringNormal !== undefined) ? prevMaterial.uniforms.bUseSeamPuckeringNormal.value : false;
       const id = matMesh.userData.MATMESH_ID;
 
       // TODO: hide this function!
@@ -609,7 +599,7 @@ export default class ClosetViewer {
         // matMesh.material = this.zrest.makeMaterialForZrest(
         this.zrest.jsZip,
         this.zrest.getMaterialInformationMap().get(id),
-        number,
+        colorwayIdx,
         bPrevUseSeamPuckeringMap,
         this.zrest.camera,
         this.zrest.meshFactory.version,
@@ -619,12 +609,36 @@ export default class ClosetViewer {
     this.updateRenderer();
   }
 
+  clear() {
+    if (!this.zrest) {
+      console.log(this.zrest);
+      console.log('ZRest not found!');
+      return;
+    }
+
+    const matMeshMap = this.zrest.matMeshMap;
+    for (const matMesh of matMeshMap.values()) {
+      this.safeDeallocation(
+        matMesh.material,
+        THREE.ShaderMaterial,
+        function () {
+          // console.log("success deallocation");
+        },
+        function () {
+          console.log("unsuccess deallocation");
+        },
+      );
+    }
+
+    this.zrest.clearMaps();
+  }
+
   // TEMP
   alertVersion() {
     alert(this.mobileDetect.os());
   }
 
-  SafeDeallocation(object, type, type_cb, nontype_cb) {
+  safeDeallocation(object, type, type_cb, nontype_cb) {
     if (object instanceof type) {
       type_cb(object);
     } else {

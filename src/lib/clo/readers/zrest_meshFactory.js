@@ -65,6 +65,9 @@ MeshFactory.prototype = {
       this.colorwaySize = mapColorways.get("listColorway").length;
     }
 
+    // Set colorway index to default
+    this.matmeshManager.setColorwayIndex(this.currentColorwayIndex);
+
     if (version > 4) {
       const listMaterial = map.get("listMaterial");
       if (listMaterial !== undefined) {

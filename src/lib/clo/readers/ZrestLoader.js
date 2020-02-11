@@ -22,8 +22,7 @@ const _version = -1;
 
 export default function ZRestLoader(
   { scene, camera, controls, cameraPosition },
-  manager
-) {
+  manager) {
   this.scene = scene;
   this.camera = camera;
   this.controls = controls;
@@ -56,7 +55,7 @@ ZRestLoader.prototype = {
   async makeMaterialForZrest(
     zip,
     matProperty,
-    number,
+    colorwayIndex,
     bUseSeamPuckeringNormalMap,
     camera,
     version
@@ -64,7 +63,7 @@ ZRestLoader.prototype = {
     return await makeMaterial(
       zip,
       matProperty,
-      number,
+      colorwayIndex,
       bUseSeamPuckeringNormalMap,
       camera,
       _drawMode,
