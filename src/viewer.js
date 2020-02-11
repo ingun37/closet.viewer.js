@@ -466,9 +466,10 @@ export default class ClosetViewer {
         zrest: this.zrest
       });
 
+      // FIXME: This module does not work correctly
       // delete object3D, geometry, material dispose
-      for (let i = 0; i < this.scene.children.length; i++) {
-        if (this.scene.children[i].type === "Object3D") {
+      for (let i = 0; i < this.scene.children.length; ++i) {
+        if (this.scene.children[i].name === "object3D") {
           clearThree(this.scene.children[i]);
         }
         this.scene.remove(this.scene.children[i]);
