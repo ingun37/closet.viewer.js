@@ -12,8 +12,17 @@ import { loadTexture } from "@/lib/clo/readers/zrest_texture";
 import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
 import MeshFactory from "./zrest_meshFactory";
 
+const globalProperty = {
+  seamPuckeringNormalMap: null,
+  // drawMode: {
+  //   wireframe: {
+  //     pattern: false,
+  //     button: false
+  //   }
+  // },
+  // version: -1
+};
 const _nameToTextureMap = new Map();
-let _seamPuckeringNormalMap = null;
 let _fileReaderSyncSupport = false;
 const _syncDetectionScript =
   "onmessage = function(e) { postMessage(!!FileReaderSync); };";
@@ -29,6 +38,9 @@ export default function ZRestLoader(
   this.cameraPosition = cameraPosition;
   this.manager = manager !== undefined ? manager : THREE.DefaultLoadingManager;
 
+  // TEMP
+  this.g = globalProperty;
+
   this.materialList = [];
   this.matMeshMap = new Map();
   this.currentColorwayIndex = 0;
@@ -41,7 +53,7 @@ export default function ZRestLoader(
     this.materialInformationMap,
     camera,
     _drawMode,
-    _seamPuckeringNormalMap,
+    globalProperty,
     _nameToTextureMap,
     _version
   )),
@@ -67,7 +79,7 @@ ZRestLoader.prototype = {
       bUseSeamPuckeringNormalMap,
       camera,
       _drawMode,
-      _seamPuckeringNormalMap,
+      globalProperty.seamPuckeringNormalMap,
       _nameToTextureMap,
       version
     );
@@ -75,7 +87,7 @@ ZRestLoader.prototype = {
 
   clearMaps() {
     _nameToTextureMap.clear();
-    _seamPuckeringNormalMap = null;
+    global.seamPuckeringNormalMap = null;
   },
 
   load(url, onLoad, onProgress, onError) {
@@ -184,7 +196,7 @@ ZRestLoader.prototype = {
             rootMap = readMap(dataView, fileOffset);
 
             // seam puckering normal map 로드
-            _seamPuckeringNormalMap = await loadTexture(
+            globalProperty.seamPuckeringNormalMap = await loadTexture(
               zip,
               "seam_puckering_2ol97pf293f2sdk98.png"
             );

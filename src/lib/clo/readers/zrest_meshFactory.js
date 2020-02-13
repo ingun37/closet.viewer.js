@@ -12,7 +12,7 @@ export default function MeshFactory(
   materialInformationMap,
   loadedCamera,
   drawMode,
-  seamPuckeringNormalMap,
+  globalProperty,
   nameToTextureMap,
   version
 ) {
@@ -22,10 +22,12 @@ export default function MeshFactory(
   this.materialInformationMap = materialInformationMap;
   this.camera = loadedCamera;
   this.drawMode = drawMode;
-  this.seamPuckeringNormalMap = seamPuckeringNormalMap;
+  this.g = globalProperty;
   this.nameToTextureMap = nameToTextureMap;
   this.version = version;
   this.colorwaySize = 0;
+
+
 
   this.matmeshManager = new MatMeshManager(
     {
@@ -33,12 +35,12 @@ export default function MeshFactory(
       materialList: this.materialList,
       matShapeMap: this.matShapeMap
     },
-    materialInformationMap,
-    loadedCamera,
-    drawMode,
-    seamPuckeringNormalMap,
-    nameToTextureMap,
-    version
+    this.materialInformationMap,
+    this.camera,
+    this.drawMode,
+    globalProperty,
+    this.nameToTextureMap,
+    this.version
   );
 }
 

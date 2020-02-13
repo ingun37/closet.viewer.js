@@ -12,7 +12,7 @@ export default function MatMeshManager(
   materialInformationMap,
   loadedCamera,
   drawMode,
-  seamPuckeringNormalMap,
+  globalProperty,
   nameToTextureMap,
   version,
 ) {
@@ -22,13 +22,12 @@ export default function MatMeshManager(
   this.materialInformationMap = materialInformationMap;
   this.camera = loadedCamera;
   this.drawMode = drawMode;
-  this.seamPuckeringNormalMap = seamPuckeringNormalMap;
+  this.g = globalProperty;
   this.nameToTextureMap = nameToTextureMap;
   this.version = version;
   this.colorwayIndex = 0;
   this.styleLineMap = new Map();
   this.matShapeMap = new Map();
-  // this.matShapeMap = new Map();
 }
 
 MatMeshManager.prototype = {
@@ -310,7 +309,7 @@ MatMeshManager.prototype = {
           bUseSeamPuckeringNormalMap,
           this.camera,
           drawMode,
-          this.seamPuckeringNormalMap,
+          this.g.seamPuckeringNormalMap,
           this.nameToTextureMap,
           this.version,
         );
