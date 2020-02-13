@@ -29,6 +29,7 @@ class TechPackManager {
     this.fabricsWithPatterns = [];
     this.stitchMeshMap = new Map(); // NOTE: This is temporary
     this.opacityValueMap = new Map();
+    this.uncategorizedMeshMap = new Map();
 
     this.raycaster = new THREE.Raycaster(); // FIXME: Is this necessary?
 
@@ -115,10 +116,11 @@ class TechPackManager {
     };
   }
 
-  // NOTE: Actually, this function does not work to 'clear'.
-  //       Generally 'clear' means function for memory deallocation.
-  //       Should be changed in the future, at least when releasing to the public.
   clear() {
+    // NOTE: Actually, this function does not work to 'clear'.
+    //       Generally 'clear' means function for memory deallocation.
+    //       Should be changed in the future, at least when releasing to the public.
+
     this.matShapeMap = new Map();
     this.matMeshMap = new Map();
     this.patternMap = new Map();
@@ -126,6 +128,7 @@ class TechPackManager {
     this.fabricsWithPatterns = [];
     this.stitchMeshMap = new Map(); // NOTE: This is temporary    
     this.opacityValueMap = new Map();
+    this.uncategorizedMeshMap = new Map();
 
     this.markerManagers.forEach(manager => {
       manager.deactivate();
@@ -136,28 +139,9 @@ class TechPackManager {
     delete this.styleLineContainer;
   }
 
-  updatePointerSize() {
-    this.markerManagers.forEach(manager => {
-      if (manager.isActivated()) {
-        manager.updatePointerSize();
-      }
-    });
-  }
-
-  // NOTE: Prettier makes code weird. This issue not resolved yet.
-  // prettier-ignore
-  getMousePosition({ clientX, clientY }) {
-    const canvasBounds = this.renderer.context.canvas.getBoundingClientRect();
-    const x =
-      ((clientX - canvasBounds.left) / (canvasBounds.right - canvasBounds.left)) * (2 - 1);
-    const y =
-      -((clientY - canvasBounds.top) / (canvasBounds.bottom - canvasBounds.top)) * (2 + 1);
-
-    return { x, y };
-  }
-
   async extractInfoFromAPI(fabricsWithPatterns, trims) {
     this.fabricsWithPatterns = fabricsWithPatterns;
+    this.uncategorizedMeshMap = new Map(this.matMeshMap);
 
     const isEmpty = obj => {
       if (typeof obj === 'undefined') return true;
@@ -209,10 +193,32 @@ class TechPackManager {
       });
     };
 
+    const buildUncategrizedMeshMap = () => {
+      const extractMatMeshId = (map) => {
+        map.forEach(element => {
+          if (element.MatMeshIdList) {
+            element.MatMeshIdList.forEach(matMeshId => {
+              this.uncategorizedMeshMap.delete(matMeshId);
+            })
+          }
+        });
+      };
+
+      this.uncategorizedMeshMap = new Map(this.matMeshMap);
+
+      extractMatMeshId(this.patternMap);
+      Object.values(this.trimMapList).forEach(trimMap => {
+        extractMatMeshId(trimMap);
+      });
+    }
+
     // Build maps from API
     buildPatternMap(fabricsWithPatterns);
     buildTrimMapList(trims);
     buildStitchMeshMap();
+
+    // Build remained mesh Id list
+    buildUncategrizedMeshMap();
 
     // Build markers
     this.buildPatternMarkers(fabricsWithPatterns);
@@ -564,11 +570,18 @@ class TechPackManager {
       this.trimMarker.setVisibleByMessage(trimNo, true);
     };
 
+    const uncategorizedMeshVisible = (bVisible) => {
+      this.uncategorizedMeshMap.forEach(mesh => {
+        mesh.visible = bVisible;
+      })
+    }
+
     const hasSelectedMarker = onMarkerItems.length > 0;
     if (hasSelectedMarker) {
       this.setAllPatternTransparent(true);
       this.setAllStitchTransparent(true);
       this.setAllTrimVisible(false);
+      uncategorizedMeshVisible(false);
     } else {
       // Return to default setting
       this.setAllPatternTransparent(false);
@@ -576,6 +589,7 @@ class TechPackManager {
       this.setAllPatternVisible(true);
       this.setAllStitchVisible(true);
       this.setAllTrimVisible(true);
+      uncategorizedMeshVisible(true);
     }
     this.setAllMarkerVisible(false);
     this.styleLine.setVisibleAll(false);
@@ -586,6 +600,28 @@ class TechPackManager {
       if (this.fabricMarker.isActivated()) actionsForFabric(index);
       if (this.trimMarker.isActivated()) actionsForTrim(index);
     });
+  }
+
+  //removeMatMeshesremainMeshMap
+
+  updatePointerSize() {
+    this.markerManagers.forEach(manager => {
+      if (manager.isActivated()) {
+        manager.updatePointerSize();
+      }
+    });
+  }
+
+  // NOTE: Prettier makes code weird. This issue not resolved yet.
+  // prettier-ignore
+  getMousePosition({ clientX, clientY }) {
+    const canvasBounds = this.renderer.context.canvas.getBoundingClientRect();
+    const x =
+      ((clientX - canvasBounds.left) / (canvasBounds.right - canvasBounds.left)) * (2 - 1);
+    const y =
+      -((clientY - canvasBounds.top) / (canvasBounds.bottom - canvasBounds.top)) * (2 + 1);
+
+    return { x, y };
   }
 
   // viewer에서 canvas 클릭시 실행
