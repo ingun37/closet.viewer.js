@@ -2,6 +2,7 @@
 import * as THREE from "@/lib/threejs/three";
 // import {Marker, makeTextSprite} from '@/lib/marker/Marker';
 import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
+import { StyleLine } from "@/lib/techPack/StyleLine";
 import MarkerManager from "@/lib/marker/MarkerManager";
 
 const config = {
@@ -22,7 +23,6 @@ class TechPackManager {
 
     this.matShapeMap = new Map();
     this.matMeshMap = new Map();
-    this.styleLineMap = new Map();
 
     this.patternMap = new Map();
     this.trimMapList = [];
@@ -33,19 +33,20 @@ class TechPackManager {
     this.raycaster = new THREE.Raycaster(); // FIXME: Is this necessary?
 
     this.load = this.load.bind(this);
-    this.loadStyleLine = this.loadStyleLine.bind(this);
 
     this.setActiveMarkerManager = this.setActiveMarkerManager.bind(this);
     this.setActiveMarker = this.setActiveMarkerManager.bind(this); // Deprecated
 
-    this.setStyleLineVisibleByPatternNo = this.setStyleLineVisibleByPatternNo.bind(
-      this
-    );
+    this.init();
+
+    this.styleLine = new StyleLine(this.styleLineContainer);
+    this.loadStyleLine = (styleLineMap) => {
+      this.styleLine.load(styleLineMap, this.styleLineContainer);
+    };
+    this.setStyleLineVisibleByPatternNo = this.setStyleLineVisibleByPatternNo;
 
     this.deleteAllMarker = this.deleteAllMarker.bind(this);
     this.onMouseDown = this.onMouseDown.bind(this);
-
-    this.init();
   }
 
   init() {
@@ -120,8 +121,6 @@ class TechPackManager {
   clear() {
     this.matShapeMap = new Map();
     this.matMeshMap = new Map();
-    this.styleLineMap = new Map();
-
     this.patternMap = new Map();
     this.trimMapList = [];
     this.fabricsWithPatterns = [];
@@ -131,6 +130,7 @@ class TechPackManager {
     this.markerManagers.forEach(manager => {
       manager.deactivate();
     });
+    this.styleLine.clear();
 
     delete this.patternMarkerContainer;
     delete this.styleLineContainer;
@@ -181,7 +181,6 @@ class TechPackManager {
     // The filter should be removed when updating API with the right information about topstitch.
     const buildTrimMapList = trims => {
       if (!trims) return;
-
 
       const trimsWithoutTopstitch = trims.filter(
         group => group.GroupName != "Topstitch"
@@ -507,47 +506,6 @@ class TechPackManager {
     });
   }
 
-  loadStyleLine(styleLineMap) {
-    if (!styleLineMap) return;
-
-    this.styleLineMap = styleLineMap;
-    this.addStyleLinesToScene(false);
-  }
-
-  addStyleLinesToScene(bVisible = true) {
-    this.styleLineMap.forEach(styleLineSet => {
-      styleLineSet.forEach(line => {
-        line.visible = bVisible;
-        this.styleLineContainer.add(line);
-      });
-    });
-  }
-
-  setStyleLineVisibleByPatternNo(patternNo, bVisible) {
-    const pattern = this.patternMap.get(patternNo);
-    const matMeshIdList = pattern.MatMeshIdList;
-    if (!matMeshIdList) return;
-
-    const firstMatMeshIdOnMarker = matMeshIdList[0];
-    this.setStyleLineVisible(firstMatMeshIdOnMarker, bVisible);
-  }
-
-  setStyleLineVisible(firstLayerMatMeshID, bVisible) {
-    if (this.styleLineMap.get(firstLayerMatMeshID)) {
-      this.styleLineMap.get(firstLayerMatMeshID).forEach(line => {
-        line.visible = bVisible;
-      });
-    }
-  }
-
-  setAllStyleLineVisible(bVisible) {
-    this.styleLineMap.forEach(styleLineSet => {
-      styleLineSet.forEach(line => {
-        line.visible = bVisible;
-      });
-    });
-  }
-
   setAllMarkerVisible(bVisible) {
     this.markerManagers.forEach(manager => {
       manager.setVisibleForAll(bVisible);
@@ -558,6 +516,15 @@ class TechPackManager {
     this.markerManagers.forEach(manager => {
       manager.removeAll();
     });
+  }
+
+  setStyleLineVisibleByPatternNo(patternNo, bVisible) {
+    const pattern = this.patternMap.get(patternNo);
+    const matMeshIdList = pattern.MatMeshIdList;
+    if (!matMeshIdList) return;
+
+    const firstMatMeshIdOnMarker = matMeshIdList[0];
+    this.styleLine.setVisible(firstMatMeshIdOnMarker, bVisible);
   }
 
   bindEventListener({ onCompleteMove, onCompleteAnimation }) {
@@ -611,7 +578,7 @@ class TechPackManager {
       this.setAllTrimVisible(true);
     }
     this.setAllMarkerVisible(false);
-    this.setAllStyleLineVisible(false);
+    this.styleLine.setVisibleAll(false);
 
     // TODO: Do refactoring this module
     onMarkerItems.map(({ index, id }) => {
