@@ -228,8 +228,9 @@ class TechPackManager {
       matMeshIdList.forEach(matMeshId => {
         const mesh = this.matMeshMap.get(matMeshId);
         if (mesh) {
+          const bVisible = mesh.visible;
           const opacity = mesh.material.uniforms.materialOpacity.value;
-          if (opacity !== config.meshDefaultOpacity) {
+          if (bVisible && opacity !== config.meshDefaultOpacity) {
             this.opacityValueMap.set(matMeshId, opacity);
           }
         }
