@@ -1,9 +1,9 @@
 /* eslint-disable require-jsdoc */
-import * as THREE from '@/lib/threejs/three';
+import * as THREE from "@/lib/threejs/three";
 // import {Marker, makeTextSprite} from '@/lib/marker/Marker';
-import { MATMESH_TYPE } from '@/lib/clo/readers/predefined';
-import { StyleLine } from '@/lib/techPack/StyleLine';
-import MarkerManager from '@/lib/marker/MarkerManager';
+import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
+import { StyleLine } from "@/lib/techPack/StyleLine";
+import MarkerManager from "@/lib/marker/MarkerManager";
 
 const config = {
   unselectedMarkerOpacity: 0.1,
@@ -11,7 +11,7 @@ const config = {
   meshTransparentOpacity: 0.1,
   meshDefaultOpacity: 1.0,
   boundingBoxThreshold: 15.0,
-  INF: 999999,
+  INF: 999999
 };
 
 class TechPackManager {
@@ -55,25 +55,25 @@ class TechPackManager {
       scene: this.scene,
       camera: this.camera,
       renderer: this.renderer,
-      controls: this.controls,
+      controls: this.controls
     };
 
     this.initTrimMapList();
 
     // Init MarkerManagers
-    this.patternMarker = new MarkerManager('pattern', params);
-    this.fabricMarker = new MarkerManager('fabric', params);
-    this.trimMarker = new MarkerManager('trim', params);
+    this.patternMarker = new MarkerManager("pattern", params);
+    this.fabricMarker = new MarkerManager("fabric", params);
+    this.trimMarker = new MarkerManager("trim", params);
 
     this.markerManagers = [this.patternMarker, this.fabricMarker, this.trimMarker];
 
     // Init the container for style line
     this.styleLineContainer = new THREE.Object3D();
-    this.styleLineContainer.name = 'styleLineContainer';
+    this.styleLineContainer.name = "styleLineContainer";
     this.scene.add(this.styleLineContainer);
   }
 
-  load(matShapeMap, matMeshMap, fabricsWithPatterns, trims, defaultMarker = 'pattern') {
+  load(matShapeMap, matMeshMap, fabricsWithPatterns, trims, defaultMarker = "pattern") {
     // TODO: Write completely this code
     this.clear();
     this.init();
@@ -87,7 +87,7 @@ class TechPackManager {
     this.markerManagers.forEach(markerManager => {
       if (markerManager.markerName === markerType) {
         markerManager.activate();
-        console.log(markerManager.markerName + ' activated');
+        console.log(markerManager.markerName + " activated");
       } else {
         markerManager.deactivate();
       }
@@ -100,7 +100,7 @@ class TechPackManager {
       ButtonHead: new Map(),
       ButtonHole: new Map(),
       Topstitch: new Map(),
-      Zipper: new Map(),
+      Zipper: new Map()
     };
   }
 
@@ -132,7 +132,7 @@ class TechPackManager {
     this.uncategorizedMeshMap = new Map(this.matMeshMap);
 
     const isEmpty = obj => {
-      if (typeof obj === 'undefined') return true;
+      if (typeof obj === "undefined") return true;
       else return obj.length <= 0;
     };
 
@@ -154,13 +154,13 @@ class TechPackManager {
     const buildTrimMapList = trims => {
       if (!trims) return;
 
-      const trimsWithoutTopstitch = trims.filter(group => group.GroupName != 'Topstitch');
+      const trimsWithoutTopstitch = trims.filter(group => group.GroupName != "Topstitch");
 
       if (isEmpty(trimsWithoutTopstitch)) return;
 
       trimsWithoutTopstitch.forEach(group => {
         // Remove spaces on string
-        const groupName = group.GroupName.replace(/\s/g, '');
+        const groupName = group.GroupName.replace(/\s/g, "");
         group.Trims.forEach(trim => {
           this.trimMapList[groupName].set(trim.Number, trim);
         });
@@ -278,7 +278,7 @@ class TechPackManager {
     // NOTE: This is a temporary code to filter zipper.
     //       Because zipper needs only 1 marker, unlike other type trims.
     const isZipper = groupName => {
-      return groupName === 'Zipper';
+      return groupName === "Zipper";
     };
 
     let labelCounter = 1;
@@ -299,14 +299,14 @@ class TechPackManager {
     const matShape = this.matShapeMap.get(matMeshId);
     if (!matShape) return false;
     else {
-      const radius = matShape.get('fBoundingSphereRadius') || config.INF;
+      const radius = matShape.get("fBoundingSphereRadius") || config.INF;
       return radius < config.boundingBoxThreshold;
     }
   }
 
   buildMarkersFromList(markerManager, matMeshIdList, matShapeMap, labelStartNumber = 1, labelIncrement = 1) {
     if (!markerManager || !matMeshIdList || !matShapeMap) {
-      console.log('Some information missed to build markers');
+      console.log("Some information missed to build markers");
       return;
     }
 
@@ -335,16 +335,16 @@ class TechPackManager {
       return false;
     }
 
-    const center = matShape.get('v3Center');
-    const radius = matShape.get('fBoundingSphereRadius');
+    const center = matShape.get("v3Center");
+    const radius = matShape.get("fBoundingSphereRadius");
     const translatedCenter = shouldTranslate ? { x: center.x + 2 * radius, y: center.y, z: center.z } : center;
-    const normal = matShape.get('v3Normal');
+    const normal = matShape.get("v3Normal");
     const position = {
       pointerPos: translatedCenter,
       faceNormal: normal,
       cameraPos: this.camera.position,
       cameraTarget: this.controls.target,
-      cameraQuaternion: this.camera.quaternion,
+      cameraQuaternion: this.camera.quaternion
     };
 
     if (index > 0) {
@@ -449,8 +449,8 @@ class TechPackManager {
     const mesh = this.matMeshMap.get(matMeshId);
     if (mesh) {
       mesh.material.uniforms.materialOpacity = {
-        type: 'f',
-        value: opacity,
+        type: "f",
+        value: opacity
       };
     }
   }

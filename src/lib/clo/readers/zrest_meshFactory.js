@@ -7,15 +7,7 @@ import { RENDER_FACE_TYPE } from "@/lib/clo/readers/predefined";
 
 import MatMeshManager from "./zrest_matMesh";
 
-export default function MeshFactory(
-  { matMeshMap, materialList, matShapeMap },
-  materialInformationMap,
-  loadedCamera,
-  drawMode,
-  globalProperty,
-  nameToTextureMap,
-  version
-) {
+export default function MeshFactory({ matMeshMap, materialList, matShapeMap }, materialInformationMap, loadedCamera, drawMode, globalProperty, nameToTextureMap, version) {
   this.matMeshMap = matMeshMap;
   this.materialList = materialList;
   this.matShapeMap = matShapeMap;
@@ -26,8 +18,6 @@ export default function MeshFactory(
   this.nameToTextureMap = nameToTextureMap;
   this.version = version;
   this.colorwaySize = 0;
-
-
 
   this.matmeshManager = new MatMeshManager(
     {
@@ -61,9 +51,7 @@ MeshFactory.prototype = {
 
     const mapColorways = map.get("mapColorWay");
     if (mapColorways !== undefined) {
-      this.currentColorwayIndex = mapColorways.get(
-        "uiCurrentCoordinationIndex"
-      );
+      this.currentColorwayIndex = mapColorways.get("uiCurrentCoordinationIndex");
       this.colorwaySize = mapColorways.get("listColorway").length;
     }
 
@@ -80,13 +68,10 @@ MeshFactory.prototype = {
       }
     }
 
-    const zRestMatMeshArray =
-      map.get("listMatMesh") || map.get("listMaterials");
+    const zRestMatMeshArray = map.get("listMatMesh") || map.get("listMaterials");
     if (zRestMatMeshArray !== undefined) {
       for (let i = 0; i < zRestMatMeshArray.length; ++i) {
-        const zRestColorwayMaterials = setZRestColorwayMaterials(
-          zRestMatMeshArray[i]
-        );
+        const zRestColorwayMaterials = setZRestColorwayMaterials(zRestMatMeshArray[i]);
 
         if (version > 4) {
           const renderFace = zRestMatMeshArray[i].get("enRenderFace");
@@ -102,20 +87,13 @@ MeshFactory.prototype = {
               if (mapMaterialInfo.index < this.materialList.length) {
                 // 나중에 작성자의 의도를 파악해야 함. 미심쩍다...왜 Material이 renderFace 정보를 가지고 있는지 잘 모르겠음.
                 // by Jaden
-                this.materialList[
-                  mapMaterialInfo.index
-                ].renderFace = renderFace;
-                zRestColorwayMaterials.colorwayMaterials.push(
-                  this.materialList[mapMaterialInfo.index]
-                );
+                this.materialList[mapMaterialInfo.index].renderFace = renderFace;
+                zRestColorwayMaterials.colorwayMaterials.push(this.materialList[mapMaterialInfo.index]);
               }
             }
           }
         } else {
-          const listMaterial =
-            version > 4
-              ? map.get("listMaterial")
-              : zRestMatMeshArray[i].get("listMaterial");
+          const listMaterial = version > 4 ? map.get("listMaterial") : zRestMatMeshArray[i].get("listMaterial");
 
           if (listMaterial !== undefined) {
             for (let j = 0; j < listMaterial.length; ++j) {
@@ -124,10 +102,7 @@ MeshFactory.prototype = {
             }
           }
         }
-        this.materialInformationMap.set(
-          zRestMatMeshArray[i].get("uiMatMeshID"),
-          zRestColorwayMaterials
-        );
+        this.materialInformationMap.set(zRestMatMeshArray[i].get("uiMatMeshID"), zRestColorwayMaterials);
       }
     }
 
@@ -138,27 +113,11 @@ MeshFactory.prototype = {
     }
 
     // 불투명 부터 추가해서 불투명 object 부터 그리기
-    let tf = await this.matmeshManager.getMatMeshs(
-      mapGeometry,
-      zip,
-      false,
-      this.materialInformationMap,
-      this.currentColorwayIndex,
-      this.camera,
-      version
-    );
+    let tf = await this.matmeshManager.getMatMeshs(mapGeometry, zip, false, this.materialInformationMap, this.currentColorwayIndex, this.camera, version);
     retObject.add(tf);
 
     // 투명한것 추가
-    tf = await this.matmeshManager.getMatMeshs(
-      mapGeometry,
-      zip,
-      true,
-      this.materialInformationMap,
-      this.currentColorwayIndex,
-      this.camera,
-      version
-    );
+    tf = await this.matmeshManager.getMatMeshs(mapGeometry, zip, true, this.materialInformationMap, this.currentColorwayIndex, this.camera, version);
     retObject.add(tf);
 
     this.matShapeMap = this.matmeshManager.matShapeMap;
@@ -257,26 +216,10 @@ const setMaterial = source => {
   material.bTransparent = source.get("bTransparent");
   material.bPerfectTransparent = source.get("bPerfectTransparent");
 
-  material.ambient = new THREE.Vector3(
-    source.get("v4Ambient").x,
-    source.get("v4Ambient").y,
-    source.get("v4Ambient").z
-  );
-  material.diffuse = new THREE.Vector3(
-    source.get("v4Diffuse").x,
-    source.get("v4Diffuse").y,
-    source.get("v4Diffuse").z
-  );
-  material.specular = new THREE.Vector3(
-    source.get("v4Specular").x,
-    source.get("v4Specular").y,
-    source.get("v4Specular").z
-  );
-  material.emission = new THREE.Vector3(
-    source.get("v4Emission").x,
-    source.get("v4Emission").y,
-    source.get("v4Emission").z
-  );
+  material.ambient = new THREE.Vector3(source.get("v4Ambient").x, source.get("v4Ambient").y, source.get("v4Ambient").z);
+  material.diffuse = new THREE.Vector3(source.get("v4Diffuse").x, source.get("v4Diffuse").y, source.get("v4Diffuse").z);
+  material.specular = new THREE.Vector3(source.get("v4Specular").x, source.get("v4Specular").y, source.get("v4Specular").z);
+  material.emission = new THREE.Vector3(source.get("v4Emission").x, source.get("v4Emission").y, source.get("v4Emission").z);
   material.shininess = source.get("fShininess");
   material.alpha = source.get("v4Diffuse").w;
 
@@ -289,24 +232,14 @@ const setMaterial = source => {
     // 기존에 최대 10인 intensity여서 10만 곱해서 최대 100% 로 맞춘다.
     material.normalMapIntensityInPercentage = normalIntensity * 10.0;
   } else {
-    material.normalMapIntensityInPercentage = source.get(
-      "iNormalIntensityInPercentage"
-    );
+    material.normalMapIntensityInPercentage = source.get("iNormalIntensityInPercentage");
   }
 
-  material.base = new THREE.Vector3(
-    source.get("v3BaseColor").x,
-    source.get("v3BaseColor").y,
-    source.get("v3BaseColor").z
-  );
+  material.base = new THREE.Vector3(source.get("v3BaseColor").x, source.get("v3BaseColor").y, source.get("v3BaseColor").z);
 
   material.blendFuncSrc = source.get("uiBlendFuncSrc");
   material.blendFuncDst = source.get("uiBlendFuncDst");
-  material.blendColor = new THREE.Vector3(
-    source.get("v4BlendColor").x,
-    source.get("v4BlendColor").y,
-    source.get("v4BlendColor").z
-  );
+  material.blendColor = new THREE.Vector3(source.get("v4BlendColor").x, source.get("v4BlendColor").y, source.get("v4BlendColor").z);
 
   material.opaqueMode = source.get("enOpaqueMode");
   material.ambientIntensity = source.get("fAmbientIntensity");
@@ -360,27 +293,17 @@ const setMaterial = source => {
   // 다음(v3ReflectionColor)은 사용되고 있지 않은 코드같다..
   const reflectionColor = source.get("v3ReflectionColor");
   if (reflectionColor !== undefined && reflectionColor !== null) {
-    material.reflectionColor = new THREE.Vector3(
-      source.get("v3ReflectionColor").x,
-      source.get("v3ReflectionColor").y,
-      source.get("v3ReflectionColor").z
-    );
+    material.reflectionColor = new THREE.Vector3(source.get("v3ReflectionColor").x, source.get("v3ReflectionColor").y, source.get("v3ReflectionColor").z);
   } else {
     material.reflectionColor = new THREE.Vector3(0.04, 0.04, 0.04);
   } // 실제로는 사용되지 않는 값이지만 초기화하자
 
   // silk satin 의 specular color(여기서는 reflection color) 적용하기. 여기 바뀌면 CLO에서도 바꿔 줘야 한다.
   // silk & satin
-  if (
-    material.bUseMetalnessRoughnessPBR == false &&
-    material.materialType == 5
-  ) {
-    material.reflectionColor.x =
-      material.reflectionIntensity * (material.base.x + 0.1); // 하얀색 하이라이트가 약하니 0.1 더해준다.
-    material.reflectionColor.y =
-      material.reflectionIntensity * (material.base.y + 0.1);
-    material.reflectionColor.z =
-      material.reflectionIntensity * (material.base.z + 0.1);
+  if (material.bUseMetalnessRoughnessPBR == false && material.materialType == 5) {
+    material.reflectionColor.x = material.reflectionIntensity * (material.base.x + 0.1); // 하얀색 하이라이트가 약하니 0.1 더해준다.
+    material.reflectionColor.y = material.reflectionIntensity * (material.base.y + 0.1);
+    material.reflectionColor.z = material.reflectionIntensity * (material.base.z + 0.1);
 
     material.base.x = 0.8 * material.base.x; // CLO쪽과 동일한 코드로 만들기 위해 0.8 곱해준다.
     material.base.y = 0.8 * material.base.y;
@@ -436,8 +359,7 @@ const setZRestColorwayMaterials = source => {
   zRestColorwayMaterials.bPattern = source.get("bPattern"); // 이제 사용하지 않는다. 기존 버전 호환을 위해 사용할 뿐
   zRestColorwayMaterials.bPolygonOffset = source.get("bPolygonOffset");
   if (zRestColorwayMaterials.bPolygonOffset === undefined) {
-    zRestColorwayMaterials.bPolygonOffset =
-      zRestColorwayMaterials.bpattern === 0;
+    zRestColorwayMaterials.bPolygonOffset = zRestColorwayMaterials.bpattern === 0;
   } // 이전 버전에서는 이렇게 설정해 주고 있었다.. bPattern은 이제 사용하지 않는다.
 
   zRestColorwayMaterials.zOffset = source.get("fZOffset");

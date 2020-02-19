@@ -1,16 +1,16 @@
 /* eslint-disable require-jsdoc */
-'use strict';
-import * as THREE from '@/lib/threejs/three';
+"use strict";
+import * as THREE from "@/lib/threejs/three";
 
-import { envDiffuseMap, envSpecularMap } from '@/lib/clo/file/EnvMapReader';
-import { loadTexture } from '@/lib/clo/readers/zrest_texture';
+import { envDiffuseMap, envSpecularMap } from "@/lib/clo/file/EnvMapReader";
+import { loadTexture } from "@/lib/clo/readers/zrest_texture";
 
-import fragmentShader from 'raw-loader!@/lib/clo/shader/fragmentShader.frag';
-import pbrFragmentShader from 'raw-loader!@/lib/clo/shader/pbrFragmentShader.frag';
-import vertexShader from 'raw-loader!@/lib/clo/shader/vertexShader.vert';
-import pbrVertexShader from 'raw-loader!@/lib/clo/shader/pbrVertexShader.vert';
+import fragmentShader from "raw-loader!@/lib/clo/shader/fragmentShader.frag";
+import pbrFragmentShader from "raw-loader!@/lib/clo/shader/pbrFragmentShader.frag";
+import vertexShader from "raw-loader!@/lib/clo/shader/vertexShader.vert";
+import pbrVertexShader from "raw-loader!@/lib/clo/shader/pbrVertexShader.vert";
 
-import { TEXTURE_TYPE, RENDER_FACE_TYPE } from '@/lib/clo/readers/predefined';
+import { TEXTURE_TYPE, RENDER_FACE_TYPE } from "@/lib/clo/readers/predefined";
 
 export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeringNormalMap, loadedCamera, drawMode, seamPuckeringNormalMap, nameToTextureMap, version) {
   const zRestColorwayMaterialArray = property.colorwayMaterials;
@@ -20,9 +20,7 @@ export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeri
 
   const attachShader = (drawMode, version) => {
     const m = new THREE.ShaderMaterial({
-      uniforms: THREE.UniformsUtils.merge([
-        THREE.UniformsLib['lights'], uniforms,
-      ]),
+      uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib["lights"], uniforms]),
       vertexShader: null,
       fragmentShader: null,
       side: rFace, // double side로 하면 zfighting이 생각보다 심해진다. 나중에 이문제 해결 필요
@@ -33,7 +31,7 @@ export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeri
       polygonOffsetFactor: -0.5,
       polygonOffsetUnits: -2.0,
       depthWrite: !material.bTransparent,
-      transparent: true,
+      transparent: true
     });
 
     m.extensions.derivatives = true;
@@ -83,15 +81,15 @@ export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeri
     const buildTypeValue = (_type, _value) => {
       return {
         type: _type,
-        value: _value,
+        value: _value
       };
     };
-    const buildFValue = (_value) => buildTypeValue('f', _value);
-    const buildV3Value = (_value) => buildTypeValue('v3', _value);
+    const buildFValue = _value => buildTypeValue("f", _value);
+    const buildV3Value = _value => buildTypeValue("v3", _value);
 
-    const identityMatrix = buildTypeValue('m4', new THREE.Matrix4().identity());
-    const tNull = buildTypeValue('t', null);
-    const iZero = buildTypeValue('i', 0);
+    const identityMatrix = buildTypeValue("m4", new THREE.Matrix4().identity());
+    const tNull = buildTypeValue("t", null);
+    const iZero = buildTypeValue("i", 0);
 
     if (version <= 2) {
       return {
@@ -124,11 +122,12 @@ export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeri
         materialEmission: buildV3Value(material.emission),
         materialShininess: buildFValue(material.shininess),
         materialOpacity: buildFValue(material.alpha),
-        normalMapIntensityInPercentage: buildFValue(material.normalMapIntensityInPercentage),
+        normalMapIntensityInPercentage: buildFValue(material.normalMapIntensityInPercentage)
       };
-    } else { // version > 3
+    } else {
+      // version > 3
       return {
-        m_bUseMetalnessRoughnessPBR: buildTypeValue('i', material.bUseMetalnessRoughnessPBR),
+        m_bUseMetalnessRoughnessPBR: buildTypeValue("i", material.bUseMetalnessRoughnessPBR),
         m_Metalness: buildFValue(material.metalness),
         m_Glossiness: buildFValue(material.glossiness),
         m_bInvertGlossinessMap: iZero, // 아래 텍스처 로드하면서 설정
@@ -137,7 +136,7 @@ export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeri
         m_EnvironmentLightIntensity: buildFValue(material.environmentLightIntensity),
         m_CameraLightIntensity: buildFValue(material.cameraLightIntensity),
         m_ReflectionIntensity: buildFValue(material.reflectionIntensity),
-        m_RoughnessUIType: buildTypeValue('i', material.roughnessUIType),
+        m_RoughnessUIType: buildTypeValue("i", material.roughnessUIType),
         m_FrontColorMult: buildFValue(material.frontColorMult),
         m_SideColorMult: buildFValue(material.sideColorMult),
 
@@ -175,7 +174,7 @@ export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeri
         sGlossiness: tNull,
         sMetalness: tNull,
         sDiffuseEnvironmentMap: tNull, // 여기서 바로 value: envDiffuseMap 으로 설정하면 안먹힌다.
-        sSpecularEnvironmentMap: tNull, // 여기서 바로 value: envDiffuseMap 으로 설정하면 안먹힌다.
+        sSpecularEnvironmentMap: tNull // 여기서 바로 value: envDiffuseMap 으로 설정하면 안먹힌다.
         // uniform sampler2D sAmbientOcclusionMap;
       };
     }
@@ -191,24 +190,24 @@ export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeri
 
       if (!zip.file(zRestTexture.file)) {
         const temp = zRestTexture.file;
-        const list = temp.split('/');
+        const list = temp.split("/");
         const textureFileName = list[list.length - 1];
 
         if (!zip.file(textureFileName)) {
           // FIXME: On this condition, does nothing.
         } else {
           /**
-              * TODO:
-              * 이 쓰레드에서 바로 texture 로딩해 버리자.
-              * 이미지 사이즈가 작으면 이게 사용자가 봤을 때 깜박거리지 않고 오히려 낫다.
-              * 나중에 큰 이미지 프로그레시브 로딩 적용할 때 다시 비동기 방식 적용해 보자.
-              * 비동기 로딩 방식은 아래 주석처리 되어 있다.
-              * Jaden 2017.016.16
-              *
-              * Tkay:
-              * 버전 관리 툴을 믿고 삭제했습니다.
-              * 기존 코드는 Release v1.0.23을 참고하세요.
-            */
+           * TODO:
+           * 이 쓰레드에서 바로 texture 로딩해 버리자.
+           * 이미지 사이즈가 작으면 이게 사용자가 봤을 때 깜박거리지 않고 오히려 낫다.
+           * 나중에 큰 이미지 프로그레시브 로딩 적용할 때 다시 비동기 방식 적용해 보자.
+           * 비동기 로딩 방식은 아래 주석처리 되어 있다.
+           * Jaden 2017.016.16
+           *
+           * Tkay:
+           * 버전 관리 툴을 믿고 삭제했습니다.
+           * 기존 코드는 Release v1.0.23을 참고하세요.
+           */
           texture = nameToTextureMap.get(textureFileName);
 
           if (!texture) {
@@ -221,13 +220,12 @@ export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeri
           texture.wrapT = THREE.RepeatWrapping;
 
           /**
-              * TODO:
-              * 이거 설정해 줘야 텍스처 블러링 문제 없어져서 CLO에서처럼 선명하게 나온다.
-              * 적당히 16으로 설정했으나 성능 문제 있을 수 있다.
-              * Jaden 2018.09.03
-            */
+           * TODO:
+           * 이거 설정해 줘야 텍스처 블러링 문제 없어져서 CLO에서처럼 선명하게 나온다.
+           * 적당히 16으로 설정했으나 성능 문제 있을 수 있다.
+           * Jaden 2018.09.03
+           */
           texture.anisotropy = 16;
-
 
           const rotMatrix = new THREE.Matrix4();
           rotMatrix.identity();
@@ -270,7 +268,8 @@ export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeri
               threeJSMaterial.uniforms.matSpecular.value = transform;
             }
           } else if (zRestTexture.type === TEXTURE_TYPE.NORMAL_MAP) {
-            if (version >= 2) { // 버전 2 이상일 때만 노말맵 지원. 그렇지 않으면 1.0에서 제작된 zrest 파일은 desaturated 된 이미지가 normal map 으로 인식되었던 버그때문에 렌더링 이상해진다.
+            if (version >= 2) {
+              // 버전 2 이상일 때만 노말맵 지원. 그렇지 않으면 1.0에서 제작된 zrest 파일은 desaturated 된 이미지가 normal map 으로 인식되었던 버그때문에 렌더링 이상해진다.
               threeJSMaterial.uniforms.sNormal.value = texture;
               threeJSMaterial.uniforms.bUseNormal.value = 1;
               threeJSMaterial.uniforms.matNormal.value = transform;
@@ -321,4 +320,3 @@ export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeri
     texture && texture.dispose();
   }
 }
-
