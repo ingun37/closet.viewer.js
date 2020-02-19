@@ -70,6 +70,7 @@ export default class ClosetViewer {
 
     this.mobileDetect = null;
     this.alertVersion = this.alertVersion.bind(this);
+    this.MATMESH_TYPE = MATMESH_TYPE;
   }
 
   init({ width, height, element, cameraPosition = null, stats }) {
@@ -246,7 +247,7 @@ export default class ClosetViewer {
     if (!this.zrest) return;
 
     const isGarment = patternType => {
-      return this.mapGarmentType.indexOf(patternType) > -1;
+      return this.MATMESH_TYPE.isGarment(patternType);
     };
 
     this.zrest.matMeshMap.forEach(matMesh => {
@@ -471,16 +472,6 @@ export default class ClosetViewer {
       this.zrest.zoomToObjects(loadedCamera, this.scene);
 
       if (onLoad) onLoad(this);
-
-      const matMeshType = this.zrest.MATMESH_TYPE;
-      this.mapGarmentType = [
-        matMeshType.PATTERN_MATMESH,
-        matMeshType.TRIM_MATMESH,
-        matMeshType.PRINTOVERLAY_MATMESH,
-        matMeshType.BUTTONHEAD_MATMESH,
-        matMeshType.STITCH_MATMESH,
-        matMeshType.BUTTONHOLE_MATMESH
-      ];
 
       this.updateRenderer();
     };

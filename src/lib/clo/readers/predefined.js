@@ -34,7 +34,19 @@ const MATMESH_TYPE = {
   AVATAR_MATMESH: 5,
   STITCH_MATMESH: 6,
   BUTTONHOLE_MATMESH: 7,
-  length: 8 // To get length value (It's a trick);
+
+  length: function() {
+    return 8;
+    // To get length value (It's a trick);
+  },
+
+  isAvatar: function(type) {
+    return type === this.AVATAR_MATMESH;
+  },
+
+  isGarment: function(type) {
+    return type !== this.AVATAR_MATMESH;
+  }
 };
 
 export { TEXTURE_TYPE, RENDER_FACE_TYPE, MATMESH_TYPE };
