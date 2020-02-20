@@ -36,8 +36,7 @@ const MATMESH_TYPE = {
   BUTTONHOLE_MATMESH: 7,
 
   length: function() {
-    return 8;
-    // To get length value (It's a trick);
+    return Object.values(this.MATMESH_TYPE).filter(el => typeof el === "number").length;
   },
 
   isAvatar: function(type) {
