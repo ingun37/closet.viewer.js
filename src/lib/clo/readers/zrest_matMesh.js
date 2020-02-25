@@ -231,7 +231,7 @@ MatMeshManager.prototype = {
           this.colorwayIndex,
           bUseSeamPuckeringNormalMap,
           this.camera,
-          drawMode,
+          this.g.drawMode,
           this.g.seamPuckeringNormalMap,
           this.nameToTextureMap,
           this.version

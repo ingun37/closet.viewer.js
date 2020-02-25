@@ -12,23 +12,23 @@ import { loadTexture } from "@/lib/clo/readers/zrest_texture";
 import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
 import MeshFactory from "./zrest_meshFactory";
 
-const globalProperty = {
-  seamPuckeringNormalMap: null
-  // drawMode: {
-  //   wireframe: {
-  //     pattern: false,
-  //     button: false
-  //   }
-  // },
+const zrestProperty = {
+  seamPuckeringNormalMap: null,
+  drawMode: {
+    wireframe: {
+      pattern: false,
+      button: false
+    }
+  }
   // version: -1
 };
 const _nameToTextureMap = new Map();
 let _fileReaderSyncSupport = false;
 const _syncDetectionScript = "onmessage = function(e) { postMessage(!!FileReaderSync); };";
-const _drawMode = { wireframe: { pattern: false, button: false } };
+// const _drawMode = { wireframe: { pattern: false, button: false } };
 const _version = -1;
 
-export default function ZRestLoader({ scene, camera, controls, cameraPosition }, manager) {
+export default function ZRestLoader({ scene, camera, controls, cameraPosition, drawMode }, manager) {
   this.scene = scene;
   this.camera = camera;
   this.controls = controls;
@@ -36,24 +36,33 @@ export default function ZRestLoader({ scene, camera, controls, cameraPosition },
   this.manager = manager !== undefined ? manager : THREE.DefaultLoadingManager;
 
   // TEMP
-  this.g = globalProperty;
+  this.zProperty = zrestProperty;
+  this.zProperty.drawMode = this.getDrawMode(drawMode);
 
   this.materialList = [];
   this.matMeshMap = new Map();
   this.currentColorwayIndex = 0;
   this.jsZip = null;
-  (this.meshFactory = new MeshFactory(
-    {
-      matMeshMap: this.matMeshMap,
-      materialList: this.materialList
-    },
-    this.materialInformationMap,
-    camera,
-    _drawMode,
-    globalProperty,
-    _nameToTextureMap,
-    _version
-  )),
+  /* 
+  matMeshMap: matMeshMap,
+  -- matShapeMap: matShapeMap,
+  materialList: materialList,
+  materialInformationMap: materialInformationMap,
+  camera: loadedCamera,
+  zrestProperty: zrestProperty,
+  nameToTextureMap: nameToTextureMap,
+  version: version
+  */
+
+  (this.meshFactory = new MeshFactory({
+    matMeshMap: this.matMeshMap,
+    materialList: this.materialList,
+    materialInformationMap: this.materialInformationMap,
+    camera: this.camera,
+    zrestProperty: this.zProperty,
+    nameToTextureMap: _nameToTextureMap,
+    version: _version
+  })),
     (this.MATMESH_TYPE = MATMESH_TYPE);
 }
 
@@ -62,7 +71,7 @@ ZRestLoader.prototype = {
 
   // TODO: This wrapper function placed very temporarily.
   async makeMaterialForZrest(zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera, version) {
-    return await makeMaterial(zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera, _drawMode, globalProperty.seamPuckeringNormalMap, _nameToTextureMap, version);
+    return await makeMaterial(zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera, this.zrestProperty.drawMode, zrestProperty.seamPuckeringNormalMap, _nameToTextureMap, version);
   },
 
   clearMaps() {
@@ -105,6 +114,22 @@ ZRestLoader.prototype = {
 
   getStyleLineMap() {
     return this.meshFactory.getStyleLineMap();
+  },
+
+  getDrawMode(drawMode) {
+    const defaultDrawMode = {
+      wireframe: {
+        pattern: false,
+        button: false
+      }
+    };
+
+    if (drawMode && drawMode.wireframe) {
+      defaultDrawMode.wireframe.pattern = drawMode.wireframe.pattern || false;
+      defaultDrawMode.wireframe.button = drawMode.wireframe.button || false;
+    }
+
+    return defaultDrawMode;
   },
 
   parse(data, onLoad) {
@@ -173,7 +198,7 @@ ZRestLoader.prototype = {
             rootMap = readMap(dataView, fileOffset);
 
             // seam puckering normal map 로드
-            globalProperty.seamPuckeringNormalMap = await loadTexture(zip, "seam_puckering_2ol97pf293f2sdk98.png");
+            this.zProperty.seamPuckeringNormalMap = await loadTexture(zip, "seam_puckering_2ol97pf293f2sdk98.png");
 
             const loadedCamera = {
               ltow: new THREE.Matrix4(),
