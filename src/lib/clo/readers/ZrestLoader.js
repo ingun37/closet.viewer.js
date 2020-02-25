@@ -19,13 +19,11 @@ const zrestProperty = {
       pattern: false
       // button: false
     }
-  }
-  // version: -1
+  },
+  version: -1
 };
-const _nameToTextureMap = new Map();
 let _fileReaderSyncSupport = false;
 const _syncDetectionScript = "onmessage = function(e) { postMessage(!!FileReaderSync); };";
-const _version = -1;
 
 export default function ZRestLoader({ scene, camera, controls, cameraPosition, drawMode }, manager) {
   this.scene = scene;
@@ -42,16 +40,6 @@ export default function ZRestLoader({ scene, camera, controls, cameraPosition, d
   this.matMeshMap = new Map();
   this.currentColorwayIndex = 0;
   this.jsZip = null;
-  /* 
-  matMeshMap: matMeshMap,
-  -- matShapeMap: matShapeMap,
-  materialList: materialList,
-  materialInformationMap: materialInformationMap,
-  camera: loadedCamera,
-  zrestProperty: zrestProperty,
-  nameToTextureMap: nameToTextureMap,
-  version: version
-  */
 
   (this.meshFactory = new MeshFactory({
     matMeshMap: this.matMeshMap,
@@ -59,8 +47,7 @@ export default function ZRestLoader({ scene, camera, controls, cameraPosition, d
     materialInformationMap: this.materialInformationMap,
     camera: this.camera,
     zrestProperty: this.zProperty,
-    nameToTextureMap: _nameToTextureMap,
-    version: _version
+    zrestVersion: this.zProperty._version
   })),
     (this.MATMESH_TYPE = MATMESH_TYPE);
 }
@@ -70,7 +57,7 @@ ZRestLoader.prototype = {
 
   // TODO: This wrapper function placed very temporarily.
   async makeMaterialForZrest(zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera, version) {
-    console.log(zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera, version);
+    // console.log(zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera, version);
     return await makeMaterial({
       jsZip: zip,
       matProperty: matProperty,
@@ -79,13 +66,11 @@ ZRestLoader.prototype = {
       camera: camera,
       drawMode: this.zProperty.drawMode,
       seamPuckeringNormalMap: this.zProperty.seamPuckeringNormalMap,
-      nameToTextureMap: _nameToTextureMap,
-      zrestVersion: version
+      zrestVersion: this.zProperty.version
     });
   },
 
   clearMaps() {
-    _nameToTextureMap.clear();
     global.seamPuckeringNormalMap = null;
   },
 
@@ -234,12 +219,6 @@ ZRestLoader.prototype = {
             if (this.cameraPosition) {
               this.camera.position.copy(this.cameraPosition);
             }
-
-            // NOTE: This is temporary
-            // this.buildCategorizeMatMeshList();
-
-            // 임시 데이터 clear
-            _nameToTextureMap.clear();
           });
       });
     };

@@ -20,20 +20,20 @@ export async function makeMaterial({
   camera: loadedCamera,
   drawMode: drawMode,
   seamPuckeringNormalMap: seamPuckeringNormalMap,
-  nameToTextureMap: nameToTextureMap,
   zrestVersion: version
 }) {
-  console.log({
-    zip,
-    property,
-    colorwayIndex,
-    bUseSeamPuckeringNormalMap,
-    loadedCamera,
-    drawMode,
-    seamPuckeringNormalMap,
-    nameToTextureMap,
-    version
-  });
+  const nameToTextureMap = new Map();
+  // console.log({
+  //   zip,
+  //   property,
+  //   colorwayIndex,
+  //   bUseSeamPuckeringNormalMap,
+  //   loadedCamera,
+  //   drawMode,
+  //   seamPuckeringNormalMap,
+  //   // nameToTextureMap,
+  //   version
+  // });
 
   const zRestColorwayMaterialArray = property.colorwayMaterials;
   const material = zRestColorwayMaterialArray[colorwayIndex];

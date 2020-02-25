@@ -7,16 +7,13 @@ import { RENDER_FACE_TYPE } from "@/lib/clo/readers/predefined";
 
 import MatMeshManager from "./zrest_matMesh";
 
-//export default function MeshFactory({ matMeshMap, materialList, matShapeMap }, materialInformationMap, loadedCamera, drawMode, globalProperty, nameToTextureMap, version) {
 export default function MeshFactory({
   matMeshMap: matMeshMap,
   matShapeMap: matShapeMap,
   materialList: materialList,
   materialInformationMap: materialInformationMap,
   camera: loadedCamera,
-  zrestProperty: zrestProperty,
-  nameToTextureMap: nameToTextureMap,
-  zrestVersion: version
+  zrestProperty: zrestProperty
 }) {
   this.matMeshMap = matMeshMap;
   this.materialList = materialList;
@@ -25,8 +22,6 @@ export default function MeshFactory({
   this.camera = loadedCamera;
   this.zProperty = zrestProperty;
   this.drawMode = zrestProperty.drawMode;
-  this.nameToTextureMap = nameToTextureMap;
-  this.version = version;
   this.colorwaySize = 0;
 
   // console.log("meshFactory Init");
@@ -39,9 +34,7 @@ export default function MeshFactory({
     materialInformationMap: this.materialInformationMap,
     camera: this.camera,
     zrestProperty: this.zProperty,
-    drawMode: this.drawMode,
-    nameToTextureMap: this.nameToTextureMap,
-    version: this.version
+    drawMode: this.drawMode
   });
 }
 
@@ -49,11 +42,10 @@ MeshFactory.prototype = {
   constructor: MeshFactory,
 
   async build(map, zip, retObject, loadedCamera) {
-    const version = map.get("uiVersion") || 1;
+    const zrestVersion = map.get("uiVersion") || 1;
+    this.zProperty.version = zrestVersion;
 
-    this.version = version;
-
-    console.log("version: " + this.version);
+    console.log("ZREST version: " + this.zProperty.version);
 
     this.materialInformationMap = new Map();
 
@@ -69,7 +61,7 @@ MeshFactory.prototype = {
     // Set colorway index to default
     this.matmeshManager.setColorwayIndex(this.currentColorwayIndex);
 
-    if (version > 4) {
+    if (zrestVersion > 4) {
       const listMaterial = map.get("listMaterial");
       if (listMaterial !== undefined) {
         for (let j = 0; j < listMaterial.length; ++j) {
@@ -84,7 +76,7 @@ MeshFactory.prototype = {
       for (let i = 0; i < zRestMatMeshArray.length; ++i) {
         const zRestColorwayMaterials = setZRestColorwayMaterials(zRestMatMeshArray[i]);
 
-        if (version > 4) {
+        if (zrestVersion > 4) {
           const renderFace = zRestMatMeshArray[i].get("enRenderFace");
           const listMaterialInfo = zRestMatMeshArray[i].get("listMaterialInfo");
 
@@ -104,7 +96,7 @@ MeshFactory.prototype = {
             }
           }
         } else {
-          const listMaterial = version > 4 ? map.get("listMaterial") : zRestMatMeshArray[i].get("listMaterial");
+          const listMaterial = zrestVersion > 4 ? map.get("listMaterial") : zRestMatMeshArray[i].get("listMaterial");
 
           if (listMaterial !== undefined) {
             for (let j = 0; j < listMaterial.length; ++j) {
@@ -124,11 +116,11 @@ MeshFactory.prototype = {
     }
 
     // 불투명 부터 추가해서 불투명 object 부터 그리기
-    let tf = await this.matmeshManager.getMatMeshs(mapGeometry, zip, false, this.materialInformationMap, this.currentColorwayIndex, this.camera, version);
+    let tf = await this.matmeshManager.getMatMeshs(mapGeometry, zip, false, this.materialInformationMap, this.currentColorwayIndex, this.camera);
     retObject.add(tf);
 
     // 투명한것 추가
-    tf = await this.matmeshManager.getMatMeshs(mapGeometry, zip, true, this.materialInformationMap, this.currentColorwayIndex, this.camera, version);
+    tf = await this.matmeshManager.getMatMeshs(mapGeometry, zip, true, this.materialInformationMap, this.currentColorwayIndex, this.camera);
     retObject.add(tf);
 
     this.matShapeMap = this.matmeshManager.matShapeMap;
