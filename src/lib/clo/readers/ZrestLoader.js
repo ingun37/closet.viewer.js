@@ -35,9 +35,10 @@ export default function ZRestLoader({ scene, camera, controls, cameraPosition, d
   this.cameraPosition = cameraPosition;
   this.manager = manager !== undefined ? manager : THREE.DefaultLoadingManager;
 
-  // TEMP
+  // ZREST property
   this.zProperty = zrestProperty;
   this.zProperty.drawMode = this.getDrawMode(drawMode);
+  console.log(this.zProperty);
 
   this.materialList = [];
   this.matMeshMap = new Map();
@@ -71,7 +72,7 @@ ZRestLoader.prototype = {
 
   // TODO: This wrapper function placed very temporarily.
   async makeMaterialForZrest(zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera, version) {
-    return await makeMaterial(zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera, this.zrestProperty.drawMode, zrestProperty.seamPuckeringNormalMap, _nameToTextureMap, version);
+    return await makeMaterial(zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera, this.zProperty.drawMode, this.zProperty.seamPuckeringNormalMap, _nameToTextureMap, version);
   },
 
   clearMaps() {
@@ -130,6 +131,12 @@ ZRestLoader.prototype = {
     }
 
     return defaultDrawMode;
+  },
+
+  setWireframe(bWireframe) {
+    this.matMeshMap.forEach(matMesh => {
+      matMesh.material.wireframe = bWireframe;
+    });
   },
 
   parse(data, onLoad) {
