@@ -36,14 +36,12 @@ export default function ZRestLoader({ scene, camera, controls, cameraPosition, d
   this.zProperty = zrestProperty;
   this.zProperty.drawMode = this.getDrawMode(drawMode);
 
-  this.materialList = [];
   this.matMeshMap = new Map();
   this.currentColorwayIndex = 0;
   this.jsZip = null;
 
   (this.meshFactory = new MeshFactory({
     matMeshMap: this.matMeshMap,
-    materialList: this.materialList,
     materialInformationMap: this.materialInformationMap,
     camera: this.camera,
     zrestProperty: this.zProperty,
@@ -56,7 +54,7 @@ ZRestLoader.prototype = {
   constructor: ZRestLoader,
 
   // TODO: This wrapper function placed very temporarily.
-  async makeMaterialForZrest(zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera, version) {
+  async makeMaterialForZrest(zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera) {
     // console.log(zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera, version);
     return await makeMaterial({
       jsZip: zip,

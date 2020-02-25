@@ -7,16 +7,9 @@ import { RENDER_FACE_TYPE } from "@/lib/clo/readers/predefined";
 
 import MatMeshManager from "./zrest_matMesh";
 
-export default function MeshFactory({
-  matMeshMap: matMeshMap,
-  matShapeMap: matShapeMap,
-  materialList: materialList,
-  materialInformationMap: materialInformationMap,
-  camera: loadedCamera,
-  zrestProperty: zrestProperty
-}) {
+export default function MeshFactory({ matMeshMap: matMeshMap, matShapeMap: matShapeMap, materialInformationMap: materialInformationMap, camera: loadedCamera, zrestProperty: zrestProperty }) {
   this.matMeshMap = matMeshMap;
-  this.materialList = materialList;
+  this.materialList = [];
   this.matShapeMap = matShapeMap;
   this.materialInformationMap = materialInformationMap;
   this.camera = loadedCamera;
@@ -30,7 +23,6 @@ export default function MeshFactory({
   this.matmeshManager = new MatMeshManager({
     matMeshMap: this.matMeshMap,
     matShapeMap: this.matShapeMap,
-    materialList: this.materialList,
     materialInformationMap: this.materialInformationMap,
     camera: this.camera,
     zrestProperty: this.zProperty,

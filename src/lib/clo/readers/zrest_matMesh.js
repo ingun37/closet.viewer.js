@@ -9,7 +9,6 @@ import { makeMaterial } from "@/lib/clo/readers/zrest_material";
 
 export default function MatMeshManager({
   matMeshMap: matMeshMap,
-  materialList,
   matShapeMap: matShapeMap,
   materialInformationMap: materialInformationMap,
   camera: loadedCamera,
@@ -18,7 +17,6 @@ export default function MatMeshManager({
 }) {
   console.log({
     matMeshMap: matMeshMap,
-    materialList,
     matShapeMap: matShapeMap,
     materialInformationMap: materialInformationMap,
     camera: loadedCamera,
@@ -26,7 +24,6 @@ export default function MatMeshManager({
     zrestProperty: zrestProperty
   });
   this.matMeshMap = matMeshMap;
-  this.materialList = materialList;
   this.matShapeMap = matShapeMap;
   this.materialInformationMap = materialInformationMap;
   this.camera = loadedCamera;
