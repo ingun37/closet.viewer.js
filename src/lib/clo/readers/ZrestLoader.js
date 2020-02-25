@@ -25,7 +25,6 @@ const zrestProperty = {
 const _nameToTextureMap = new Map();
 let _fileReaderSyncSupport = false;
 const _syncDetectionScript = "onmessage = function(e) { postMessage(!!FileReaderSync); };";
-// const _drawMode = { wireframe: { pattern: false, button: false } };
 const _version = -1;
 
 export default function ZRestLoader({ scene, camera, controls, cameraPosition, drawMode }, manager) {
@@ -71,7 +70,18 @@ ZRestLoader.prototype = {
 
   // TODO: This wrapper function placed very temporarily.
   async makeMaterialForZrest(zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera, version) {
-    return await makeMaterial(zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera, this.zProperty.drawMode, this.zProperty.seamPuckeringNormalMap, _nameToTextureMap, version);
+    console.log(zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera, version);
+    return await makeMaterial({
+      jsZip: zip,
+      matProperty: matProperty,
+      colorwayIndex: colorwayIndex,
+      bUseSeamPuckeringNormalMap: bUseSeamPuckeringNormalMap,
+      camera: camera,
+      drawMode: this.zProperty.drawMode,
+      seamPuckeringNormalMap: this.zProperty.seamPuckeringNormalMap,
+      nameToTextureMap: _nameToTextureMap,
+      zrestVersion: version
+    });
   },
 
   clearMaps() {

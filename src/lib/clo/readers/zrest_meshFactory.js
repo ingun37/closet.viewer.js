@@ -16,7 +16,7 @@ export default function MeshFactory({
   camera: loadedCamera,
   zrestProperty: zrestProperty,
   nameToTextureMap: nameToTextureMap,
-  version: version
+  zrestVersion: version
 }) {
   this.matMeshMap = matMeshMap;
   this.materialList = materialList;
@@ -29,19 +29,20 @@ export default function MeshFactory({
   this.version = version;
   this.colorwaySize = 0;
 
-  this.matmeshManager = new MatMeshManager(
-    {
-      matMeshMap: this.matMeshMap,
-      materialList: this.materialList,
-      matShapeMap: this.matShapeMap
-    },
-    this.materialInformationMap,
-    this.camera,
-    this.drawMode,
-    this.zProperty,
-    this.nameToTextureMap,
-    this.version
-  );
+  // console.log("meshFactory Init");
+  // console.log(this.zProperty);
+
+  this.matmeshManager = new MatMeshManager({
+    matMeshMap: this.matMeshMap,
+    matShapeMap: this.matShapeMap,
+    materialList: this.materialList,
+    materialInformationMap: this.materialInformationMap,
+    camera: this.camera,
+    zrestProperty: this.zProperty,
+    drawMode: this.drawMode,
+    nameToTextureMap: this.nameToTextureMap,
+    version: this.version
+  });
 }
 
 MeshFactory.prototype = {
