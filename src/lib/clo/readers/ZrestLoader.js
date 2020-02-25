@@ -16,8 +16,8 @@ const zrestProperty = {
   seamPuckeringNormalMap: null,
   drawMode: {
     wireframe: {
-      pattern: false,
-      button: false
+      pattern: false
+      // button: false
     }
   }
   // version: -1
@@ -38,7 +38,6 @@ export default function ZRestLoader({ scene, camera, controls, cameraPosition, d
   // ZREST property
   this.zProperty = zrestProperty;
   this.zProperty.drawMode = this.getDrawMode(drawMode);
-  console.log(this.zProperty);
 
   this.materialList = [];
   this.matMeshMap = new Map();
@@ -134,6 +133,10 @@ ZRestLoader.prototype = {
   },
 
   setWireframe(bWireframe) {
+    // NOTE: This function designed to set wireframe for several types of meshes.
+    //       But for now, works for pattern meshes only.
+
+    this.zProperty.drawMode.wireframe.pattern = bWireframe;
     this.matMeshMap.forEach(matMesh => {
       matMesh.material.wireframe = bWireframe;
     });
