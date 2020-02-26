@@ -258,6 +258,7 @@ MatMeshManager.prototype = {
           camera: this.camera,
           drawMode: this.zProperty.drawMode,
           seamPuckeringNormalMap: this.zProperty.seamPuckeringNormalMap,
+          nameToTextureMap: this.zProperty.nameToTextureMap,
           zrestVersion: this.zProperty.version
         });
         const threeMesh = new THREE.Mesh(bufferGeometry, material);

@@ -20,7 +20,9 @@ const zrestProperty = {
       pattern: false
       // button: false
     }
-  }
+  },
+  // global variable
+  nameToTextureMap: new Map()
 };
 let _fileReaderSyncSupport = false;
 const _syncDetectionScript = "onmessage = function(e) { postMessage(!!FileReaderSync); };";
@@ -69,6 +71,7 @@ ZRestLoader.prototype = {
       camera: camera,
       drawMode: this.zProperty.drawMode,
       seamPuckeringNormalMap: this.zProperty.seamPuckeringNormalMap,
+      nameToTextureMap: this.zProperty.nameToTextureMap,
       zrestVersion: this.zProperty.version
     });
   },

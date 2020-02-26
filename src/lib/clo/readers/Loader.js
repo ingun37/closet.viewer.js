@@ -74,6 +74,8 @@ export function readZrestFromBlobForWeb(blob, header) {
           if (this.cameraPosition) {
             this.camera.position.copy(this.cameraPosition);
           }
+
+          this.zProperty.nameToTextureMap.clear();
         });
     });
   };
