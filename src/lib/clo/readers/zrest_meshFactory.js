@@ -135,24 +135,12 @@ const getCameraLtoW = (LtoWMatrix, loadedCamera) => {
 
   loadedCamera.bLoaded = true;
 
-  // TODO: refactor here!
+  // prettier-ignore
   loadedCamera.ltow.set(
-    LtoWMatrix.a00,
-    LtoWMatrix.a01,
-    LtoWMatrix.a02,
-    LtoWMatrix.a03,
-    LtoWMatrix.a10,
-    LtoWMatrix.a11,
-    LtoWMatrix.a12,
-    LtoWMatrix.a13,
-    LtoWMatrix.a20,
-    LtoWMatrix.a21,
-    LtoWMatrix.a22,
-    LtoWMatrix.a23,
-    LtoWMatrix.a30,
-    LtoWMatrix.a31,
-    LtoWMatrix.a32,
-    LtoWMatrix.a33
+    LtoWMatrix.a00, LtoWMatrix.a01, LtoWMatrix.a02, LtoWMatrix.a03,
+    LtoWMatrix.a10, LtoWMatrix.a11, LtoWMatrix.a12, LtoWMatrix.a13,
+    LtoWMatrix.a20, LtoWMatrix.a21, LtoWMatrix.a22, LtoWMatrix.a23,
+    LtoWMatrix.a30, LtoWMatrix.a31, LtoWMatrix.a32, LtoWMatrix.a33
   );
 
   return true;

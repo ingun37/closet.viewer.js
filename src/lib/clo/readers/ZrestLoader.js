@@ -13,28 +13,28 @@ import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
 import MeshFactory from "./zrest_meshFactory";
 
 const zrestProperty = {
+  version: -1,
   seamPuckeringNormalMap: null,
   drawMode: {
     wireframe: {
       pattern: false
       // button: false
     }
-  },
-  version: -1
+  }
 };
 let _fileReaderSyncSupport = false;
 const _syncDetectionScript = "onmessage = function(e) { postMessage(!!FileReaderSync); };";
 
-export default function ZRestLoader({ scene, camera, controls, cameraPosition, drawMode }, manager) {
+export default function ZRestLoader({ scene, camera, controls, cameraPosition, drawMode }, loadingManager) {
   this.scene = scene;
   this.camera = camera;
   this.controls = controls;
   this.cameraPosition = cameraPosition;
-  this.manager = manager !== undefined ? manager : THREE.DefaultLoadingManager;
+  this.manager = loadingManager !== undefined ? loadingManager : THREE.DefaultLoadingManager;
 
   // ZREST property
   this.zProperty = zrestProperty;
-  this.zProperty.drawMode = this.getDrawMode(drawMode);
+  this.zProperty.drawMode = this.getParsedDrawMode(drawMode);
 
   this.matMeshMap = new Map();
   this.currentColorwayIndex = 0;
@@ -109,7 +109,7 @@ ZRestLoader.prototype = {
     return this.meshFactory.getStyleLineMap();
   },
 
-  getDrawMode(drawMode) {
+  getParsedDrawMode(drawMode) {
     const defaultDrawMode = {
       wireframe: {
         pattern: false,
