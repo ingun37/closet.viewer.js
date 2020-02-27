@@ -18,7 +18,7 @@ const zrestProperty = {
   drawMode: {
     wireframe: {
       pattern: false
-      // button: false
+      // button: false // NOTE: This is not using yet, wireframe is used for patterns only right now.
     }
   },
   // global variable
@@ -38,23 +38,26 @@ export default function ZRestLoader({ scene, camera, controls, cameraPosition, d
   this.zProperty = zrestProperty;
   this.zProperty.drawMode = this.getParsedDrawMode(drawMode);
 
+  // Global variable;
   this.matMeshMap = new Map();
   this.currentColorwayIndex = 0;
   this.jsZip = null;
+
+  // Included
+  this.MATMESH_TYPE = MATMESH_TYPE;
 
   this.readZrestFromBlobForWeb = readZrestFromBlobForWeb;
 
   this.getObjectsCenter = getObjectsCenter;
   this.zoomToObjects = zoomToObjects;
 
-  (this.meshFactory = new MeshFactory({
+  this.meshFactory = new MeshFactory({
     matMeshMap: this.matMeshMap,
     materialInformationMap: this.materialInformationMap,
     camera: this.camera,
     zrestProperty: this.zProperty,
     zrestVersion: this.zProperty._version
-  })),
-    (this.MATMESH_TYPE = MATMESH_TYPE);
+  });
 }
 
 ZRestLoader.prototype = {
@@ -77,7 +80,8 @@ ZRestLoader.prototype = {
   },
 
   clearMaps() {
-    global.seamPuckeringNormalMap = null;
+    this.zProperty.seamPuckeringNormalMap = null;
+    this.zProperty.nameToTextureMap.clear();
   },
 
   load(url, onLoad, onProgress, onError) {

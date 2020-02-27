@@ -15,7 +15,6 @@ export function readZrestFromBlobForWeb(blob, header) {
   let rootMap;
   let restName = "";
 
-  // TODO: consider change names. btn and bth are confusing easily
   const btnNameList = [];
   const bthNameList = [];
 
@@ -23,6 +22,11 @@ export function readZrestFromBlobForWeb(blob, header) {
     this.jsZip = new JSZip();
     this.jsZip.loadAsync(e.target.result).then(zip => {
       const keyList = Object.keys(zip.files);
+      console.log(keyList);
+      console.log(zip);
+
+      jsZipSizeAnalyzer(zip);
+
       keyList.forEach(value => {
         const list = value.split(".");
         const extension = list[list.length - 1];
@@ -54,7 +58,7 @@ export function readZrestFromBlobForWeb(blob, header) {
           console.log("pac file size = " + dataView.byteLength);
           rootMap = readMap(dataView, fileOffset);
 
-          console.log(dataView);
+          console.log("rootMap: ");
           console.log(rootMap);
 
           // seam puckering normal map 로드
@@ -81,4 +85,43 @@ export function readZrestFromBlobForWeb(blob, header) {
   };
 
   reader.readAsArrayBuffer(contentBlob);
+}
+
+function jsZipSizeAnalyzer(jsZip) {
+  let meshFileSize = 0;
+  let textureFileSize = 0;
+  let dotRestFileSize = 0;
+  const meshFileList = [];
+  const restFileList = [];
+
+  const files = Object.entries(jsZip.files);
+  files.forEach(entry => {
+    const name = entry[1].name;
+    const size = entry[1]._data.compressedSize;
+    if (name.includes(".drc")) {
+      meshFileSize += size;
+      meshFileList.push(name);
+    } else {
+      if (name.includes(".rest")) {
+        dotRestFileSize = size;
+      } else {
+        textureFileSize += size;
+        restFileList.push(name);
+      }
+    }
+  });
+  const totalSize = meshFileSize + textureFileSize + dotRestFileSize;
+  const buildPercentage = (size, total) => {
+    return "  (" + (size / total) * 100 + "%)";
+  };
+
+  console.log("\n====== JSZIP SIZE REPORT ======");
+  console.log("Total: " + totalSize);
+  console.log("Mesh: " + meshFileSize + buildPercentage(meshFileSize, totalSize));
+  console.log("Texture: " + textureFileSize + buildPercentage(textureFileSize, totalSize));
+  console.log(".rest: " + dotRestFileSize + buildPercentage(dotRestFileSize, totalSize));
+  console.log("===============================");
+  console.log(meshFileList);
+  console.log(restFileList);
+  console.log("===============================\n");
 }

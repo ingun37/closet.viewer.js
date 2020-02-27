@@ -37,53 +37,41 @@ export default function MatMeshManager({
 MatMeshManager.prototype = {
   constructor: MatMeshManager,
 
-  async getMatMeshs(map, zip, bLoadTransparentObject, materialInformationMap, colorwayIndex, loadedCamera) {
+  async getMatMeshs(rootMap, jsZip, bLoadTransparentObject, materialInformationMap, colorwayIndex, loadedCamera) {
     this.camera = loadedCamera;
     this.colorwayIndex = colorwayIndex;
 
     let tf = new THREE.Object3D();
 
-    const listChildrenTransformer3D = map.get("listChildrenTransformer3D");
+    const listChildrenTransformer3D = rootMap.get("listChildrenTransformer3D");
     if (listChildrenTransformer3D) {
       for (let i = 0; i < listChildrenTransformer3D.length; ++i) {
         const childTF3D = listChildrenTransformer3D[i];
-        const childTF = await this.getMatMeshs(childTF3D, zip, bLoadTransparentObject, materialInformationMap, colorwayIndex, loadedCamera);
+        const childTF = await this.getMatMeshs(childTF3D, jsZip, bLoadTransparentObject, materialInformationMap, colorwayIndex, loadedCamera);
         tf.add(childTF);
       }
     }
 
-    const mapTransformer3D = map.get("mapTransformer3D");
+    const mapTransformer3D = rootMap.get("mapTransformer3D");
     if (mapTransformer3D) {
-      const childTF = await this.getMatMeshs(mapTransformer3D, zip, bLoadTransparentObject, materialInformationMap, colorwayIndex, loadedCamera);
+      const childTF = await this.getMatMeshs(mapTransformer3D, jsZip, bLoadTransparentObject, materialInformationMap, colorwayIndex, loadedCamera);
       tf = childTF;
     }
 
     const mat4 = new THREE.Matrix4().identity();
-    if (map.get("m4Matrix")) {
-      const localMatrix = map.get("m4Matrix");
+    const localMatrix = rootMap.get("m4Matrix");
+    if (localMatrix) {
+      // prettier-ignore
       mat4.set(
-        localMatrix.a00,
-        localMatrix.a01,
-        localMatrix.a02,
-        localMatrix.a03,
-        localMatrix.a10,
-        localMatrix.a11,
-        localMatrix.a12,
-        localMatrix.a13,
-        localMatrix.a20,
-        localMatrix.a21,
-        localMatrix.a22,
-        localMatrix.a23,
-        localMatrix.a30,
-        localMatrix.a31,
-        localMatrix.a32,
-        localMatrix.a33
+        localMatrix.a00, localMatrix.a01, localMatrix.a02, localMatrix.a03,
+        localMatrix.a10, localMatrix.a11, localMatrix.a12, localMatrix.a13,
+        localMatrix.a20, localMatrix.a21, localMatrix.a22, localMatrix.a23,
+        localMatrix.a30, localMatrix.a31, localMatrix.a32, localMatrix.a33
       );
     }
     tf.applyMatrix(mat4);
 
-    const listMatShape = map.get("listMatShape");
-
+    const listMatShape = rootMap.get("listMatShape");
     if (listMatShape) {
       // Convert listMatShape to matShapeMap
       listMatShape.forEach(shape => {
@@ -94,7 +82,7 @@ MatMeshManager.prototype = {
         });
       });
 
-      await this.addMatMeshList(zip, listMatShape, tf, bLoadTransparentObject, materialInformationMap);
+      await this.addMatMeshList(jsZip, listMatShape, tf, bLoadTransparentObject, materialInformationMap);
     }
 
     return tf;

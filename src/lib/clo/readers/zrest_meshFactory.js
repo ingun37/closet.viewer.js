@@ -33,18 +33,19 @@ export default function MeshFactory({ matMeshMap: matMeshMap, matShapeMap: matSh
 MeshFactory.prototype = {
   constructor: MeshFactory,
 
-  async build(map, zip, retObject, loadedCamera) {
-    const zrestVersion = map.get("uiVersion") || 1;
+  async build(rootMap, jsZip, retObject, loadedCamera) {
+    const zrestVersion = rootMap.get("uiVersion") || 1;
     this.zProperty.version = zrestVersion;
 
     console.log("ZREST version: " + this.zProperty.version);
+    console.log(rootMap);
 
     this.materialInformationMap = new Map();
 
-    const camLtoW = map.get("m4CameraLocalToWorldMatrix");
+    const camLtoW = rootMap.get("m4CameraLocalToWorldMatrix");
     getCameraLtoW(camLtoW, loadedCamera);
 
-    const mapColorways = map.get("mapColorWay");
+    const mapColorways = rootMap.get("mapColorWay");
     if (mapColorways !== undefined) {
       this.currentColorwayIndex = mapColorways.get("uiCurrentCoordinationIndex");
       this.colorwaySize = mapColorways.get("listColorway").length;
@@ -53,8 +54,9 @@ MeshFactory.prototype = {
     // Set colorway index to default
     this.matmeshManager.setColorwayIndex(this.currentColorwayIndex);
 
+    // Set Material from listMaterial
     if (zrestVersion > 4) {
-      const listMaterial = map.get("listMaterial");
+      const listMaterial = rootMap.get("listMaterial");
       if (listMaterial !== undefined) {
         for (let j = 0; j < listMaterial.length; ++j) {
           const material = setMaterial(listMaterial[j]);
@@ -63,10 +65,10 @@ MeshFactory.prototype = {
       }
     }
 
-    const zRestMatMeshArray = map.get("listMatMesh") || map.get("listMaterials");
+    const zRestMatMeshArray = rootMap.get("listMatMesh") || rootMap.get("listMaterials");
     if (zRestMatMeshArray !== undefined) {
       for (let i = 0; i < zRestMatMeshArray.length; ++i) {
-        const zRestColorwayMaterials = setZRestColorwayMaterials(zRestMatMeshArray[i]);
+        const zRestColorwayMaterials = extractMaterialInformation(zRestMatMeshArray[i]);
 
         if (zrestVersion > 4) {
           const renderFace = zRestMatMeshArray[i].get("enRenderFace");
@@ -88,7 +90,7 @@ MeshFactory.prototype = {
             }
           }
         } else {
-          const listMaterial = zrestVersion > 4 ? map.get("listMaterial") : zRestMatMeshArray[i].get("listMaterial");
+          const listMaterial = zrestVersion > 4 ? rootMap.get("listMaterial") : zRestMatMeshArray[i].get("listMaterial");
 
           if (listMaterial !== undefined) {
             for (let j = 0; j < listMaterial.length; ++j) {
@@ -101,18 +103,18 @@ MeshFactory.prototype = {
       }
     }
 
-    const mapGeometry = map.get("mapGeometry");
+    const mapGeometry = rootMap.get("mapGeometry");
     if (!mapGeometry) {
       // FIXME: synchronize return type
       return false;
     }
 
     // 불투명 부터 추가해서 불투명 object 부터 그리기
-    let tf = await this.matmeshManager.getMatMeshs(mapGeometry, zip, false, this.materialInformationMap, this.currentColorwayIndex, this.camera);
+    let tf = await this.matmeshManager.getMatMeshs(mapGeometry, jsZip, false, this.materialInformationMap, this.currentColorwayIndex, this.camera);
     retObject.add(tf);
 
     // 투명한것 추가
-    tf = await this.matmeshManager.getMatMeshs(mapGeometry, zip, true, this.materialInformationMap, this.currentColorwayIndex, this.camera);
+    tf = await this.matmeshManager.getMatMeshs(mapGeometry, jsZip, true, this.materialInformationMap, this.currentColorwayIndex, this.camera);
     retObject.add(tf);
 
     this.matShapeMap = this.matmeshManager.matShapeMap;
@@ -328,7 +330,7 @@ const setMaterial = source => {
   return material;
 };
 
-const setZRestColorwayMaterials = source => {
+const extractMaterialInformation = source => {
   // TODO: 'zRestColorwayMaterials' is assigned every loop. Should be improved.
   const zRestColorwayMaterials = {
     bPattern: false, // 이제 사용하지 않는다. 기존 버전 호환을 위해 사용할 뿐
@@ -367,5 +369,6 @@ const setZRestColorwayMaterials = source => {
     }
   }
 
+  // console.log(zRestColorwayMaterials);
   return zRestColorwayMaterials;
 };
