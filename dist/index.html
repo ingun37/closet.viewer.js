@@ -1,387 +1,612 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <title>3D Viewer Test</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/semantic.min.css"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/components/dropdown.min.css"/>
-    <style>
-        .ui.grid {
-            padding: 5rem 0 0 0;
-        }
-
-        .field {
-            margin-bottom: 3rem;
-        }
-
-        #detail_viewer {
-            float: left;
-            position: relative;
-        }
-
-        .side-form {
-            width: 600px;
-            margin-left: 50px;
-            float: left;
-        }
-
-        .sub-viewer .viewer {
-            float: left;
-            margin-right: 20px;
-        }
-
-        .colorwayBtns {
-            position: absolute;
-            bottom: 10px;
-            left: 5px;
-        }
-        .toggleFullscreen {
-            position: absolute;
-            bottom: 15px;
-            right: 5px;
-            cursor: pointer;
-        }
-        .colorwayBtn {
-            margin-right: 5px;
-        }
-        .viewer {
-            position: relative;
-        }
-    </style>
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-            crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/semantic.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/components/dropdown.min.js"></script>
-    <script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js'></script>
-</head>
-<body>
-
-<div class=" ui container">
-    <div id="container" class="">
-        <div class="ui grid">
-            <div class="eight wide column">
-                <div id="detail_viewer"></div>
-            </div>
-            <div class="eight wide column">
-                <div class="field">
-                    <h3 class="first"></h3>
-                    <h4 class="ui header">Sample zrest Files</h4>
-                    <div class="ui selection dropdown">
-                        <input type="hidden" name="gender">
-                        <i class="dropdown icon"></i>
-                        <div class="default text">Select ZREST</div>
-                        <div class="menu">
-                            <div class="item"
-                                 onclick="load('https://files.clo-set.com/public/common/testViewer/222.zrest')"
-                                 data-value="1">Avatar&Garment visible test
-                            </div>
-                            <div class="item" onclick="load('https://s3.clo3d.com/zpac/HB_very_far_trim.zrest')"
-                                 data-value="1">1 (COLORWAY).zrest
-                            </div>
-                            <div class="item" onclick="load('https://s3.clo3d.com/zpac/PBRTest1.zrest')" data-value="1">
-                                PBRTest1.zrest
-                            </div>
-                            <div class="item" onclick="load('https://s3.clo3d.com/zpac/bomber.zrest')" data-value="1">
-                                bomber.zrest
-                            </div>
-                            <div class="item" onclick="load('https://s3.clo3d.com/zpac/denim.zrest')" data-value="1">
-                                denim.zrest
-                            </div>
-                            <div class="item" onclick="load('https://s3.clo3d.com/zpac/shirts.zrest')" data-value="1">
-                                shirts.zrest
-                            </div>
-                            <div class="item" onclick="load('https://s3.clo3d.com/zpac/Male_A_V3.zrest')"
-                                 data-value="1">Male_A_V3.zrest
-                            </div>
-                            <div class="item" onclick="load('https://s3.clo3d.com/zpac/bomber_desat.zrest')"
-                                 data-value="1">bomber_desat.zrest
-                            </div>
-                            <div class="item" onclick="load('https://s3.clo3d.com/zpac/Shoes_No_Show.zrest')"
-                                 data-value="1">Shoes_No_Show.zrest
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="field">
-                    <h4 class="ui header">Insert zrest URL</h4>
-                    <div class="ui action input">
-                        <input style="width: 350px;" id="zrestURL" type="text" placeholder="zrest URL ...">
-                        <button onclick="loadForm()" class="ui button">Load</button>
-                    </div>
-                </div>
-                <div class="field">
-                    <button type="button" onclick="cameraMatrix()" id="getMatrix" class="ui button">Matrix</button>
-                    <button onclick="fullscreen()" id="fullscreen" type="button" class="ui button">fullscreen</button>
-                </div>
-                <div class="field">
-                    getGarmentStatus : <span id="getGarmentStatus"></span><br/>
-                    getAvatarStatus : <span id="getAvatarStatus"></span>
-                </div>
-                <div class="field">
-                    <button type="button" onclick="setVisibleAllGarment()" data-on="false" id="setGarment"
-                            class="ui button">Garment Visible
-                    </button>
-                    <button type="button" onclick="setVisibleAllAvatar()" data-on="false" id="setAvatar"
-                            class="ui button">Avatar Visible
-                    </button>
-                    <button type="button" onclick="setVisibleAnnotation()" data-on="false" id="setAnnotation" class="ui button">Annotation Visible
-                    </button>
-                </div>
-
-                <div>Loaded: <span id="progresstest">0</span></div>
-                <br/>
-                <br/>
-                <div class="field">
-                    <h4 class="ui header">Create Annotation On Click</h4>
-                    <div class="ui checkbox" style="margin-bottom: 20px;">
-                        <input name="isAnnotation" type="checkbox" tabindex="0" class="hidden">
-                        <label>On Mouse Event</label>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-        <div class="ui grid" style="min-height: 500px;">
-            <div class="field">
-                <h4 class="ui header">Add Viewer</h4>
-                <div class="ui checkbox" style="margin-bottom: 20px;">
-                    <input name="isLock" type="checkbox" tabindex="0" class="hidden">
-                    <label>Lock Camera</label>
-                </div>
-                <div>
-                    <button type="button" onclick="add()" class="ui button">add</button>
-                </div>
-                <div class="sub-viewer" style="margin-top: 20px;">
-
-                </div>
-            </div>
-            <div class="field">
-
-            </div>
-        </div>
-        <div class="side-form">
-
-            <form>
-                <div class="form-group row">
-                    <div class="offset-sm-2 col-sm-10">
-                    </div>
-                    <br/>
-                    <br/>
-                    <div class="offset-sm-2 col-sm-10">
-                    </div>
-                    <br/>
-                    <br/>
-                    <div class="offset-sm-2 col-sm-10">
-                    </div>
-                </div>
-            </form>
-        </div>
-        <div>
-            <img id="capturedImage" src=""/>
-        </div>
-    </div>
-</div>
-
-<script type='text/javascript' src='./closet.viewer.js'></script>
-<script>
-
-  var isLock = false
-  var isAnnotation = false
-  var isVisibleAnnotation = false
-
-  $('.ui.dropdown').dropdown()
-
-  $('.ui.checkbox')
-    .checkbox()
-    .checkbox({
-    onChecked: function () {
-      window[this.name] = true
-
-      if(isAnnotation) closet.viewer.annotation.isCreateAnnotation = true
-    },
-    onUnchecked: function () {
-      window[this.name] = false
-
-      if(!isAnnotation) closet.viewer.annotation.isCreateAnnotation = false
+  <meta charset="UTF-8">
+  <title>3D Viewer Test</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/semantic.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/components/dropdown.min.css" />
+  <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/components/accordion.min.css"/> -->
+  <style>
+    .ui.grid {
+      padding: 5rem 0 0 0;
     }
-  })
-</script>
-<script>
-  var closetViewerArray = []
-  var currentURL = ''
-  var cameraPosition = null
-  var targetPosition = null
-  var progressItem = document.getElementById('progresstest')
 
-  function fullscreen() {
-    closet.viewer.fullscreen()
-  }
+    .field {
+      margin-bottom: 3rem;
+    }
 
+    #detail_viewer {
+      float: left;
+      position: relative;
+      background-color: #D8D8D8;
+      background-position: center center;
+    }
 
-  var updated = function (data) {
-    cameraPosition = data.position
-    targetPosition = data.target
-    for (var i = 0; i < closetViewerArray.length; i++) {
-      const viewer = closetViewerArray[i].viewer
-      if (viewer.id !== data.id && window.isLock) {
-        viewer.onUpdateCamera(null)
-        viewer.setCameraPosition(cameraPosition, targetPosition)
-        viewer.onUpdateCamera(updated)
+    .side-form {
+      width: 600px;
+      margin-left: 50px;
+      float: left;
+    }
+
+    .sub-viewer .viewer {
+      float: left;
+      margin-right: 20px;
+    }
+
+    .colorwayBtns {
+      position: absolute;
+      bottom: 10px;
+      left: 5px;
+    }
+
+    .toggleFullscreen {
+      position: absolute;
+      bottom: 15px;
+      right: 5px;
+      cursor: pointer;
+    }
+
+    .ui.button {
+      margin-bottom: 5px;
+    }
+
+    .colorwayBtn {
+      margin-right: 5px;
+    }
+
+    .viewer {
+      position: relative;
+    }
+  </style>
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/semantic.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/components/dropdown.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/components/accordion.min.js"></script>
+  <script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js'></script>
+</head>
+
+<body>
+  <div class="ui container">
+    <div id="container" class="">
+      <div class="ui grid">
+        <div class="eight wide column">
+          <div id="detail_viewer"></div>
+        </div>
+        <div class="eight wide column">
+          <div class="field">
+            <h3 class="first"></h3>
+            <h4 class="ui header">Sample zrest Files</h4>
+            <div class="ui selection dropdown">
+              <input type="hidden" name="gender">
+              <i class="dropdown icon"></i>
+              <div class="default text">Select ZREST</div>
+              <div class="menu">
+                <div class="item" onclick="load('https://files.clo-set.com/public/common/testViewer/222.zrest')"
+                  data-value="1">Avatar&Garment visible test
+                </div>
+                <div class="item" onclick="load('https://s3.clo3d.com/zpac/HB_very_far_trim.zrest')" data-value="1">1
+                  (COLORWAY).zrest
+                </div>
+                <div class="item" onclick="load('https://s3.clo3d.com/zpac/PBRTest1.zrest')" data-value="1">
+                  PBRTest1.zrest
+                </div>
+                <div class="item" onclick="load('https://s3.clo3d.com/zpac/bomber.zrest')" data-value="1">
+                  bomber.zrest
+                </div>
+                <div class="item" onclick="load('https://s3.clo3d.com/zpac/denim.zrest')" data-value="1">
+                  denim.zrest
+                </div>
+                <div class="item" onclick="load('https://s3.clo3d.com/zpac/shirts.zrest')" data-value="1">
+                  shirts.zrest
+                </div>
+                <div class="item" onclick="load('https://s3.clo3d.com/zpac/Male_A_V3.zrest')" data-value="1">
+                  Male_A_V3.zrest
+                </div>
+                <div class="item" onclick="load('https://s3.clo3d.com/zpac/bomber_desat.zrest')" data-value="1">
+                  bomber_desat.zrest
+                </div>
+                <div class="item" onclick="load('https://s3.clo3d.com/zpac/Shoes_No_Show.zrest')" data-value="1">
+                  Shoes_No_Show.zrest
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <h4 class="ui header">Insert zrest URL</h4>
+            <div class="ui action input">
+              <input style="width: 350px;" id="zrestURL" type="text" placeholder="zrest URL ...">
+              <button onclick="loadForm()" class="ui button">Load</button>
+            </div>
+          </div>
+
+          <div class="field">
+          </div>
+
+          <div class="field">
+            <button type="button" onclick="cameraMatrix()" id="getMatrix" class="ui button">Matrix</button>
+            <button onclick="fullscreen()" id="fullscreen" type="button" class="ui button">fullscreen</button>
+          </div>
+          <div class="field">
+            getGarmentStatus : <span id="getGarmentStatus"></span><br />
+            getAvatarStatus : <span id="getAvatarStatus"></span>
+          </div>
+
+          <div>Loaded: <span id="progresstest">0</span></div>
+          <br />
+          <br />
+          <div class="field">
+            <h4 class="ui header">Create Annotation On Click</h4>
+            <div class="ui checkbox" style="margin-bottom: 20px;">
+              <input name="isAnnotation" type="checkbox" tabindex="0" class="hidden">
+              <label>On Mouse Event</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ui styled accordion" style="width: 90%;">
+          <div class="title">
+            <i class="dropdown icon"></i>
+            DEBUG CONSOLE
+          </div>
+          <div class="content">
+              <button type="button" onclick="test()" data-on="false" id="test" class="ui button">Launch test code</button>
+            <div class="accordion">
+              <div class="title">
+                <i class="dropdown icon"></i>
+                Tech pack
+              </div>
+              <div class="content">
+                <p class="transition hidden">
+                  <button type="button" onclick="loadTechPack()" data-on="false" id="loadTechPackMarker" class="ui button">Load TechPackMarker</button>
+                  <button type="button" onclick="loadStyleLine()" data-on="false" id="loadStyleLine" class="ui button">Load StyleLine</button>
+                  <h4 class="ui header">Insert output.json URL</h4>
+                  <div class="ui action input">
+                    <input style="width: 350px;" id="jsonURL" type="text" placeholder="output.json URL ...">
+                    <button onclick="loadOutputJson()" class="ui button">Load</button>
+                  </div>
+                </p>
+              </div>
+
+              <div class="title">
+                  <i class="dropdown icon"></i>
+                  Patterns
+              </div>
+              <div class="content">
+                <p class="transition hidden">
+                  <button type="button" onclick="loadPatterns()" data-on="false" class="ui button">Load patterns</button>
+                  <button type="button" onclick="loadFabrics()" data-on="false" class="ui button">Load fabrics</button>
+ 
+                  <div class="accordion">
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Pattern
+                    </div>
+                    <div class="content">
+                      <p class="transition hidden" id="patternIdx">
+                    </div>
+
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Fabric
+                    </div>
+                    <div class="content">
+                      <p class="transition hidden" id="fabricIdx">
+                    </div>
+                  </div>
+                </p>
+              </div>
+
+              <div class="title">
+                <i class="dropdown icon"></i>
+                Visibility
+              </div>
+              <div class="content">
+                <p class="transition hidden">
+                  <button type="button" onclick="setVisibleAllGarment()" data-on="false" id="setGarment"
+                    class="ui button">Garment Visible
+                  </button>
+                  <button type="button" onclick="setVisibleAllAvatar()" data-on="false" id="setAvatar"
+                    class="ui button">Avatar Visible
+                  </button>
+                  <button type="button" onclick="setVisibleAnnotation()" data-on="false" id="setAnnotation"
+                    class="ui button">Annotation Visible
+                  </button>
+                  <button type="button" onclick="setVisibleTechPackMarkers()" data-on="false" id="setTechPackMarker"
+                    class="ui button">TechPackMarker Visible
+                  </button>
+                </p>
+              </div>
+                    
+            </div>
+          </div>
+        </div>
+
+      <div class="ui grid" style="min-height: 500px;">
+        <div class="field">
+          <h4 class="ui header">Add Viewer</h4>
+          <div class="ui checkbox" style="margin-bottom: 20px;">
+            <input name="isLock" type="checkbox" tabindex="0" class="hidden">
+            <label>Lock Camera</label>
+          </div>
+          <div>
+            <button type="button" onclick="add()" class="ui button">add</button>
+          </div>
+          <div class="sub-viewer" style="margin-top: 20px;">
+
+          </div>
+        </div>
+        <div class="field">
+
+        </div>
+      </div>
+      <div class="side-form">
+
+        <form>
+          <div class="form-group row">
+            <div class="offset-sm-2 col-sm-10">
+            </div>
+            <br />
+            <br />
+            <div class="offset-sm-2 col-sm-10">
+            </div>
+            <br />
+            <br />
+            <div class="offset-sm-2 col-sm-10">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div>
+        <img id="capturedImage" src="" />
+      </div>
+    </div>
+  </div>
+
+  <script type='text/javascript' src='./closet.viewer.js'></script>
+  <script language='javascript'>
+    $(document).ready(function () {
+      $('.ui.dropdown').dropdown();
+
+      $('.ui.accordion').accordion();
+
+      $('.ui.checkbox')
+        .checkbox()
+        .checkbox({
+          onChecked: function () {
+            window[this.name] = true
+
+            if (isAnnotation) closet.viewer.annotation.isCreateAnnotation = true
+          },
+          onUnchecked: function () {
+            window[this.name] = false
+
+            if (!isAnnotation) closet.viewer.annotation.isCreateAnnotation = false
+          }
+        })
+    });
+  </script>
+
+  <script>
+    var isLock = false;
+    var isAnnotation = false;
+    var isVisibleAnnotation = false;
+    var isVisibleTechPackMarker = false;
+
+    var closetViewerArray = [];
+    var currentURL = '';
+    var cameraPosition = null;
+    var targetPosition = null;
+    var progressItem = document.getElementById('progresstest')
+
+    function fullscreen() {
+      closet.viewer.fullscreen()
+    }
+
+    var updated = function (data) {
+      cameraPosition = data.position
+      targetPosition = data.target
+      for (var i = 0; i < closetViewerArray.length; i++) {
+        const viewer = closetViewerArray[i].viewer
+        if (viewer.id !== data.id && window.isLock) {
+          viewer.onUpdateCamera(null)
+          viewer.setCameraPosition(cameraPosition, targetPosition)
+          viewer.onUpdateCamera(updated)
+        }
       }
     }
-  }
 
-  var progress = function (percent) {
-    progressItem.innerHTML = percent
-  }
-
-  var loaded = function (viewer) {
-    console.log('viewer.getColorwaySize()', viewer.getColorwaySize())
-    var setter = viewer.setter
-    var colorwaySize = viewer.getColorwaySize()
-
-    $(setter).find('.colorwayBtns').remove()
-    var btns = $(setter).append('<div class="colorwayBtns"></div>').find('.colorwayBtns')
-
-
-    for (var i = 0; i < colorwaySize; i++) {
-      var btn = document.createElement('button')
-      btn.className = 'mini ui button'
-      btn.innerText = i + 1
-      btn.index = i
-      btn.addEventListener('click', function (e) {
-        viewer.changeColorway(this.index)
-      })
-      btns.append(btn)
+    var progress = function (percent) {
+      progressItem.innerHTML = percent
     }
 
-    document.getElementById('getGarmentStatus').innerText = closet.viewer.GetGarmentShowHideStatus()
-    document.getElementById('getAvatarStatus').innerText = closet.viewer.GetAvatarShowHideStatus()
-  }
+    var loaded = function (viewer) {
+      var setter = viewer.setter
+      var colorwaySize = viewer.getColorwaySize()
 
+      $(setter).find('.colorwayBtns').remove()
+      var btns = $(setter).append('<div class="colorwayBtns"></div>').find('.colorwayBtns')
 
-  closet.viewer.init({
-    element: 'detail_viewer',
-    width: 500,
-    height: 660,
-    stats: true
-  })
+      for (var i = 0; i < colorwaySize; i++) {
+        var btn = document.createElement('button')
+        btn.className = 'mini ui button'
+        btn.innerText = i + 1
+        btn.index = i
+        btn.addEventListener('click', function (e) {
+          viewer.changeColorway(this.index)
+        })
+        btns.append(btn)
+      }
 
-  $('#detail_viewer').append('<i class="toggleFullscreen expand icon"></i>')
-  $('.toggleFullscreen').click(function() {
-    closet.viewer.fullscreen()
-  })
+      if (closet.viewer.annotation) {
+        closet.viewer.annotation.deleteAllAnnotation();
+      }
 
-  closet.viewer.onUpdateCamera(updated)
-  closetViewerArray.push({viewer: closet.viewer, id: 'detail_viewer'})
-
-
-  // document.querySelector('#detail_viewer').addEventListener("click", function(e) {
-  //   closet.viewer.annotation.onMouseClick({ clientX: e.clientX, clientY: e.clientY }, window.isAnnotation)
-  // }, false)
-
-
-  function add() {
-    var container = document.querySelector('.sub-viewer')
-
-    var div = document.createElement('div')
-    div.className = 'viewer'
-    div.id = 'viewer' + Math.floor(Math.random() * 1000)
-
-    container.appendChild(div)
-
-    createClosetViewer(div.id)
-  }
-
-  let garmentBool = true
-  let avatarBool = true
-
-  function setVisibleAllGarment() {
-    if (!garmentBool) {
-      garmentBool = true
-    } else {
-      garmentBool = false
-    }
-    closet.viewer.setVisibleAllGarment(garmentBool)
-  }
-
-  function setVisibleAllAvatar() {
-
-    if (!avatarBool) {
-      avatarBool = true
-    } else {
-      avatarBool = false
+      document.getElementById('getGarmentStatus').innerText = closet.viewer.getGarmentShowHideStatus()
+      document.getElementById('getAvatarStatus').innerText = closet.viewer.getAvatarShowHideStatus()
     }
 
-    closet.viewer.setVisibleAllAvatar(avatarBool)
-  }
 
-  function setVisibleAnnotation() {
-    isVisibleAnnotation = !isVisibleAnnotation
-    closet.viewer.annotation.setVisibleContainer(isVisibleAnnotation)
-  }
-
-  function createClosetViewer(id) {
-    var cv = new closet.ClosetViewer()
-    cv.init({
-      element: id,
-      width: 320,
-      height: 480,
-      cameraPosition: cameraPosition
+    closet.viewer.init({
+      element: 'detail_viewer',
+      width: 500,
+      height: 660,
+      stats: true
     })
-    cv.onUpdateCamera(updated)
 
-    if (currentURL) cv.loadZrestUrl(currentURL, progress, loaded)
-    closetViewerArray.push({viewer: cv, id: id})
-  }
+    $('#detail_viewer').append('<i class="toggleFullscreen expand icon"></i>');
+    $('.toggleFullscreen').click(function () {
+      closet.viewer.fullscreen();
+    })
 
-  function loadForm() {
-    var url = document.getElementById('zrestURL').value
+    closet.viewer.onUpdateCamera(updated)
+    closetViewerArray.push({ viewer: closet.viewer, id: 'detail_viewer' })
 
-    load(url)
-  }
+    function add() {
+      var container = document.querySelector('.sub-viewer')
 
-  function load(url) {
-    for (var i = 0; i < closetViewerArray.length; i++) {
-      var viewer = closetViewerArray[i].viewer
-      viewer.loadZrestUrl(url, progress, loaded)
+      var div = document.createElement('div')
+      div.className = 'viewer'
+      div.id = 'viewer' + Math.floor(Math.random() * 1000)
+
+      container.appendChild(div)
+
+      createClosetViewer(div.id)
     }
 
-    currentURL = url
-  }
+    let garmentBool = true
+    let avatarBool = true
 
-  function canvasCapture() {
-    console.log('capture')
-    var dataURL = closet.viewer.capture()
-    var img = document.getElementById('capturedImage')
-    img.src = dataURL
-  }
+    function setVisibleAllGarment() {
+      if (!garmentBool) {
+        garmentBool = true
+      } else {
+        garmentBool = false
+      }
+      closet.viewer.setVisibleAllGarment(garmentBool)
+    }
 
-  function cameraMatrix() {
-    closet.viewer.getCameraMatrix()
-    console.log(closet.viewer.getCameraMatrix())
-  }
+    function setVisibleAllAvatar() {
+      if (!avatarBool) {
+        avatarBool = true
+      } else {
+        avatarBool = false
+      }
 
-  // (function(d, s, id) {
-  //     var js, fjs = d.getElementsByTagName(s)[0]
-  //     if (d.getElementById(id)) { return }
-  //     js = d.createElement(s); js.id = id
-  //     js.src = '/closet.viewer.js'
-  //     fjs.parentNode.insertBefore(js, fjs)
-  // }(document, 'script', 'clo-viewer'))
-  //
-  //
-  // window.cvInit = function() {
-  //     console.log('cvInit')
-  //
-  //     closet.viewer.init({
-  //         element: 'detail_viewer',
-  //         width: 620,
-  //         height: 780
-  //     })
-  // }
+      closet.viewer.setVisibleAllAvatar(avatarBool)
+    }
 
-</script>
+    function setVisibleAnnotation() {
+      isVisibleAnnotation = !isVisibleAnnotation
+      closet.viewer.annotation.setVisibleContainer(isVisibleAnnotation)
+    }
+
+    function checkZRestLoaded() {
+      if (!closet.viewer.zrest) {
+        alert('Load ZRest file first.');
+        return false;
+      } else {
+        return true;
+      }
+    }
+
+    function loadTechPack() {
+      if (!checkZRestLoaded()) return;
+      closet.viewer.loadTechPack();
+    }
+
+    function loadStyleLine() {
+      if (!checkZRestLoaded()) return;
+      closet.viewer.loadStyleLine();
+    }
+
+    function setVisibleTechPackMarkers() {
+      isVisibleTechPackMarker = !isVisibleTechPackMarker;
+      closet.viewer.setVisibleAllMarker(isVisibleTechPackMarker);
+    }
+
+    function createClosetViewer(id) {
+      var cv = new closet.ClosetViewer()
+      cv.init({
+        element: id,
+        width: 320,
+        height: 480,
+        cameraPosition: cameraPosition
+      })
+      cv.onUpdateCamera(updated)
+
+      if (currentURL) cv.loadZrestUrl(currentURL, progress, loaded)
+      closetViewerArray.push({ viewer: cv, id: id })
+    }
+
+    function loadForm() {
+      var url = document.getElementById('zrestURL').value;
+
+      if (!url.includes('.')) {
+        url += '.zrest';
+      }
+
+      load(url);
+    }
+
+    function load(url) {
+      for (var i = 0; i < closetViewerArray.length; i++) {
+        var viewer = closetViewerArray[i].viewer
+        viewer.loadZrestUrl(url, progress, loaded)
+      }
+
+      currentURL = url;
+    }
+
+    // let jsonFabricList = [];
+    // let jsonPatternList = [];
+    // let jsonTrimList = [];
+
+    function loadOutputJson(_url) {
+      jsonFabricList = [];
+      jsonPatternList = [];
+      jsonTrimList = [];
+
+      let url = _url || document.getElementById('jsonURL').value;
+      if (!url) url = "output_trim.json";
+      if (!url.includes('.')) {
+        url += '.json';
+      }
+
+      $.getJSON(url, function (data) {
+        console.log(data);
+        const patternList = data.patternList;
+        const fabricList = data.fabricList;
+        const graphicList = data.graphicList;
+        const buttonHeadList = data.buttonHeadList;
+        const buttonHoleList = data.buttonHoleList;
+        const topStitchList = data.topStitchList;
+
+        closet.viewer.loadTechPackJsonFromAPI(patternList, fabricList, { graphic: graphicList, buttonHead: buttonHeadList, buttonHole: buttonHoleList, topStitch: topStitchList });
+      });
+    }
+
+    function findFabricId(fabricId) {
+      for (let i = 0; i < jsonPatternList.length; i++) {
+        if (jsonPatternList[i].fabricId == fabricId) {
+          setPatternVisible(i);
+        }
+      }
+      closet.viewer.updateRenderer();
+    }
+
+    function canvasCapture() {
+      console.log('capture')
+      var dataURL = closet.viewer.capture()
+      var img = document.getElementById('capturedImage')
+      img.src = dataURL
+    }
+
+    function cameraMatrix() {
+      closet.viewer.getCameraMatrix()
+      console.log(closet.viewer.getCameraMatrix())
+    }
+
+    function printButtons(array, elementId, funcName) {
+      document.getElementById(elementId).innerHTML = "";
+      for (let i = 0; i < array.length; ++i) {
+        document.getElementById(elementId).innerHTML += "<button type='button' onclick='" + funcName + "(" + i + ")' class='mini ui button'>" + i + "</button>";
+      }
+    }
+
+    let patternList = [];
+    function loadPatterns() {
+      if (closet.viewer.techPack && closet.viewer.zrest) {
+        patternList = closet.viewer.techPack.extractPatternListFromMatMeshList(closet.viewer.zrest.matMeshList);
+      }
+
+      printButtons(patternList, 'patternIdx', 'setPatternVisible');
+    }
+
+    function loadFabrics() {
+      if (!closet.viewer.techPack && !closet.viewer.zrest && patternList.length <= 0) return;
+
+      printButtons(jsonFabricList, 'fabricIdx', 'setFabricVisible');
+    }
+
+    function loadTrims() {
+      if (!closet.viewer.techPack && !closet.viewer.zrest && patternList.length <= 0) return;
+
+      printButtons(jsonTrimList, 'trimIdx', 'setTrimVisible');
+    }
+
+    function setPatternVisible(patternIdx, subIdx) {
+      if (patternIdx < 0 || patternIdx > patternList.length) return;
+
+      if (subIdx !== undefined && subIdx >= 0 && subIdx < 3) {
+        patternList[patternIdx][subIdx].visible = !patternList[patternIdx][subIdx].visible;
+      } else {
+        for (let i = 0; i < 3; ++i) {
+          patternList[patternIdx][i].visible = !patternList[patternIdx][i].visible;
+        }
+      }
+      closet.viewer.updateRenderer();
+    }
+
+    function setFabricVisible(fabricIdx) {
+      if (!patternList || !jsonFabricList || !jsonPatternList) return;
+
+      closet.viewer.setAllPatternVisible(false);
+      for (let i = 0; i < patternList.length; i++) {
+        if (jsonPatternList[i].fabricId === jsonFabricList[fabricIdx].id) {
+          setPatternVisible(i);
+        }
+      }
+    }
+
+    function setTrimVisible(fabricIdx) {
+      if (!patternList || !jsonFabricList || !jsonPatternList) return;
+
+      closet.viewer.setAllPatternVisible(false);
+      for (let i = 0; i < patternList.length; i++) {
+        if (jsonPatternList[i].fabricId === jsonFabricList[fabricIdx].id) {
+          setPatternVisible(i);
+        }
+      }
+    }
+
+
+    function test() {
+      // Write test code here temporary as you need.
+      testJsonOutput();
+      // testTransparentBug();
+    }
+
+    function testJsonOutput() {
+      // load('./test/trim.zrest');
+      // loadOutputJson('./test/trim.json');
+      load('./test/polo_set_zpac.zrest');
+      loadOutputJson('./test/polo_set_zpac.json');    }
+
+    function testTransparentBug() {
+      load('shadow.zrest');
+      setTimeout(function() {
+        closet.viewer.loadTechPack();
+      }, 2000);
+      setTimeout(function() {
+        closet.viewer.setAllPatternVisible(false);
+        closet.viewer.setPatternVisible(6, true);
+      }, 3000);
+    }
+
+    function setOpacity(opacity) {
+      const list = closet.viewer.zrest.matMeshList;
+
+      for (let i = 0; i < list.length; ++i) {
+        list[i].material.opacity = opacity;
+        list[i].material.alphaTest = 0.5;
+      }
+
+      closet.viewer.updateRenderer();
+    }
+
+  </script>
 </body>
+
 </html>

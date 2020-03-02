@@ -1,3 +1,14 @@
 .idea
 node_modules
-package-lock.json
+dist/*.zrest
+dist/*.json
+old/
+dist/test/
+/dist/closet.viewer.js
+/dist/test
+/dist/test.png
+/dist/dist.png
+/src/testing
+/src/lib/threejs/three_jaden.js
+/src/lib/threejs/three_r89.js
+/src/lib/threejs/three_r108.js
