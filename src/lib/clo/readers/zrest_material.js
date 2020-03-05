@@ -11,7 +11,13 @@ import vertexShader from "raw-loader!@/lib/clo/shader/vertexShader.vert";
 import pbrVertexShader from "raw-loader!@/lib/clo/shader/pbrVertexShader.vert";
 
 import { TEXTURE_TYPE, RENDER_FACE_TYPE } from "@/lib/clo/readers/predefined";
+import { loadTextureFileForTest } from "./zrest_texture";
 
+/*
+  TODO:
+    - hosting 되는 함수들이 대부분이므로 가독성을 고려하여 const 형태로 바꿀 것
+    - texture property 생성하는 부분 좀 어떻게 할 것
+*/
 export async function makeMaterial({
   jsZip: zip,
   matProperty: property,
@@ -28,7 +34,7 @@ export async function makeMaterial({
   const rFace = getRenderFaceType(colorwayMaterial.renderFace);
 
   // console.log("=====");
-  // console.log(property);
+  // console.log(property.id);
   // console.log(colorwayMaterialsArray);
   // console.log("=====");
 
@@ -65,7 +71,8 @@ export async function makeMaterial({
       polygonOffsetFactor: -0.5,
       polygonOffsetUnits: -2.0,
       depthWrite: !colorwayMaterial.bTransparent,
-      transparent: true
+      transparent: true,
+      needsUpdate: true // To update texture
     });
 
     m.extensions.derivatives = true;
@@ -94,14 +101,17 @@ export async function makeMaterial({
     // Load Texture File
     let bHasTexture = false;
     let texture;
+    let adapTexture;
 
+    // colorway들에서 사용하는 texture 갯수만큼
     for (let i = 0; i < colorwayMaterial.texture.length; i++) {
       const cwMaterialTexture = colorwayMaterial.texture[i];
+      // console.log(cwMaterialTexture);
 
       if (!zip.file(cwMaterialTexture.file)) {
-        const temp = cwMaterialTexture.file;
-        const list = temp.split("/");
-        const textureFileName = list[list.length - 1];
+        const fileNameWithPath = cwMaterialTexture.file;
+        const splittedFileName = fileNameWithPath.split("/");
+        const textureFileName = splittedFileName[splittedFileName.length - 1];
 
         if (zip.file(textureFileName)) {
           /**
@@ -118,14 +128,32 @@ export async function makeMaterial({
            */
           // Get texture
           texture = nameToTextureMap.get(textureFileName);
+          adapTexture = nameToTextureMap.get("a_" + textureFileName);
 
           if (!texture) {
             texture = await loadTextureFile(zip, textureFileName);
+            // texture.needsUpdate = true;
             nameToTextureMap.set(textureFileName, texture);
           }
 
+          // TEST ONLY
+          if (!adapTexture) {
+            adapTexture = await loadTextureFileForTest(textureFileName);
+            if (adapTexture) {
+              // console.log("=========");
+              // console.log(adapTexture);
+              // console.log("a_" + textureFileName);
+              // console.log("=========");
+
+              nameToTextureMap.set("a_" + textureFileName, adapTexture);
+            }
+          }
+
+          const beLoadedTexture = adapTexture || texture;
+          // const beLoadedTexture = texture;
+
           // Modify texture property
-          setTexturePropertiesFromMaterial(texture, cwMaterialTexture);
+          setTexturePropertiesFromMaterial(beLoadedTexture, cwMaterialTexture);
           bHasTexture = true;
         }
       }
@@ -148,19 +176,26 @@ export async function makeMaterial({
       }
     }
 
+    // console.log("========");
+    // console.log(texture);
     // FIXME: check to assign and dispose of 'texture' variable correctly. It seems works but not matched.
+    if (typeof adapTexture !== "undefined") {
+      adapTexture.dispose();
+    }
     texture && texture.dispose();
+    // console.log(texture);
+    // console.log("========");
   }
 
   function setTexturePropertiesFromMaterial(threeJSTexture, textureFileInfo) {
-    // console.log("texture");
-    // console.log(threeJSTexture);
-    // console.log("material");
-    // console.log(textureFileInfo);
-
+    // console.log("threeJSTexture: ");
+    // console.log(threeJSTexture.image);
     // wrap type 외에는 기본값을 그대로 사용하면 된다.
     threeJSTexture.wrapS = THREE.RepeatWrapping;
     threeJSTexture.wrapT = THREE.RepeatWrapping;
+
+    // TEST ONLY
+    // threeJSTexture.flipY = false;
 
     /**
      * TODO:
@@ -169,6 +204,7 @@ export async function makeMaterial({
      * Jaden 2018.09.03
      */
     threeJSTexture.anisotropy = 16;
+    // threeJSTexture.anisotropy = 0;
 
     const rotMatrix = new THREE.Matrix4();
     rotMatrix.identity();
@@ -188,6 +224,7 @@ export async function makeMaterial({
     transform.multiply(rotMatrix);
     transform.multiply(transMatrix);
 
+    // NOTE: 리팩토링하고 싶어 죽을 것 같지만 테스트 코드가 없으므로 안정화 이후로 미룬다 (by TKAY)
     if (textureFileInfo.type === TEXTURE_TYPE.GLOBAL_MAP) {
       threeJSMaterial.uniforms.sGlobal.value = threeJSTexture;
       threeJSMaterial.uniforms.bUseGlobal.value = 1;

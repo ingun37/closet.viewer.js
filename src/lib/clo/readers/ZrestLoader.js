@@ -147,6 +147,23 @@ ZRestLoader.prototype = {
     });
   },
 
+  launchTest() {
+    // TEST ONLY
+    for (const key of this.zProperty.nameToTextureMap.keys()) {
+      if (key.startsWith("a_")) {
+        const origFileName = key.replace("a_", "");
+        const adapTexture = this.zProperty.nameToTextureMap.get(key);
+        const origTexture = this.zProperty.nameToTextureMap.get(origFileName);
+
+        //adapTexture.dispose();
+        adapTexture.image = origTexture.image;
+        adapTexture.needsUpdate = true;
+      }
+    }
+
+    console.log("Texture update Done.");
+  },
+
   parse(data, onLoad) {
     this.data = data;
     this.onLoad = onLoad;

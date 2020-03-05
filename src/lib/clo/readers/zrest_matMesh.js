@@ -32,6 +32,9 @@ export default function MatMeshManager({
   this.colorwayIndex = 0;
   this.styleLineMap = new Map();
   this.matShapeMap = new Map();
+
+  // TEMP
+  this.materialList = [];
 }
 
 MatMeshManager.prototype = {
@@ -225,19 +228,6 @@ MatMeshManager.prototype = {
         }
 
         const bUseSeamPuckeringNormalMap = dracoGeometry.numUVs >= 2;
-        // console.log("=====");
-        // console.log({
-        //   jsZip: zip,
-        //   matProperty: matProperty,
-        //   colorwayIndex: this.colorwayIndex,
-        //   bUseSeamPuckeringNormalMap: bUseSeamPuckeringNormalMap,
-        //   camera: this.camera,
-        //   drawMode: this.zProperty.drawMode,
-        //   seamPuckeringNormalMap: this.zProperty.seamPuckeringNormalMap,
-        //   nameToTextureMap: this.nameToTextureMap,
-        //   zrestVersion: this.version
-        // });
-
         const material = await makeMaterial({
           jsZip: zip,
           matProperty: matProperty,
@@ -249,6 +239,8 @@ MatMeshManager.prototype = {
           nameToTextureMap: this.zProperty.nameToTextureMap,
           zrestVersion: this.zProperty.version
         });
+        // console.log(material);
+        // this.materialList.push(material);
         const threeMesh = new THREE.Mesh(bufferGeometry, material);
         const matMeshType = listMatMeshIDOnIndexedMesh[m].get("enType");
         // 여기서 center, normal, bounding sphere radius,
@@ -311,6 +303,9 @@ MatMeshManager.prototype = {
         threeMesh.castShadow = b;
         threeMesh.receiveShadow = b;
         tf.add(threeMesh);
+
+        // TEST
+        threeMesh.needsUpdate = true;
 
         this.matMeshMap.set(matMeshID, threeMesh);
 

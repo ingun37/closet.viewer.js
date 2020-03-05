@@ -413,10 +413,10 @@ export default class ClosetViewer {
     if (!PRODUCTION) rendererStats.update(this.renderer);
   }
 
-  updateRenderer(t = 100) {
+  updateRenderer(delay = 100) {
     // 여기에 pointer 업데이트 하는 함수 콜하기.
     this.controls.update();
-    setTimeout(this.render, t);
+    setTimeout(this.render, delay);
   }
 
   stopRender() {
