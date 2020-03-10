@@ -7,16 +7,28 @@ import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
 import { makeMaterial } from "@/lib/clo/readers/zrest_material";
 
-export default function MatMeshManager({ matMeshMap: matMeshMap, materialList, matShapeMap: matShapeMap }, materialInformationMap, loadedCamera, drawMode, globalProperty, nameToTextureMap, version) {
+export default function MatMeshManager({
+  matMeshMap: matMeshMap,
+  matShapeMap: matShapeMap,
+  materialInformationMap: materialInformationMap,
+  camera: loadedCamera,
+  drawMode: drawMode,
+  zrestProperty: zrestProperty
+}) {
+  console.log({
+    matMeshMap: matMeshMap,
+    matShapeMap: matShapeMap,
+    materialInformationMap: materialInformationMap,
+    camera: loadedCamera,
+    drawMode: drawMode,
+    zrestProperty: zrestProperty
+  });
   this.matMeshMap = matMeshMap;
-  this.materialList = materialList;
   this.matShapeMap = matShapeMap;
   this.materialInformationMap = materialInformationMap;
   this.camera = loadedCamera;
   this.drawMode = drawMode;
-  this.g = globalProperty;
-  this.nameToTextureMap = nameToTextureMap;
-  this.version = version;
+  this.zProperty = zrestProperty;
   this.colorwayIndex = 0;
   this.styleLineMap = new Map();
   this.matShapeMap = new Map();
@@ -25,9 +37,8 @@ export default function MatMeshManager({ matMeshMap: matMeshMap, materialList, m
 MatMeshManager.prototype = {
   constructor: MatMeshManager,
 
-  async getMatMeshs(map, zip, bLoadTransparentObject, materialInformationMap, colorwayIndex, loadedCamera, version) {
+  async getMatMeshs(map, zip, bLoadTransparentObject, materialInformationMap, colorwayIndex, loadedCamera) {
     this.camera = loadedCamera;
-    this.version = version;
     this.colorwayIndex = colorwayIndex;
 
     let tf = new THREE.Object3D();
@@ -36,14 +47,14 @@ MatMeshManager.prototype = {
     if (listChildrenTransformer3D) {
       for (let i = 0; i < listChildrenTransformer3D.length; ++i) {
         const childTF3D = listChildrenTransformer3D[i];
-        const childTF = await this.getMatMeshs(childTF3D, zip, bLoadTransparentObject, materialInformationMap, colorwayIndex, loadedCamera, version);
+        const childTF = await this.getMatMeshs(childTF3D, zip, bLoadTransparentObject, materialInformationMap, colorwayIndex, loadedCamera);
         tf.add(childTF);
       }
     }
 
     const mapTransformer3D = map.get("mapTransformer3D");
     if (mapTransformer3D) {
-      const childTF = await this.getMatMeshs(mapTransformer3D, zip, bLoadTransparentObject, materialInformationMap, colorwayIndex, loadedCamera, version);
+      const childTF = await this.getMatMeshs(mapTransformer3D, zip, bLoadTransparentObject, materialInformationMap, colorwayIndex, loadedCamera);
       tf = childTF;
     }
 
@@ -92,10 +103,11 @@ MatMeshManager.prototype = {
   async addMatMeshList(zip, listMatShape, tf, bLoadTransparentObject, materialInformationMap) {
     // TODO: do refactor more
     const splitMatSpaceToMatMesh = async (listMatMeshIDOnIndexedMesh, totalIdxCount, listIdxCount, dracoGeometry, bVisible, drawMode) => {
-      let indexOffset = this.version > 4 ? 0 : totalIdxCount;
+      const zrestVersion = this.zProperty.version;
+      let indexOffset = zrestVersion > 4 ? 0 : totalIdxCount;
 
       for (let m = 0; m < listIdxCount.length; ++m) {
-        if (this.version <= 4) {
+        if (zrestVersion <= 4) {
           indexOffset = indexOffset - listIdxCount[m];
         }
 
@@ -117,14 +129,14 @@ MatMeshManager.prototype = {
         // TO DO: refactor this
         if (bLoadTransparentObject) {
           if (!matProperty.colorwayMaterials[this.colorwayIndex].bTransparent) {
-            if (this.version > 4) {
+            if (zrestVersion > 4) {
               indexOffset += indexSize;
             }
             continue;
           }
         } else {
           if (matProperty.colorwayMaterials[this.colorwayIndex].bTransparent) {
-            if (this.version > 4) {
+            if (zrestVersion > 4) {
               indexOffset += indexSize;
             }
             continue;
@@ -203,7 +215,7 @@ MatMeshManager.prototype = {
         // Set Indices
         const indexAttrib = [];
 
-        if (this.version > 4) {
+        if (zrestVersion > 4) {
           for (let k = 0; k < indexSize; k++) {
             const index = dracoGeometry.indices[indexOffset + k];
             indexAttrib.push(changeVertexIndex[index]);
@@ -225,17 +237,30 @@ MatMeshManager.prototype = {
         }
 
         const bUseSeamPuckeringNormalMap = dracoGeometry.numUVs >= 2;
-        const material = await makeMaterial(
-          zip,
-          matProperty,
-          this.colorwayIndex,
-          bUseSeamPuckeringNormalMap,
-          this.camera,
-          drawMode,
-          this.g.seamPuckeringNormalMap,
-          this.nameToTextureMap,
-          this.version
-        );
+        // console.log("=====");
+        // console.log({
+        //   jsZip: zip,
+        //   matProperty: matProperty,
+        //   colorwayIndex: this.colorwayIndex,
+        //   bUseSeamPuckeringNormalMap: bUseSeamPuckeringNormalMap,
+        //   camera: this.camera,
+        //   drawMode: this.zProperty.drawMode,
+        //   seamPuckeringNormalMap: this.zProperty.seamPuckeringNormalMap,
+        //   nameToTextureMap: this.nameToTextureMap,
+        //   zrestVersion: this.version
+        // });
+
+        const material = await makeMaterial({
+          jsZip: zip,
+          matProperty: matProperty,
+          colorwayIndex: this.colorwayIndex,
+          bUseSeamPuckeringNormalMap: bUseSeamPuckeringNormalMap,
+          camera: this.camera,
+          drawMode: this.zProperty.drawMode,
+          seamPuckeringNormalMap: this.zProperty.seamPuckeringNormalMap,
+          nameToTextureMap: this.zProperty.nameToTextureMap,
+          zrestVersion: this.zProperty.version
+        });
         const threeMesh = new THREE.Mesh(bufferGeometry, material);
         const matMeshType = listMatMeshIDOnIndexedMesh[m].get("enType");
         // 여기서 center, normal, bounding sphere radius,
@@ -276,7 +301,7 @@ MatMeshManager.prototype = {
           BOUNDING_SPHERE_RADIUS: boundingSphereRadius
         };
 
-        if (this.version >= 4) {
+        if (zrestVersion >= 4) {
           if (bVisible === undefined || bVisible === null) {
             threeMesh.visible = true;
           } else {
@@ -301,7 +326,7 @@ MatMeshManager.prototype = {
 
         this.matMeshMap.set(matMeshID, threeMesh);
 
-        if (this.version > 4) {
+        if (zrestVersion > 4) {
           // marker 만들자.
           const cameraPos = new THREE.Vector3();
           cameraPos.copy(center);
