@@ -31,6 +31,9 @@ class TechPackManager {
     this.opacityValueMap = new Map();
     this.uncategorizedMeshMap = new Map();
 
+    this.selectedTrimSavedColor = null;
+    this.selectedTrimNo = null;
+
     this.raycaster = new THREE.Raycaster(); // FIXME: Is this necessary?
 
     this.load = this.load.bind(this);
@@ -152,16 +155,19 @@ class TechPackManager {
     // NOTE: This filter is temperal.
     // The filter should be removed when updating API with the right information about topstitch.
     const buildTrimMapList = trims => {
-      if (!trims) return;
+      if (!trims || isEmpty(trims)) return;
 
-      const trimsWithoutTopstitch = trims.filter(group => group.GroupName != "Topstitch");
-
-      if (isEmpty(trimsWithoutTopstitch)) return;
-
-      trimsWithoutTopstitch.forEach(group => {
+      let numberForNull = 0;  // NOTE: Temporary code. There is a bug on API.
+      trims.forEach(group => {
         // Remove spaces on string
         const groupName = group.GroupName.replace(/\s/g, "");
         group.Trims.forEach(trim => {
+          if (trim.Number) {
+            numberForNull = trim.Number;
+          } else {
+            trim.Number = ++numberForNull;
+          }
+          console.log(trim.Number, numberForNull);
           this.trimMapList[groupName].set(trim.Number, trim);
         });
       });
@@ -316,6 +322,21 @@ class TechPackManager {
     const shouldTranslate = this.isSmallerThanMarker(matMeshIdList[0]);
     matMeshIdList.forEach(matMeshId => {
       const matShape = matShapeMap.get(Number(matMeshId));
+      const matShapeCenter = matShape.get("v3Center");
+      const isZero = (center) => {
+        return center.x === 0 && center.y === 0 && center.z === 0
+      }
+
+      // check and update marker position
+      if (isZero(matShapeCenter)) {
+        const matMesh = this.matMeshMap.get(matMeshId);
+        if (matMesh) {
+          matMesh.geometry.computeBoundingSphere();
+          const center = matMesh.geometry.boundingSphere.center;
+          matShape.set("v3Center", center);
+        }
+      }
+
       const isSucceedToBuild = this.buildMarker(labelCounter, markerManager, matShape, -1, shouldTranslate);
       if (isSucceedToBuild) {
         amountOfBuiltMarkers++;
@@ -404,10 +425,38 @@ class TechPackManager {
   setTrimVisible(trimNo, bVisible) {
     Object.values(this.trimMapList).forEach(trimMap => {
       if (trimMap.has(trimNo)) {
-        const matMeshList = trimMap.get(trimNo).MatMeshIdList;
-        if (matMeshList) {
-          matMeshList.forEach(matMesh => {
-            this.setMatMeshVisible(matMesh, bVisible);
+        const matMeshIdList = trimMap.get(trimNo).MatMeshIdList;
+        if (matMeshIdList) {
+          matMeshIdList.forEach(matMeshId => {
+            this.setMatMeshVisible(matMeshId, bVisible);
+          });
+        }
+      }
+    });
+  }
+
+  setTrimHighlight(trimNo, bHighlight) {
+    Object.values(this.trimMapList).forEach(trimMap => {
+      if (trimMap.has(trimNo)) {
+        const matMeshIdList = trimMap.get(trimNo).MatMeshIdList;
+        if (matMeshIdList) {
+          let color = new THREE.Vector3(1, 1, 0);
+
+          if (bHighlight) {
+            this.selectedTrimNo = trimNo;
+
+            const firstMatMesh = this.matMeshMap.get(matMeshIdList[0]);
+            const origColor = firstMatMesh.material.uniforms.materialBaseColor.value;
+            
+            if (typeof origColor === 'undefined') return;
+            this.selectedTrimSavedColor = origColor;
+          } else {
+            color = this.selectedTrimSavedColor;
+            this.selectedTrimSavedColor = null;
+          }
+
+          matMeshIdList.forEach(matMeshId => {
+            this.setMatMeshColor(matMeshId, color);
           });
         }
       }
@@ -459,6 +508,13 @@ class TechPackManager {
     const mesh = this.matMeshMap.get(matMeshId);
     if (mesh) {
       mesh.visible = bVisible;
+    }
+  }
+
+  setMatMeshColor(matMeshId, v3Color) {
+    const mesh = this.matMeshMap.get(matMeshId);
+    if (mesh) {
+      mesh.material.uniforms.materialBaseColor.value = v3Color;
     }
   }
 
@@ -531,6 +587,7 @@ class TechPackManager {
     const actionsForTrim = trimIdx => {
       const trimNo = trimIdx + 1;
       this.setTrimVisible(trimNo, true);
+      this.setTrimHighlight(trimNo, true);
       this.trimMarker.setVisibleByMessage(trimNo, true);
     };
 
@@ -543,10 +600,15 @@ class TechPackManager {
     const hasSelectedMarker = onMarkerItems.length > 0;
     if (hasSelectedMarker) {
       this.setAllPatternTransparent(true);
-      this.setAllStitchTransparent(true);
+      // this.setAllStitchTransparent(true);
       this.setAllTrimVisible(false);
       uncategorizedMeshVisible(false);
     } else {
+      if (this.selectedTrimNo !== null) {
+        this.setTrimHighlight(this.selectedTrimNo, false);
+        this.selectedTrimNo = null;
+      }
+
       // Return to default setting
       this.setAllPatternTransparent(false);
       this.setAllStitchTransparent(false);
@@ -566,8 +628,6 @@ class TechPackManager {
     });
   }
 
-  //removeMatMeshesremainMeshMap
-
   updatePointerSize() {
     this.markerManagers.forEach(manager => {
       if (manager.isActivated()) {
@@ -581,9 +641,9 @@ class TechPackManager {
   getMousePosition({ clientX, clientY }) {
     const canvasBounds = this.renderer.context.canvas.getBoundingClientRect();
     const x =
-      ((clientX - canvasBounds.left) / (canvasBounds.right - canvasBounds.left)) * (2 - 1);
+      ((clientX - canvasBounds.left) / (canvasBounds.right - canvasBounds.left)) * 2 - 1;
     const y =
-      -((clientY - canvasBounds.top) / (canvasBounds.bottom - canvasBounds.top)) * (2 + 1);
+      -((clientY - canvasBounds.top) / (canvasBounds.bottom - canvasBounds.top)) * 2 + 1;
 
     return { x, y };
   }
@@ -607,7 +667,7 @@ class TechPackManager {
     const mousePos = this.getMousePosition({ clientX, clientY });
     this.markerManagers.forEach(markerManager => {
       if (markerManager.isActivated()) {
-        return markerManager.checkIntersect(mousePos, this.raycaster);
+        return  markerManager.checkIntersect(mousePos, this.raycaster);
       }
     });
   }

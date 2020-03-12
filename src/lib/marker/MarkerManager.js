@@ -124,6 +124,8 @@ class MarkerManager {
   setVisibleByMessage(message, bVisible) {
     this.markerMap.forEach((marker) => {
       if (marker.message == message) {
+        console.log('marker.massage: ' + message);
+        console.log(marker.sprite);
         marker.sprite.visible = bVisible;
       }
     });
@@ -148,7 +150,7 @@ class MarkerManager {
   }
 
   checkIntersect(mousePosition, raycaster) {
-    if (this.markerMap.length <= 0) {
+    if (this.markerMap.size <= 0) {
       return;
     }
 
