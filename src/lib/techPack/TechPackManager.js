@@ -4,6 +4,7 @@ import * as THREE from "@/lib/threejs/three";
 import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
 import { StyleLine } from "@/lib/techPack/StyleLine";
 import MarkerManager from "@/lib/marker/MarkerManager";
+import { Measurement } from "./Measurement";
 
 const config = {
   unselectedMarkerOpacity: 0.1,
@@ -50,6 +51,11 @@ class TechPackManager {
     };
     this.setStyleLineVisibleByPatternNo = this.setStyleLineVisibleByPatternNo;
 
+    this.measure = new Measurement(this.measureContainer);
+    this.loadMeasure = listPatternMeasure => {
+      this.measure.load(listPatternMeasure);
+    };
+
     this.deleteAllMarker = this.deleteAllMarker.bind(this);
     this.onMouseDown = this.onMouseDown.bind(this);
   }
@@ -75,6 +81,10 @@ class TechPackManager {
     this.styleLineContainer = new THREE.Object3D();
     this.styleLineContainer.name = "styleLineContainer";
     this.scene.add(this.styleLineContainer);
+
+    this.measureContainer = new THREE.Object3D();
+    this.measureContainer.name = "measureContainer";
+    this.scene.add(this.measureContainer);
   }
 
   load(matShapeMap, matMeshMap, fabricsWithPatterns, trims, defaultMarker = "pattern") {
