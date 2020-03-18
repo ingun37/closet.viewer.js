@@ -147,6 +147,19 @@ ZRestLoader.prototype = {
     });
   },
 
+  // TEST ONLY
+  adjustAllMeshOffset(bOffset, offset = 100) {
+    this.matMeshMap.forEach(matMesh => {
+      const material = matMesh.material;
+      if (material) {
+        material.polygonOffset = bOffset;
+        material.polygonOffsetFactor = 1;
+        material.polygonOffsetUnits = offset;
+        console.log(material);
+      }
+    });
+  },
+
   launchTest() {
     // TEST ONLY
     for (const key of this.zProperty.nameToTextureMap.keys()) {

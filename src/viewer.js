@@ -613,6 +613,12 @@ export default class ClosetViewer {
     alert(this.mobileDetect.os());
   }
 
+  // TEST ONLY
+  measure() {
+    //this.loadZrestUrl("./pom.zrest");
+    this.techPack.measure.load(this.zrest.zProperty.rootMap.get("listPatternMeasure"));
+  }
+
   safeDeallocation(object, type, type_cb, nontype_cb) {
     if (object instanceof type) {
       type_cb(object);

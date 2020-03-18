@@ -576,8 +576,6 @@ class TechPackManager {
     });
   }
 
-  //removeMatMeshesremainMeshMap
-
   updatePointerSize() {
     this.markerManagers.forEach(manager => {
       if (manager.isActivated()) {
