@@ -30,9 +30,9 @@ let _fileReaderSyncSupport = false;
 const _syncDetectionScript = "onmessage = function(e) { postMessage(!!FileReaderSync); };";
 
 export default class ZRestLoader {
+//export default function ZRestLoader({ scene, camera, controls, cameraPosition, drawMode }, loadingManager) {
 
-  constructor({ scene, camera, controls, cameraPosition }, manager) {
-
+  constructor({ scene, camera, controls, cameraPosition, drawMode }, manager) {
     this.req = undefined;
     this.scene = scene;
     this.camera = camera;
@@ -126,7 +126,6 @@ export default class ZRestLoader {
       }
     };
 
-  parse = (data, onLoad) => {
     if (drawMode && drawMode.wireframe) {
       defaultDrawMode.wireframe.pattern = drawMode.wireframe.pattern || false;
       defaultDrawMode.wireframe.button = drawMode.wireframe.button || false;
@@ -151,6 +150,45 @@ export default class ZRestLoader {
     } catch (e) {
       return false;
     }
+  };
+
+  parse = (data, onLoad) => {
+    if (drawMode && drawMode.wireframe) {
+      defaultDrawMode.wireframe.pattern = drawMode.wireframe.pattern || false;
+      defaultDrawMode.wireframe.button = drawMode.wireframe.button || false;
+    }
+
+    return defaultDrawMode;
+  };
+
+  // TEST ONLY
+  adjustAllMeshOffset(bOffset, offset = 100) {
+    this.matMeshMap.forEach(matMesh => {
+      const material = matMesh.material;
+      if (material) {
+        material.polygonOffset = bOffset;
+        material.polygonOffsetFactor = 1;
+        material.polygonOffsetUnits = offset;
+        console.log(material);
+      }
+    });
+  };
+
+  launchTest = () => {
+    // TEST ONLY
+    for (const key of this.zProperty.nameToTextureMap.keys()) {
+      if (key.startsWith("a_")) {
+        const origFileName = key.replace("a_", "");
+        const adapTexture = this.zProperty.nameToTextureMap.get(key);
+        const origTexture = this.zProperty.nameToTextureMap.get(origFileName);
+
+        //adapTexture.dispose();
+        adapTexture.image = origTexture.image;
+        adapTexture.needsUpdate = true;
+      }
+    }
+
+    console.log("Texture update Done.");
   };
 
   parse = (data, onLoad) => {

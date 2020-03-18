@@ -28,18 +28,16 @@ export class Measurement {
       this.lineMap.set(id, line);
     });
 
-    this.build();
-
     console.log(this.posMap);
   }
 
-  build() {
-    for (const [id, vertice] of Object.entries(this.posMap)) {
-      for (let vertex of vertice) {
-        console.log(vertex);
-      }
-    }
+  getStatus() {
+    return this.posMap.size > 0 && this.lineMap.size > 0;
   }
 
-  setVisible() {}
+  setVisible(bVisible) {
+    this.lineMap.forEach(line => {
+      line.visible = bVisible;
+    });
+  }
 }
