@@ -37,7 +37,7 @@ export default function MeshFactory({ matMeshMap, materialList, matShapeMap }, m
 MeshFactory.prototype = {
   constructor: MeshFactory,
 
-  async build(map, zip, retObject, loadedCamera) {
+  async build(zrestLoader, map, zip, retObject, loadedCamera) {
     const version = map.get("uiVersion") || 1;
 
     this.version = version;
@@ -111,13 +111,15 @@ MeshFactory.prototype = {
       // FIXME: synchronize return type
       return false;
     }
-
+    if (zrestLoader.aborted) return;
     // 불투명 부터 추가해서 불투명 object 부터 그리기
-    let tf = await this.matmeshManager.getMatMeshs(mapGeometry, zip, false, this.materialInformationMap, this.currentColorwayIndex, this.camera, version);
+    let tf = await this.matmeshManager.getMatMeshs(zrestLoader, mapGeometry, zip, false, this.materialInformationMap, this.currentColorwayIndex, this.camera, version);
+    if (zrestLoader.aborted) return;
     retObject.add(tf);
 
     // 투명한것 추가
-    tf = await this.matmeshManager.getMatMeshs(mapGeometry, zip, true, this.materialInformationMap, this.currentColorwayIndex, this.camera, version);
+    tf = await this.matmeshManager.getMatMeshs(zrestLoader, mapGeometry, zip, true, this.materialInformationMap, this.currentColorwayIndex, this.camera, version);
+    if (zrestLoader.aborted) return;
     retObject.add(tf);
 
     this.matShapeMap = this.matmeshManager.matShapeMap;

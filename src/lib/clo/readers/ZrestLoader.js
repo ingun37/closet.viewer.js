@@ -28,86 +28,81 @@ const _syncDetectionScript = "onmessage = function(e) { postMessage(!!FileReader
 const _drawMode = { wireframe: { pattern: false, button: false } };
 const _version = -1;
 
-export default function ZRestLoader({ scene, camera, controls, cameraPosition }, manager) {
-  this.scene = scene;
-  this.camera = camera;
-  this.controls = controls;
-  this.cameraPosition = cameraPosition;
-  this.manager = manager !== undefined ? manager : THREE.DefaultLoadingManager;
+export default class ZRestLoader {
 
-  // TEMP
-  this.g = globalProperty;
+  constructor({ scene, camera, controls, cameraPosition }, manager) {
 
-  this.materialList = [];
-  this.matMeshMap = new Map();
-  this.currentColorwayIndex = 0;
-  this.jsZip = null;
-  (this.meshFactory = new MeshFactory(
-    {
-      matMeshMap: this.matMeshMap,
-      materialList: this.materialList
-    },
-    this.materialInformationMap,
-    camera,
-    _drawMode,
-    globalProperty,
-    _nameToTextureMap,
-    _version
-  )),
-    (this.MATMESH_TYPE = MATMESH_TYPE);
-}
+    this.req = undefined;
+    this.scene = scene;
+    this.camera = camera;
+    this.controls = controls;
+    this.cameraPosition = cameraPosition;
+    this.manager = manager !== undefined ? manager : THREE.DefaultLoadingManager;
 
-ZRestLoader.prototype = {
-  constructor: ZRestLoader,
+    // TEMP
+    this.g = globalProperty;
 
+    this.materialList = [];
+    this.matMeshMap = new Map();
+    this.currentColorwayIndex = 0;
+    this.jsZip = null;
+    this.meshFactory = new MeshFactory(
+        {
+          matMeshMap: this.matMeshMap,
+          materialList: this.materialList
+        },
+        this.materialInformationMap,
+        camera,
+        _drawMode,
+        globalProperty,
+        _nameToTextureMap,
+        _version
+    );
+    this.MATMESH_TYPE = MATMESH_TYPE;
+  }
   // TODO: This wrapper function placed very temporarily.
-  async makeMaterialForZrest(zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera, version) {
-    return await makeMaterial(zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera, _drawMode, globalProperty.seamPuckeringNormalMap, _nameToTextureMap, version);
-  },
+  makeMaterialForZrest = async (zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera, version) => await makeMaterial(zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera, _drawMode, globalProperty.seamPuckeringNormalMap, _nameToTextureMap, version);
 
-  clearMaps() {
+  clearMaps = () => {
     _nameToTextureMap.clear();
     global.seamPuckeringNormalMap = null;
-  },
+  };
 
-  load(url, onLoad, onProgress, onError) {
+  load = (url, onLoad, onProgress, onError) => {
     const loader = new THREE.FileLoader(this.manager);
     loader.setResponseType("arraybuffer");
-    loader.load(
-      url,
-      data => {
-        this.parse(data, onLoad);
-      },
-      onProgress,
-      onError
+    this.req = loader.load(
+        url,
+        data => {
+          this.parse(data, onLoad);
+        },
+        onProgress,
+        onError
     );
-  },
+  };
 
-  setPath(value) {
+  abort = () => {
+    if(this.req) {
+      this.aborted = true;
+      this.req.abort();
+    }
+  };
+
+  setPath = value => {
     this.path = value;
-  },
+  };
 
-  getColorwaySize() {
-    return this.meshFactory.getColorwaySize();
-  },
+  getColorwaySize = () => this.meshFactory.getColorwaySize();
 
-  getMaterialInformationMap() {
-    return this.meshFactory.materialInformationMap;
-  },
+  getMaterialInformationMap = () => this.meshFactory.materialInformationMap;
 
-  getMatShapeMap() {
-    return this.meshFactory.matShapeMap;
-  },
+  getMatShapeMap = () => this.meshFactory.matShapeMap;
 
-  getMatMeshMap() {
-    return this.matMeshMap;
-  },
+  getMatMeshMap = () => this.matMeshMap;
 
-  getStyleLineMap() {
-    return this.meshFactory.getStyleLineMap();
-  },
+  getStyleLineMap = () => this.meshFactory.getStyleLineMap();
 
-  parse(data, onLoad) {
+  parse = (data, onLoad) => {
     this.data = data;
     this.onLoad = onLoad;
 
@@ -117,9 +112,9 @@ ZRestLoader.prototype = {
     const header = readHeader(dataView, headerOffset);
 
     return this.readZrestFromBlobForWeb(blob, header);
-  },
+  };
 
-  readZrestFromBlobForWeb(blob, header) {
+  readZrestFromBlobForWeb = (blob, header) => {
     const object3D = new THREE.Object3D();
     // const object3D = new THREE.LOD();
     object3D.name = "object3D";
@@ -163,53 +158,53 @@ ZRestLoader.prototype = {
 
         const fileOffset = { Offset: 0 };
         zip
-          .file(restName)
-          .async("arrayBuffer")
-          .then(async restContent => {
-            const dataView = new DataView(restContent);
+            .file(restName)
+            .async("arrayBuffer")
+            .then(async restContent => {
+              const dataView = new DataView(restContent);
 
-            console.log("pac file size = " + dataView.byteLength);
+              console.log("pac file size = " + dataView.byteLength);
 
-            rootMap = readMap(dataView, fileOffset);
+              rootMap = readMap(dataView, fileOffset);
 
-            // seam puckering normal map 로드
-            globalProperty.seamPuckeringNormalMap = await loadTexture(zip, "seam_puckering_2ol97pf293f2sdk98.png");
+              // seam puckering normal map 로드
+              globalProperty.seamPuckeringNormalMap = await loadTexture(zip, "seam_puckering_2ol97pf293f2sdk98.png");
 
-            const loadedCamera = {
-              ltow: new THREE.Matrix4(),
-              bLoaded: false
-            };
+              const loadedCamera = {
+                ltow: new THREE.Matrix4(),
+                bLoaded: false
+              };
 
-            await this.meshFactory.build(rootMap, zip, object3D, loadedCamera);
+              await this.meshFactory.build(this, rootMap, zip, object3D, loadedCamera);
 
-            // 여기가 실질적으로 Zrest 로드 완료되는 시점
-            this.onLoad(object3D, loadedCamera, this.data);
+              // 여기가 실질적으로 Zrest 로드 완료되는 시점
+              this.onLoad(object3D, loadedCamera, this.data);
 
-            // add 할때 cameraPosition 이 있으면 설정해준다.
-            if (this.cameraPosition) {
-              this.camera.position.copy(this.cameraPosition);
-            }
+              // add 할때 cameraPosition 이 있으면 설정해준다.
+              if (this.cameraPosition) {
+                this.camera.position.copy(this.cameraPosition);
+              }
 
-            // NOTE: This is temporary
-            // this.buildCategorizeMatMeshList();
+              // NOTE: This is temporary
+              // this.buildCategorizeMatMeshList();
 
-            // 임시 데이터 clear
-            _nameToTextureMap.clear();
-          });
+              // 임시 데이터 clear
+              _nameToTextureMap.clear();
+            });
       });
     };
 
     reader.readAsArrayBuffer(contentBlob);
-  },
+  }
 
-  getObjectsCenter(scene) {
+  getObjectsCenter = scene => {
     const box = new THREE.Box3();
     box.expandByObject(scene);
     const center = new THREE.Vector3(0.5 * (box.min.x + box.max.x), 0.5 * (box.min.y + box.max.y), 0.5 * (box.min.z + box.max.z));
     return center;
-  },
+  };
 
-  zoomToObjects(loadedCamera, scene) {
+  zoomToObjects = (loadedCamera, scene) => {
     // scene 의 모든 geometry 방문하면서 bounding cube 계산해서 전체 scene bounding cube 계산
     const center = new THREE.Vector3();
     center.copy(this.getObjectsCenter(scene));
@@ -263,8 +258,9 @@ ZRestLoader.prototype = {
         this.controls.target.copy(center);
       }
     }
-  }
-};
+  };
+
+}
 
 function makeWorker(script) {
   const URL = window.URL || window.webkitURL;

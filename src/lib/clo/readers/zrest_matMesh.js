@@ -25,7 +25,8 @@ export default function MatMeshManager({ matMeshMap: matMeshMap, materialList, m
 MatMeshManager.prototype = {
   constructor: MatMeshManager,
 
-  async getMatMeshs(map, zip, bLoadTransparentObject, materialInformationMap, colorwayIndex, loadedCamera, version) {
+  async getMatMeshs(zrestLoader, map, zip, bLoadTransparentObject, materialInformationMap, colorwayIndex, loadedCamera, version) {
+    if (zrestLoader.aborted) return;
     this.camera = loadedCamera;
     this.version = version;
     this.colorwayIndex = colorwayIndex;
@@ -36,16 +37,19 @@ MatMeshManager.prototype = {
     if (listChildrenTransformer3D) {
       for (let i = 0; i < listChildrenTransformer3D.length; ++i) {
         const childTF3D = listChildrenTransformer3D[i];
-        const childTF = await this.getMatMeshs(childTF3D, zip, bLoadTransparentObject, materialInformationMap, colorwayIndex, loadedCamera, version);
+        if (zrestLoader.aborted) return;
+        const childTF = await this.getMatMeshs(zrestLoader, childTF3D, zip, bLoadTransparentObject, materialInformationMap, colorwayIndex, loadedCamera, version);
+        if (zrestLoader.aborted) return;
         tf.add(childTF);
       }
     }
-
     const mapTransformer3D = map.get("mapTransformer3D");
     if (mapTransformer3D) {
-      const childTF = await this.getMatMeshs(mapTransformer3D, zip, bLoadTransparentObject, materialInformationMap, colorwayIndex, loadedCamera, version);
+      if (zrestLoader.aborted) return;
+      const childTF = await this.getMatMeshs(zrestLoader, mapTransformer3D, zip, bLoadTransparentObject, materialInformationMap, colorwayIndex, loadedCamera, version);
       tf = childTF;
     }
+    if (zrestLoader.aborted) return;
 
     const mat4 = new THREE.Matrix4().identity();
     if (map.get("m4Matrix")) {
@@ -82,14 +86,13 @@ MatMeshManager.prototype = {
           this.matShapeMap.set(n, l);
         });
       });
-
-      await this.addMatMeshList(zip, listMatShape, tf, bLoadTransparentObject, materialInformationMap);
+      await this.addMatMeshList(zrestLoader, zip, listMatShape, tf, bLoadTransparentObject, materialInformationMap);
     }
 
     return tf;
   },
 
-  async addMatMeshList(zip, listMatShape, tf, bLoadTransparentObject, materialInformationMap) {
+  async addMatMeshList(zrestLoader, zip, listMatShape, tf, bLoadTransparentObject, materialInformationMap) {
     // TODO: do refactor more
     const splitMatSpaceToMatMesh = async (listMatMeshIDOnIndexedMesh, totalIdxCount, listIdxCount, dracoGeometry, bVisible, drawMode) => {
       let indexOffset = this.version > 4 ? 0 : totalIdxCount;
@@ -223,7 +226,7 @@ MatMeshManager.prototype = {
           bufferGeometry.computeFaceNormals();
           bufferGeometry.computeVertexNormals();
         }
-
+        if (zrestLoader.aborted) return;
         const bUseSeamPuckeringNormalMap = dracoGeometry.numUVs >= 2;
         const material = await makeMaterial(
           zip,
@@ -236,6 +239,9 @@ MatMeshManager.prototype = {
           this.nameToTextureMap,
           this.version
         );
+        if (zrestLoader.aborted) return;
+        if (!material) return;
+
         const threeMesh = new THREE.Mesh(bufferGeometry, material);
         const matMeshType = listMatMeshIDOnIndexedMesh[m].get("enType");
         // 여기서 center, normal, bounding sphere radius,

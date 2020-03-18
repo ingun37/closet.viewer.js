@@ -566,6 +566,7 @@ export default class ClosetViewer {
     const matMeshMap = this.zrest.matMeshMap;
     for (const matMesh of matMeshMap.values()) {
       const prevMaterial = matMesh.material;
+      if (!prevMaterial) return;
       const bPrevUseSeamPuckeringMap = prevMaterial.uniforms.bUseSeamPuckeringNormal !== undefined ? prevMaterial.uniforms.bUseSeamPuckeringNormal.value : false;
       const id = matMesh.userData.MATMESH_ID;
 
@@ -618,6 +619,12 @@ export default class ClosetViewer {
       type_cb(object);
     } else {
       nontype_cb(object);
+    }
+  }
+
+  dispose() {
+    if (this.zrest.req) {
+      this.zrest.abort()
     }
   }
 }

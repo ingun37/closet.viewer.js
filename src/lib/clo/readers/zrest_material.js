@@ -14,7 +14,9 @@ import { TEXTURE_TYPE, RENDER_FACE_TYPE } from "@/lib/clo/readers/predefined";
 
 export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeringNormalMap, loadedCamera, drawMode, seamPuckeringNormalMap, nameToTextureMap, version) {
   const zRestColorwayMaterialArray = property.colorwayMaterials;
+  if(!zRestColorwayMaterialArray) return;
   const material = zRestColorwayMaterialArray[colorwayIndex];
+  if(!material) return;
   const rFace = getRenderFaceType(material.renderFace);
   const uniforms = getUniforms(version, loadedCamera, colorwayIndex);
 
