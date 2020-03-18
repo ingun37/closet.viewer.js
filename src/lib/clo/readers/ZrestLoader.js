@@ -176,7 +176,7 @@ export default class ZRestLoader {
               };
 
               await this.meshFactory.build(this, rootMap, zip, object3D, loadedCamera);
-
+              if (this.aborted) return;
               // 여기가 실질적으로 Zrest 로드 완료되는 시점
               this.onLoad(object3D, loadedCamera, this.data);
 
