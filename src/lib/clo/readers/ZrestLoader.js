@@ -3,67 +3,80 @@
 
 /* eslint-disable require-jsdoc */
 import * as THREE from "@/lib/threejs/three";
-import JSZip from "@/lib/jszip/dist/jszip";
 import { readHeader } from "@/lib/clo/file/FileHeader";
-import { readMap } from "@/lib/clo/file/KeyValueMapReader";
 
 import { makeMaterial } from "@/lib/clo/readers/zrest_material";
-import { loadTexture } from "@/lib/clo/readers/zrest_texture";
 import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
 import MeshFactory from "./zrest_meshFactory";
 
-const globalProperty = {
-  seamPuckeringNormalMap: null
-  // drawMode: {
-  //   wireframe: {
-  //     pattern: false,
-  //     button: false
-  //   }
-  // },
-  // version: -1
+import { getObjectsCenter, zoomToObjects } from "./ObjectUtils";
+import { readZrestFromBlobForWeb } from "./Loader";
+
+const zrestProperty = {
+  version: -1,
+  seamPuckeringNormalMap: null,
+  drawMode: {
+    wireframe: {
+      pattern: false
+      // button: false
+    }
+  },
+  // global variable
+  nameToTextureMap: new Map()
 };
-const _nameToTextureMap = new Map();
 let _fileReaderSyncSupport = false;
 const _syncDetectionScript = "onmessage = function(e) { postMessage(!!FileReaderSync); };";
-const _drawMode = { wireframe: { pattern: false, button: false } };
-const _version = -1;
 
 export default class ZRestLoader {
-  constructor({ scene, camera, controls, cameraPosition }, manager) {
+  constructor({ scene, camera, controls, cameraPosition, drawMode }, loadingManager) {
     this.req = undefined;
     this.scene = scene;
     this.camera = camera;
     this.controls = controls;
     this.cameraPosition = cameraPosition;
-    this.manager = manager !== undefined ? manager : THREE.DefaultLoadingManager;
+    this.manager = loadingManager !== undefined ? loadingManager : THREE.DefaultLoadingManager;
 
-    // TEMP
-    this.g = globalProperty;
+    // ZREST property
+    this.zProperty = zrestProperty;
+    this.zProperty.drawMode = this.getParsedDrawMode(drawMode);
 
-    this.materialList = [];
     this.matMeshMap = new Map();
     this.currentColorwayIndex = 0;
     this.jsZip = null;
-    this.meshFactory = new MeshFactory(
-      {
-        matMeshMap: this.matMeshMap,
-        materialList: this.materialList
-      },
-      this.materialInformationMap,
-      camera,
-      _drawMode,
-      globalProperty,
-      _nameToTextureMap,
-      _version
-    );
+
+    this.readZrestFromBlobForWeb = readZrestFromBlobForWeb;
+
+    this.getObjectsCenter = getObjectsCenter;
+    this.zoomToObjects = zoomToObjects;
+
+    this.meshFactory = new MeshFactory({
+      matMeshMap: this.matMeshMap,
+      materialInformationMap: this.materialInformationMap,
+      camera: this.camera,
+      zrestProperty: this.zProperty,
+      zrestVersion: this.zProperty._version
+    });
+
     this.MATMESH_TYPE = MATMESH_TYPE;
   }
+
   // TODO: This wrapper function placed very temporarily.
-  makeMaterialForZrest = async (zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera, version) =>
-    await makeMaterial(zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera, _drawMode, globalProperty.seamPuckeringNormalMap, _nameToTextureMap, version);
+  makeMaterialForZrest = async (zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera) => {
+    // console.log(zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera, version);
+    return await makeMaterial({
+      jsZip: zip,
+      matProperty: matProperty,
+      colorwayIndex: colorwayIndex,
+      bUseSeamPuckeringNormalMap: bUseSeamPuckeringNormalMap,
+      camera: camera,
+      drawMode: this.zProperty.drawMode,
+      seamPuckeringNormalMap: this.zProperty.seamPuckeringNormalMap,
+      nameToTextureMap: this.zProperty.nameToTextureMap,
+      zrestVersion: this.zProperty.version
+    });
+  };
 
   clearMaps = () => {
-    _nameToTextureMap.clear();
     global.seamPuckeringNormalMap = null;
   };
 

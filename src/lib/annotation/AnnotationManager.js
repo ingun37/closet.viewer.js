@@ -237,7 +237,7 @@ class AnnotationManager {
     const mouse = this.getMousePosition({ clientX: clientX, clientY: clientY - 10 });
 
     this.raycaster.setFromCamera(mouse, this.camera);
-    const intersects = this.raycaster.intersectObjects(this.zrest.matMeshMap.values());
+    const intersects = this.raycaster.intersectObjects(this.annotationPointerList);
 
     if (intersects.length > 0) {
       return {
@@ -266,7 +266,7 @@ class AnnotationManager {
   }
 
   checkIntersectObject({ clientX, clientY }) {
-    // test code : annotation pointer부터 검사하자.
+    // annotation pointer부터 검사하자.
     if (this.annotationPointerList.length) {
       const mouse = this.getMousePosition({ clientX, clientY });
 

@@ -216,14 +216,13 @@ export default class ClosetViewer {
   }
 
   onMouseDown(e) {
-    // NOTE: This module works to test only
     e.preventDefault();
 
     if (this.annotation && this.object3D) {
       this.annotation.onMouseDown(e);
     }
 
-    if (this.techPack) {
+    if (this.techPack && this.techPack.matMeshMap.size > 0) {
       const selectedMarker = this.techPack.onMouseDown(e);
       if (selectedMarker) {
         const selectedMarkerIdx = selectedMarker.message - 1;
@@ -235,12 +234,16 @@ export default class ClosetViewer {
 
   onMouseUp(e) {
     e.preventDefault();
-    if (this.annotation && this.object3D) this.annotation.onMouseUp(e);
+    if (this.annotation && this.object3D) {
+      this.annotation.onMouseUp(e);
+    }
   }
 
   onMouseClick(e) {
     e.preventDefault();
-    if (this.annotation && this.object3D) this.annotation.onMouseClick(e);
+    if (this.annotation && this.object3D) {
+      this.annotation.onMouseClick(e);
+    }
   }
 
   setVisibleAllGarment(visibility) {

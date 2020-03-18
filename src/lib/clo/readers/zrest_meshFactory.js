@@ -7,42 +7,37 @@ import { RENDER_FACE_TYPE } from "@/lib/clo/readers/predefined";
 
 import MatMeshManager from "./zrest_matMesh";
 
-export default function MeshFactory({ matMeshMap, materialList, matShapeMap }, materialInformationMap, loadedCamera, drawMode, globalProperty, nameToTextureMap, version) {
+export default function MeshFactory({ matMeshMap: matMeshMap, matShapeMap: matShapeMap, materialInformationMap: materialInformationMap, camera: loadedCamera, zrestProperty: zrestProperty }) {
   this.matMeshMap = matMeshMap;
-  this.materialList = materialList;
+  this.materialList = [];
   this.matShapeMap = matShapeMap;
   this.materialInformationMap = materialInformationMap;
   this.camera = loadedCamera;
-  this.drawMode = drawMode;
-  this.g = globalProperty;
-  this.nameToTextureMap = nameToTextureMap;
-  this.version = version;
+  this.zProperty = zrestProperty;
+  this.drawMode = zrestProperty.drawMode;
   this.colorwaySize = 0;
 
-  this.matmeshManager = new MatMeshManager(
-    {
-      matMeshMap: this.matMeshMap,
-      materialList: this.materialList,
-      matShapeMap: this.matShapeMap
-    },
-    this.materialInformationMap,
-    this.camera,
-    this.drawMode,
-    globalProperty,
-    this.nameToTextureMap,
-    this.version
-  );
+  // console.log("meshFactory Init");
+  // console.log(this.zProperty);
+
+  this.matmeshManager = new MatMeshManager({
+    matMeshMap: this.matMeshMap,
+    matShapeMap: this.matShapeMap,
+    materialInformationMap: this.materialInformationMap,
+    camera: this.camera,
+    zrestProperty: this.zProperty,
+    drawMode: this.drawMode
+  });
 }
 
 MeshFactory.prototype = {
   constructor: MeshFactory,
 
   async build(zrestLoader, map, zip, retObject, loadedCamera) {
-    const version = map.get("uiVersion") || 1;
+    const zrestVersion = map.get("uiVersion") || 1;
+    this.zProperty.version = zrestVersion;
 
-    this.version = version;
-
-    console.log("version: " + this.version);
+    console.log("ZREST version: " + this.zProperty.version);
 
     this.materialInformationMap = new Map();
 
@@ -58,7 +53,7 @@ MeshFactory.prototype = {
     // Set colorway index to default
     this.matmeshManager.setColorwayIndex(this.currentColorwayIndex);
 
-    if (version > 4) {
+    if (zrestVersion > 4) {
       const listMaterial = map.get("listMaterial");
       if (listMaterial !== undefined) {
         for (let j = 0; j < listMaterial.length; ++j) {
@@ -73,7 +68,7 @@ MeshFactory.prototype = {
       for (let i = 0; i < zRestMatMeshArray.length; ++i) {
         const zRestColorwayMaterials = setZRestColorwayMaterials(zRestMatMeshArray[i]);
 
-        if (version > 4) {
+        if (zrestVersion > 4) {
           const renderFace = zRestMatMeshArray[i].get("enRenderFace");
           const listMaterialInfo = zRestMatMeshArray[i].get("listMaterialInfo");
 
@@ -93,7 +88,7 @@ MeshFactory.prototype = {
             }
           }
         } else {
-          const listMaterial = version > 4 ? map.get("listMaterial") : zRestMatMeshArray[i].get("listMaterial");
+          const listMaterial = zrestVersion > 4 ? map.get("listMaterial") : zRestMatMeshArray[i].get("listMaterial");
 
           if (listMaterial !== undefined) {
             for (let j = 0; j < listMaterial.length; ++j) {
@@ -142,24 +137,12 @@ const getCameraLtoW = (LtoWMatrix, loadedCamera) => {
 
   loadedCamera.bLoaded = true;
 
-  // TODO: refactor here!
+  // prettier-ignore
   loadedCamera.ltow.set(
-    LtoWMatrix.a00,
-    LtoWMatrix.a01,
-    LtoWMatrix.a02,
-    LtoWMatrix.a03,
-    LtoWMatrix.a10,
-    LtoWMatrix.a11,
-    LtoWMatrix.a12,
-    LtoWMatrix.a13,
-    LtoWMatrix.a20,
-    LtoWMatrix.a21,
-    LtoWMatrix.a22,
-    LtoWMatrix.a23,
-    LtoWMatrix.a30,
-    LtoWMatrix.a31,
-    LtoWMatrix.a32,
-    LtoWMatrix.a33
+    LtoWMatrix.a00, LtoWMatrix.a01, LtoWMatrix.a02, LtoWMatrix.a03,
+    LtoWMatrix.a10, LtoWMatrix.a11, LtoWMatrix.a12, LtoWMatrix.a13,
+    LtoWMatrix.a20, LtoWMatrix.a21, LtoWMatrix.a22, LtoWMatrix.a23,
+    LtoWMatrix.a30, LtoWMatrix.a31, LtoWMatrix.a32, LtoWMatrix.a33
   );
 
   return true;
