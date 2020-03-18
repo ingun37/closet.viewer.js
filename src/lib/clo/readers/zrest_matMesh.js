@@ -232,18 +232,6 @@ MatMeshManager.prototype = {
         }
         if (zrestLoader.aborted) return;
         const bUseSeamPuckeringNormalMap = dracoGeometry.numUVs >= 2;
-        // console.log("=====");
-        // console.log({
-        //   jsZip: zip,
-        //   matProperty: matProperty,
-        //   colorwayIndex: this.colorwayIndex,
-        //   bUseSeamPuckeringNormalMap: bUseSeamPuckeringNormalMap,
-        //   camera: this.camera,
-        //   drawMode: this.zProperty.drawMode,
-        //   seamPuckeringNormalMap: this.zProperty.seamPuckeringNormalMap,
-        //   nameToTextureMap: this.nameToTextureMap,
-        //   zrestVersion: this.version
-        // });
 
         const material = await makeMaterial({
           jsZip: zip,
@@ -256,6 +244,10 @@ MatMeshManager.prototype = {
           nameToTextureMap: this.zProperty.nameToTextureMap,
           zrestVersion: this.zProperty.version
         });
+
+        if (zrestLoader.aborted) return;
+        if (!material) return;
+
         const threeMesh = new THREE.Mesh(bufferGeometry, material);
         const matMeshType = listMatMeshIDOnIndexedMesh[m].get("enType");
         // 여기서 center, normal, bounding sphere radius,

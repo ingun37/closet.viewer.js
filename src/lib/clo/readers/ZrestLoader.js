@@ -30,13 +30,15 @@ let _fileReaderSyncSupport = false;
 const _syncDetectionScript = "onmessage = function(e) { postMessage(!!FileReaderSync); };";
 
 export default class ZRestLoader {
-  constructor({ scene, camera, controls, cameraPosition, drawMode }, loadingManager) {
+
+  constructor({ scene, camera, controls, cameraPosition }, manager) {
+
     this.req = undefined;
     this.scene = scene;
     this.camera = camera;
     this.controls = controls;
     this.cameraPosition = cameraPosition;
-    this.manager = loadingManager !== undefined ? loadingManager : THREE.DefaultLoadingManager;
+    this.manager = manager !== undefined ? manager : THREE.DefaultLoadingManager;
 
     // ZREST property
     this.zProperty = zrestProperty;
@@ -86,17 +88,17 @@ export default class ZRestLoader {
     const loader = new THREE.FileLoader(this.manager);
     loader.setResponseType("arraybuffer");
     this.req = loader.load(
-      url,
-      data => {
-        this.parse(data, onLoad);
-      },
-      onProgress,
-      onError
+        url,
+        data => {
+          this.parse(data, onLoad);
+        },
+        onProgress,
+        onError
     );
   };
 
   abort = () => {
-    if (this.req) {
+    if(this.req) {
       this.aborted = true;
       this.req.abort();
     }
@@ -124,6 +126,7 @@ export default class ZRestLoader {
       }
     };
 
+  parse = (data, onLoad) => {
     if (drawMode && drawMode.wireframe) {
       defaultDrawMode.wireframe.pattern = drawMode.wireframe.pattern || false;
       defaultDrawMode.wireframe.button = drawMode.wireframe.button || false;
@@ -206,39 +209,39 @@ export default class ZRestLoader {
 
         const fileOffset = { Offset: 0 };
         zip
-          .file(restName)
-          .async("arrayBuffer")
-          .then(async restContent => {
-            const dataView = new DataView(restContent);
+            .file(restName)
+            .async("arrayBuffer")
+            .then(async restContent => {
+              const dataView = new DataView(restContent);
 
-            console.log("pac file size = " + dataView.byteLength);
+              console.log("pac file size = " + dataView.byteLength);
 
-            rootMap = readMap(dataView, fileOffset);
+              rootMap = readMap(dataView, fileOffset);
 
-            // seam puckering normal map 로드
-            this.zProperty.seamPuckeringNormalMap = await loadTexture(zip, "seam_puckering_2ol97pf293f2sdk98.png");
+              // seam puckering normal map 로드
+              this.zProperty.seamPuckeringNormalMap = await loadTexture(zip, "seam_puckering_2ol97pf293f2sdk98.png");
 
-            const loadedCamera = {
-              ltow: new THREE.Matrix4(),
-              bLoaded: false
-            };
+              const loadedCamera = {
+                ltow: new THREE.Matrix4(),
+                bLoaded: false
+              };
 
-            await this.meshFactory.build(this, rootMap, zip, object3D, loadedCamera);
+              await this.meshFactory.build(this, rootMap, zip, object3D, loadedCamera);
 
-            // 여기가 실질적으로 Zrest 로드 완료되는 시점
-            this.onLoad(object3D, loadedCamera, this.data);
+              // 여기가 실질적으로 Zrest 로드 완료되는 시점
+              this.onLoad(object3D, loadedCamera, this.data);
 
-            // add 할때 cameraPosition 이 있으면 설정해준다.
-            if (this.cameraPosition) {
-              this.camera.position.copy(this.cameraPosition);
-            }
+              // add 할때 cameraPosition 이 있으면 설정해준다.
+              if (this.cameraPosition) {
+                this.camera.position.copy(this.cameraPosition);
+              }
 
-            // NOTE: This is temporary
-            // this.buildCategorizeMatMeshList();
+              // NOTE: This is temporary
+              // this.buildCategorizeMatMeshList();
 
-            // 임시 데이터 clear
-            this.zProperty.nameToTextureMap.clear();
-          });
+              // 임시 데이터 clear
+              this.zProperty.nameToTextureMap.clear();
+            });
       });
     };
 
