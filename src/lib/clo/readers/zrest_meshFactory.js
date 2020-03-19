@@ -108,12 +108,12 @@ MeshFactory.prototype = {
     }
     if (zrestLoader.aborted) return;
     // 불투명 부터 추가해서 불투명 object 부터 그리기
-    let tf = await this.matmeshManager.getMatMeshs(zrestLoader, mapGeometry, zip, false, this.materialInformationMap, this.currentColorwayIndex, this.camera, version);
+    let tf = await this.matmeshManager.getMatMeshs(zrestLoader, mapGeometry, zip, false, this.materialInformationMap, this.currentColorwayIndex, this.camera, zrestVersion);
     if (zrestLoader.aborted) return;
     retObject.add(tf);
 
     // 투명한것 추가
-    tf = await this.matmeshManager.getMatMeshs(zrestLoader, mapGeometry, zip, true, this.materialInformationMap, this.currentColorwayIndex, this.camera, version);
+    tf = await this.matmeshManager.getMatMeshs(zrestLoader, mapGeometry, zip, true, this.materialInformationMap, this.currentColorwayIndex, this.camera, zrestVersion);
     if (zrestLoader.aborted) return;
     retObject.add(tf);
 

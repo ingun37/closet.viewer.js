@@ -157,7 +157,7 @@ class TechPackManager {
     const buildTrimMapList = trims => {
       if (!trims || isEmpty(trims)) return;
 
-      let numberForNull = 0;  // NOTE: Temporary code. There is a bug on API.
+      let numberForNull = 0; // NOTE: Temporary code. There is a bug on API.
       trims.forEach(group => {
         // Remove spaces on string
         const groupName = group.GroupName.replace(/\s/g, "");
@@ -323,9 +323,9 @@ class TechPackManager {
     matMeshIdList.forEach(matMeshId => {
       const matShape = matShapeMap.get(Number(matMeshId));
       const matShapeCenter = matShape.get("v3Center");
-      const isZero = (center) => {
-        return center.x === 0 && center.y === 0 && center.z === 0
-      }
+      const isZero = center => {
+        return center.x === 0 && center.y === 0 && center.z === 0;
+      };
 
       // check and update marker position
       if (isZero(matShapeCenter)) {
@@ -447,8 +447,8 @@ class TechPackManager {
 
             const firstMatMesh = this.matMeshMap.get(matMeshIdList[0]);
             const origColor = firstMatMesh.material.uniforms.materialBaseColor.value;
-            
-            if (typeof origColor === 'undefined') return;
+
+            if (typeof origColor === "undefined") return;
             this.selectedTrimSavedColor = origColor;
           } else {
             color = this.selectedTrimSavedColor;
@@ -667,7 +667,7 @@ class TechPackManager {
     const mousePos = this.getMousePosition({ clientX, clientY });
     this.markerManagers.forEach(markerManager => {
       if (markerManager.isActivated()) {
-        return  markerManager.checkIntersect(mousePos, this.raycaster);
+        return markerManager.checkIntersect(mousePos, this.raycaster);
       }
     });
   }

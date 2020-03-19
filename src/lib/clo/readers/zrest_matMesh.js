@@ -15,14 +15,6 @@ export default function MatMeshManager({
   drawMode: drawMode,
   zrestProperty: zrestProperty
 }) {
-  console.log({
-    matMeshMap: matMeshMap,
-    matShapeMap: matShapeMap,
-    materialInformationMap: materialInformationMap,
-    camera: loadedCamera,
-    drawMode: drawMode,
-    zrestProperty: zrestProperty
-  });
   this.matMeshMap = matMeshMap;
   this.matShapeMap = matShapeMap;
   this.materialInformationMap = materialInformationMap;

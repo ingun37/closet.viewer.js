@@ -4,7 +4,7 @@ import JSZip from "@/lib/jszip/dist/jszip";
 import { readMap } from "@/lib/clo/file/KeyValueMapReader";
 import { loadTexture } from "@/lib/clo/readers/zrest_texture";
 
-export function readZrestFromBlobForWeb(blob, header) {
+export function readZrestFromBlob(zrestLoader, blob, header) {
   const object3D = new THREE.Object3D();
   object3D.name = "object3D";
 
@@ -65,7 +65,7 @@ export function readZrestFromBlobForWeb(blob, header) {
             bLoaded: false
           };
 
-          await this.meshFactory.build(rootMap, zip, object3D, loadedCamera);
+          await this.meshFactory.build(zrestLoader, rootMap, zip, object3D, loadedCamera);
 
           // 여기가 실질적으로 Zrest 로드 완료되는 시점
           this.onLoad(object3D, loadedCamera, this.data);
