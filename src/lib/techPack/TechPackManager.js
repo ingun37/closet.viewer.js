@@ -167,7 +167,6 @@ class TechPackManager {
           } else {
             trim.Number = ++numberForNull;
           }
-          console.log(trim.Number, numberForNull);
           this.trimMapList[groupName].set(trim.Number, trim);
         });
       });
@@ -286,6 +285,9 @@ class TechPackManager {
     const isZipper = groupName => {
       return groupName === "Zipper";
     };
+    const isTopstitch = groupName => {
+      return groupName === "Topstitch";
+    };
 
     let labelCounter = 1;
     trims.forEach(trimGroup => {
@@ -295,7 +297,8 @@ class TechPackManager {
 
       trimGroup.Trims.forEach(trim => {
         if (trim.MatMeshIdList) {
-          labelCounter = this.buildMarkersFromList(this.trimMarker, trim.MatMeshIdList, this.matShapeMap, labelCounter, labelIncrement);
+          const matMeshIdList = isTopstitch(trimGroup.GroupName) ? [trim.MatMeshIdList[0]] : trim.MatMeshIdList;
+          labelCounter = this.buildMarkersFromList(this.trimMarker, matMeshIdList, this.matShapeMap, labelCounter, labelIncrement);
         }
       });
     });
@@ -320,13 +323,15 @@ class TechPackManager {
     let amountOfBuiltMarkers = 0;
 
     const shouldTranslate = this.isSmallerThanMarker(matMeshIdList[0]);
+    const isZero = center => {
+      return center.x === 0 && center.y === 0 && center.z === 0;
+    };
+
     matMeshIdList.forEach(matMeshId => {
       const matShape = matShapeMap.get(Number(matMeshId));
       const matShapeCenter = matShape.get("v3Center");
-      const isZero = center => {
-        return center.x === 0 && center.y === 0 && center.z === 0;
-      };
 
+      console.log(isZero(matShapeCenter));
       // check and update marker position
       if (isZero(matShapeCenter)) {
         const matMesh = this.matMeshMap.get(matMeshId);
