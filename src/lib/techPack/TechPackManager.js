@@ -10,6 +10,8 @@ const config = {
   defaultMarkerOpacity: 1.0,
   meshTransparentOpacity: 0.1,
   meshDefaultOpacity: 1.0,
+  meshHighlightColor: new THREE.Vector3(1, 1, 0),
+  meshDefaultColor: new THREE.Vector3(1, 1, 1),
   boundingBoxThreshold: 15.0,
   INF: 999999
 };
@@ -28,11 +30,10 @@ class TechPackManager {
     this.trimMapList = [];
     this.fabricsWithPatterns = [];
     this.stitchMeshMap = new Map(); // NOTE: This is temporary
-    this.opacityValueMap = new Map();
     this.uncategorizedMeshMap = new Map();
 
-    this.selectedTrimSavedColor = null;
-    this.selectedTrimNo = null;
+    this.opacityValueMap = new Map();
+    this.baseColorMap = new Map();
 
     this.raycaster = new THREE.Raycaster(); // FIXME: Is this necessary?
 
@@ -119,6 +120,7 @@ class TechPackManager {
     this.fabricsWithPatterns = [];
     this.stitchMeshMap = new Map(); // NOTE: This is temporary
     this.opacityValueMap = new Map();
+    this.baseColorMap = new Map();
     this.uncategorizedMeshMap = new Map();
 
     this.markerManagers.forEach(manager => {
@@ -157,7 +159,7 @@ class TechPackManager {
     const buildTrimMapList = trims => {
       if (!trims || isEmpty(trims)) return;
 
-      let numberForNull = 0; // NOTE: Temporary code. There is a bug on API.
+      let numberForNull = 0;  // NOTE: Temporary code. There is a bug on API.
       trims.forEach(group => {
         // Remove spaces on string
         const groupName = group.GroupName.replace(/\s/g, "");
@@ -280,6 +282,18 @@ class TechPackManager {
   buildTrimMarkers(trims) {
     if (!trims) return;
 
+    const addColorToMap = matMeshIdList => {
+      matMeshIdList.forEach(matMeshId => {
+        const mesh = this.matMeshMap.get(matMeshId);
+        if (mesh) {
+          const baseColor = mesh.material.uniforms.materialBaseColor.value;
+          if (baseColor) {
+            this.baseColorMap.set(matMeshId, baseColor);
+          }
+        }
+      });
+    };    
+
     // NOTE: This is a temporary code to filter zipper.
     //       Because zipper needs only 1 marker, unlike other type trims.
     const isZipper = groupName => {
@@ -297,7 +311,8 @@ class TechPackManager {
 
       trimGroup.Trims.forEach(trim => {
         if (trim.MatMeshIdList) {
-          const matMeshIdList = isTopstitch(trimGroup.GroupName) ? [trim.MatMeshIdList[0]] : trim.MatMeshIdList;
+          addColorToMap(trim.MatMeshIdList);
+          const matMeshIdList = isTopstitch(trimGroup.GroupName) ? [trim.MatMeshIdList[0]] : trim.MatMeshIdList;  // NOTE: Topstitch has only one marker
           labelCounter = this.buildMarkersFromList(this.trimMarker, matMeshIdList, this.matShapeMap, labelCounter, labelIncrement);
         }
       });
@@ -445,23 +460,8 @@ class TechPackManager {
       if (trimMap.has(trimNo)) {
         const matMeshIdList = trimMap.get(trimNo).MatMeshIdList;
         if (matMeshIdList) {
-          let color = new THREE.Vector3(1, 1, 0);
-
-          if (bHighlight) {
-            this.selectedTrimNo = trimNo;
-
-            const firstMatMesh = this.matMeshMap.get(matMeshIdList[0]);
-            const origColor = firstMatMesh.material.uniforms.materialBaseColor.value;
-
-            if (typeof origColor === "undefined") return;
-            this.selectedTrimSavedColor = origColor;
-          } else {
-            color = this.selectedTrimSavedColor;
-            this.selectedTrimSavedColor = null;
-          }
-
           matMeshIdList.forEach(matMeshId => {
-            this.setMatMeshColor(matMeshId, color);
+            this.setMatMeshHighlight(matMeshId, bHighlight);
           });
         }
       }
@@ -497,6 +497,23 @@ class TechPackManager {
       if (bTransparent) set();
       else reset(mesh);
     }
+  }
+
+  setMatMeshHighlight(matMeshId, bHighlight) {
+    const set = () => {
+      this.setMatMeshColor(matMeshId, config.meshHighlightColor);
+    };
+
+    const reset = () => {
+      const baseColor = this.baseColorMap.has(matMeshId) ? this.baseColorMap.get(matMeshId) : config.meshDefaultColor;
+      this.setMatMeshColor(matMeshId, baseColor);
+    };
+
+    const mesh = this.matMeshMap.get(matMeshId);
+    if (mesh) {
+      if (bHighlight) set();
+      else reset(mesh);
+    }    
   }
 
   setMatMeshTransparencyByValue(matMeshId, opacity) {
@@ -537,6 +554,20 @@ class TechPackManager {
     });
   }
 
+  setAllTrimHighlight(bHighlight) {
+    Object.values(this.trimMapList).forEach(groupMap => {
+      if (groupMap.size > 0) {
+        groupMap.forEach(trim => {
+          if (trim.MatMeshIdList) {
+            trim.MatMeshIdList.forEach(matMeshId => {
+              this.setMatMeshHighlight(matMeshId, bHighlight);
+            });
+          }
+        });
+      }
+    });
+  }
+
   setAllMarkerVisible(bVisible) {
     this.markerManagers.forEach(manager => {
       manager.setVisibleForAll(bVisible);
@@ -564,6 +595,8 @@ class TechPackManager {
   }
 
   onMarker(onMarkerItems) {
+    console.log(onMarkerItems);
+
     const actionsForPattern = patternIdx => {
       this.setAllStitchVisible(false);
       this.setAllTrimVisible(false);
@@ -590,6 +623,8 @@ class TechPackManager {
     };
 
     const actionsForTrim = trimIdx => {
+      //this.setTrimHighlightOff();
+
       const trimNo = trimIdx + 1;
       this.setTrimVisible(trimNo, true);
       this.setTrimHighlight(trimNo, true);
@@ -617,6 +652,8 @@ class TechPackManager {
       // Return to default setting
       this.setAllPatternTransparent(false);
       this.setAllStitchTransparent(false);
+      this.setAllTrimHighlight(false);
+
       this.setAllPatternVisible(true);
       this.setAllStitchVisible(true);
       this.setAllTrimVisible(true);
@@ -672,7 +709,7 @@ class TechPackManager {
     const mousePos = this.getMousePosition({ clientX, clientY });
     this.markerManagers.forEach(markerManager => {
       if (markerManager.isActivated()) {
-        return markerManager.checkIntersect(mousePos, this.raycaster);
+        return  markerManager.checkIntersect(mousePos, this.raycaster);
       }
     });
   }
