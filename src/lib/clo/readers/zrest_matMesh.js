@@ -1,75 +1,101 @@
 /* eslint-disable require-jsdoc */
-'use strict';
-import * as THREE from '@/lib/threejs/three';
+"use strict";
+import * as THREE from "@/lib/threejs/three";
 
-import {readByteArray} from '@/lib/clo/file/KeyValueMapReader';
+import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 
-import {MATMESH_TYPE} from '@/lib/clo/readers/predefined';
-import {makeMaterial} from '@/lib/clo/readers/zrest_material';
+import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
+import { makeMaterial } from "@/lib/clo/readers/zrest_material";
 
-export default function MatMeshManager({matMeshList, materialList, matShapeList}, materialInformationMap, loadedCamera, drawMode, seamPuckeringNormalMap, nameToTextureMap, version) {
-  this.matMeshList = matMeshList;
+export default function MatMeshManager({ matMeshMap: matMeshMap, materialList, matShapeMap: matShapeMap }, materialInformationMap, loadedCamera, drawMode, globalProperty, nameToTextureMap, version) {
+  this.matMeshMap = matMeshMap;
   this.materialList = materialList;
-  this.matShapeList = matShapeList;
+  this.matShapeMap = matShapeMap;
   this.materialInformationMap = materialInformationMap;
   this.camera = loadedCamera;
   this.drawMode = drawMode;
-  this.seamPuckeringNormalMap = seamPuckeringNormalMap;
+  this.g = globalProperty;
   this.nameToTextureMap = nameToTextureMap;
   this.version = version;
   this.colorwayIndex = 0;
   this.styleLineMap = new Map();
+  this.matShapeMap = new Map();
 }
 
 MatMeshManager.prototype = {
   constructor: MatMeshManager,
 
-  async getMatMeshs(map, zip, bLoadTransparentObject, materialInformationMap, colorwayIndex, loadedCamera, version) {
+  async getMatMeshs(zrestLoader, map, zip, bLoadTransparentObject, materialInformationMap, colorwayIndex, loadedCamera, version) {
+    if (zrestLoader.aborted) return;
     this.camera = loadedCamera;
     this.version = version;
     this.colorwayIndex = colorwayIndex;
 
     let tf = new THREE.Object3D();
 
-    const listChildrenTransformer3D = map.get('listChildrenTransformer3D');
+    const listChildrenTransformer3D = map.get("listChildrenTransformer3D");
     if (listChildrenTransformer3D) {
       for (let i = 0; i < listChildrenTransformer3D.length; ++i) {
         const childTF3D = listChildrenTransformer3D[i];
-        const childTF = await this.getMatMeshs(childTF3D, zip, bLoadTransparentObject, materialInformationMap, colorwayIndex, loadedCamera, version);
+        if (zrestLoader.aborted) return;
+        const childTF = await this.getMatMeshs(zrestLoader, childTF3D, zip, bLoadTransparentObject, materialInformationMap, colorwayIndex, loadedCamera, version);
+        if (zrestLoader.aborted) return;
         tf.add(childTF);
       }
     }
-
-    const mapTransformer3D = map.get('mapTransformer3D');
+    const mapTransformer3D = map.get("mapTransformer3D");
     if (mapTransformer3D) {
-      const childTF = await this.getMatMeshs(mapTransformer3D, zip, bLoadTransparentObject, materialInformationMap, colorwayIndex, loadedCamera, version);
+      if (zrestLoader.aborted) return;
+      const childTF = await this.getMatMeshs(zrestLoader, mapTransformer3D, zip, bLoadTransparentObject, materialInformationMap, colorwayIndex, loadedCamera, version);
       tf = childTF;
     }
+    if (zrestLoader.aborted) return;
 
     const mat4 = new THREE.Matrix4().identity();
-    if (map.get('m4Matrix')) {
-      const localMatrix = map.get('m4Matrix');
-      mat4.set(localMatrix.a00, localMatrix.a01, localMatrix.a02, localMatrix.a03,
-          localMatrix.a10, localMatrix.a11, localMatrix.a12, localMatrix.a13,
-          localMatrix.a20, localMatrix.a21, localMatrix.a22, localMatrix.a23,
-          localMatrix.a30, localMatrix.a31, localMatrix.a32, localMatrix.a33);
+    if (map.get("m4Matrix")) {
+      const localMatrix = map.get("m4Matrix");
+      mat4.set(
+        localMatrix.a00,
+        localMatrix.a01,
+        localMatrix.a02,
+        localMatrix.a03,
+        localMatrix.a10,
+        localMatrix.a11,
+        localMatrix.a12,
+        localMatrix.a13,
+        localMatrix.a20,
+        localMatrix.a21,
+        localMatrix.a22,
+        localMatrix.a23,
+        localMatrix.a30,
+        localMatrix.a31,
+        localMatrix.a32,
+        localMatrix.a33
+      );
     }
     tf.applyMatrix(mat4);
 
-    const listMatShape = map.get('listMatShape');
-    this.matShapeList = listMatShape;
+    const listMatShape = map.get("listMatShape");
 
     if (listMatShape) {
-      await this.addMatMeshList(zip, listMatShape, tf, bLoadTransparentObject, materialInformationMap);
+      // Convert listMatShape to matShapeMap
+      listMatShape.forEach(shape => {
+        const list = shape.get("listMatMeshIDOnIndexedMesh");
+        list.forEach(l => {
+          const n = l.get("uiMatMeshID");
+          this.matShapeMap.set(n, l);
+        });
+      });
+      await this.addMatMeshList(zrestLoader, zip, listMatShape, tf, bLoadTransparentObject, materialInformationMap);
     }
 
     return tf;
   },
 
-  async addMatMeshList(zip, listMatShape, tf, bLoadTransparentObject, materialInformationMap) {
+  async addMatMeshList(zrestLoader, zip, listMatShape, tf, bLoadTransparentObject, materialInformationMap) {
     // TODO: do refactor more
     const splitMatSpaceToMatMesh = async (listMatMeshIDOnIndexedMesh, totalIdxCount, listIdxCount, dracoGeometry, bVisible, drawMode) => {
-      let indexOffset = ((this.version > 4) ? 0 : totalIdxCount);
+      let indexOffset = this.version > 4 ? 0 : totalIdxCount;
 
       for (let m = 0; m < listIdxCount.length; ++m) {
         if (this.version <= 4) {
@@ -82,7 +108,7 @@ MatMeshManager.prototype = {
          * 일단 이렇게 해서 되는 것 같지만 찜찜..
          * Jaden 2017.06.25
          */
-        const matMeshID = listMatMeshIDOnIndexedMesh[m].get('uiMatMeshID');
+        const matMeshID = listMatMeshIDOnIndexedMesh[m].get("uiMatMeshID");
         const matProperty = materialInformationMap.get(matMeshID);
         const indexSize = listIdxCount[m];
 
@@ -90,7 +116,7 @@ MatMeshManager.prototype = {
          * NOTE:
          * 이제는 bPerfectTransparent 해도 무조건 그린다.
          * colorway 중 하나만 perfect transparent했을 때 mesh 안그리게 하면 perfect transparent 하지 않는 colorway 로 바꿨을 때도 아예 안그려지는 버그 발생.
-        */
+         */
         // TO DO: refactor this
         if (bLoadTransparentObject) {
           if (!matProperty.colorwayMaterials[this.colorwayIndex].bTransparent) {
@@ -126,15 +152,16 @@ MatMeshManager.prototype = {
           changeVertexIndex[j] = -1;
         }
 
-        const posAttrib = new Array();
-        const normalAttrib = new Array();
-        const uvAttrib = new Array();
-        const uv2Attrib = new Array();
+        const posAttrib = [];
+        const normalAttrib = [];
+        const uvAttrib = [];
+        const uv2Attrib = [];
 
         let count = 0;
         for (let j = 0; j < indexSize; j++) {
           const index = dracoGeometry.indices[indexOffset + j];
-          if (changeVertexIndex[index] === -1) {// 방문되지 않은 녀석들만 새로운 mesh vertex 로 추가한다.
+          if (changeVertexIndex[index] === -1) {
+            // 방문되지 않은 녀석들만 새로운 mesh vertex 로 추가한다.
             changeVertexIndex[index] = count;
             count++;
 
@@ -165,19 +192,19 @@ MatMeshManager.prototype = {
           frontVertexCount = count;
         }
 
-        bufferGeometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(posAttrib), 3));
+        bufferGeometry.addAttribute("position", new THREE.BufferAttribute(new Float32Array(posAttrib), 3));
 
         if (dracoGeometry.useNormal) {
-          bufferGeometry.addAttribute('normal', new THREE.BufferAttribute(new Float32Array(normalAttrib), 3));
+          bufferGeometry.addAttribute("normal", new THREE.BufferAttribute(new Float32Array(normalAttrib), 3));
         }
 
-        bufferGeometry.addAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvAttrib), 2));
+        bufferGeometry.addAttribute("uv", new THREE.BufferAttribute(new Float32Array(uvAttrib), 2));
         if (dracoGeometry.numUVs >= 2) {
-          bufferGeometry.addAttribute('uv2', new THREE.BufferAttribute(new Float32Array(uv2Attrib), 2));
+          bufferGeometry.addAttribute("uv2", new THREE.BufferAttribute(new Float32Array(uv2Attrib), 2));
         }
 
         // Set Indices
-        const indexAttrib = new Array();
+        const indexAttrib = [];
 
         if (this.version > 4) {
           for (let k = 0; k < indexSize; k++) {
@@ -188,9 +215,9 @@ MatMeshManager.prototype = {
           indexOffset += indexSize;
         } else {
           for (let j = indexSize / 3 - 1; j >= 0; j--) {
-            indexAttrib.push(changeVertexIndex[dracoGeometry.indices[indexOffset + j*3]]);
-            indexAttrib.push(changeVertexIndex[dracoGeometry.indices[indexOffset + j*3+1]]);
-            indexAttrib.push(changeVertexIndex[dracoGeometry.indices[indexOffset + j*3+2]]);
+            indexAttrib.push(changeVertexIndex[dracoGeometry.indices[indexOffset + j * 3]]);
+            indexAttrib.push(changeVertexIndex[dracoGeometry.indices[indexOffset + j * 3 + 1]]);
+            indexAttrib.push(changeVertexIndex[dracoGeometry.indices[indexOffset + j * 3 + 2]]);
           }
         }
         bufferGeometry.setIndex(new THREE.BufferAttribute(new Uint32Array(indexAttrib), 1));
@@ -199,11 +226,24 @@ MatMeshManager.prototype = {
           bufferGeometry.computeFaceNormals();
           bufferGeometry.computeVertexNormals();
         }
+        if (zrestLoader.aborted) return;
+        const bUseSeamPuckeringNormalMap = dracoGeometry.numUVs >= 2;
+        const material = await makeMaterial(
+          zip,
+          matProperty,
+          this.colorwayIndex,
+          bUseSeamPuckeringNormalMap,
+          this.camera,
+          drawMode,
+          this.g.seamPuckeringNormalMap,
+          this.nameToTextureMap,
+          this.version
+        );
+        if (zrestLoader.aborted) return;
+        if (!material) return;
 
-        const bUseSeamPuckeringNormalMap = (dracoGeometry.numUVs >= 2);
-        const material = await makeMaterial(zip, matProperty, this.colorwayIndex, bUseSeamPuckeringNormalMap, this.camera, drawMode, this.seamPuckeringNormalMap, this.nameToTextureMap, this.version);
         const threeMesh = new THREE.Mesh(bufferGeometry, material);
-        const matMeshType = listMatMeshIDOnIndexedMesh[m].get('enType');
+        const matMeshType = listMatMeshIDOnIndexedMesh[m].get("enType");
         // 여기서 center, normal, bounding sphere radius,
 
         let type = MATMESH_TYPE.PATTERN_MATMESH;
@@ -228,9 +268,9 @@ MatMeshManager.prototype = {
           }
         }
 
-        const center = new THREE.Vector3();
-        const normal = new THREE.Vector3();
-        const boundingSphereRadius = .0;
+        const center = new THREE.Vector3(-1, -1, -1);
+        const normal = new THREE.Vector3(-1, -1, -1);
+        const boundingSphereRadius = 0.0;
 
         // 여기도 version 가지고 나누는게 나을까? center랑 이런거 데이터가 없을텐데.
         threeMesh.userData = {
@@ -239,7 +279,7 @@ MatMeshManager.prototype = {
           TYPE: type,
           CENTER: center,
           NORMAL: normal,
-          BOUNDING_SPHERE_RADIUS: boundingSphereRadius,
+          BOUNDING_SPHERE_RADIUS: boundingSphereRadius
         };
 
         if (this.version >= 4) {
@@ -265,7 +305,7 @@ MatMeshManager.prototype = {
         threeMesh.receiveShadow = b;
         tf.add(threeMesh);
 
-        this.matMeshList.push(threeMesh);
+        this.matMeshMap.set(matMeshID, threeMesh);
 
         if (this.version > 4) {
           // marker 만들자.
@@ -283,15 +323,15 @@ MatMeshManager.prototype = {
       }
     };
 
-    const getDracoGeometry = async (qsDracoFileName) => {
+    const getDracoGeometry = async qsDracoFileName => {
       // Draco Compression
-      const dracoMeshFilename = readByteArray('String', qsDracoFileName);
-      if (! dracoMeshFilename) {
-        console.log('cannot find dracoMesh');
+      const dracoMeshFilename = readByteArray("String", qsDracoFileName);
+      if (!dracoMeshFilename) {
+        console.log("cannot find dracoMesh");
         return false;
       }
 
-      const drcArrayBuffer = await zip.file(dracoMeshFilename).async('arrayBuffer');
+      const drcArrayBuffer = await zip.file(dracoMeshFilename).async("arrayBuffer");
 
       const dracoLoader = new THREE.DRACOLoader();
       // dracoLoader.setVerbosity(bLog);
@@ -304,29 +344,31 @@ MatMeshManager.prototype = {
         return;
       }
 
-      const styleLineMaterial = new THREE.LineBasicMaterial({color: 0x00ffff});
+      const styleLineMaterial = new THREE.LineBasicMaterial({
+        color: 0xfffe00
+      });
       const currentStyleLineSet = new Set();
 
       for (let k = 0; k < listLine.length; ++k) {
         const frontStyleLineGeometry = new THREE.Geometry();
         const backStyleLineGeometry = new THREE.Geometry();
 
-        const listMeshPointIndex = listLine[k].get('listMeshPointIndex');
+        const listMeshPointIndex = listLine[k].get("listMeshPointIndex");
         if (listMeshPointIndex !== undefined && listMeshPointIndex !== null) {
-          for (let h=0; h<listMeshPointIndex.length; ++h) {
-            let vIndex = listMeshPointIndex[h].get('uiMeshPointIndex');
+          for (let h = 0; h < listMeshPointIndex.length; ++h) {
+            let vIndex = listMeshPointIndex[h].get("uiMeshPointIndex");
             if (vIndex !== undefined && vIndex !== null) {
               const frontStyleLinePos = new THREE.Vector3();
-              frontStyleLinePos.x = dracoGeometry.vertices[vIndex*3];
-              frontStyleLinePos.y = dracoGeometry.vertices[vIndex*3+1];
-              frontStyleLinePos.z = dracoGeometry.vertices[vIndex*3+2];
+              frontStyleLinePos.x = dracoGeometry.vertices[vIndex * 3];
+              frontStyleLinePos.y = dracoGeometry.vertices[vIndex * 3 + 1];
+              frontStyleLinePos.z = dracoGeometry.vertices[vIndex * 3 + 2];
               frontStyleLineGeometry.vertices.push(frontStyleLinePos);
 
               const backStyleLinePos = new THREE.Vector3();
               vIndex += frontVertexCount;
-              backStyleLinePos.x = dracoGeometry.vertices[vIndex*3];
-              backStyleLinePos.y = dracoGeometry.vertices[vIndex*3+1];
-              backStyleLinePos.z = dracoGeometry.vertices[vIndex*3+2];
+              backStyleLinePos.x = dracoGeometry.vertices[vIndex * 3];
+              backStyleLinePos.y = dracoGeometry.vertices[vIndex * 3 + 1];
+              backStyleLinePos.z = dracoGeometry.vertices[vIndex * 3 + 2];
             }
           }
 
@@ -346,18 +388,18 @@ MatMeshManager.prototype = {
     };
 
     let frontVertexCount = 0;
-    let patternIdx = 0;
+
     for (let i = 0; i < listMatShape.length; ++i) {
-      const listMatMeshIDOnIndexedMesh = listMatShape[i].get('listMatMeshIDOnIndexedMesh');
-      const mapShape = listMatShape[i].get('mapShape');
-      if (! mapShape) {
-        console.log('mapShape is null');
+      const listMatMeshIDOnIndexedMesh = listMatShape[i].get("listMatMeshIDOnIndexedMesh");
+      const mapShape = listMatShape[i].get("mapShape");
+      if (!mapShape) {
+        console.log("mapShape is null");
         return false;
       }
 
-      const listIndexCount = mapShape.get('listIndexCount');
-      if (! listIndexCount || listIndexCount.length == 0) {
-        console.log('listIndexCount is null');
+      const listIndexCount = mapShape.get("listIndexCount");
+      if (!listIndexCount || listIndexCount.length == 0) {
+        console.log("listIndexCount is null");
         return false;
       }
 
@@ -366,14 +408,16 @@ MatMeshManager.prototype = {
         totalIndexCount += listIndexCount[m];
       }
 
-      const dracoGeometry = await getDracoGeometry(mapShape.get('qsDracoFileName'));
-      const bVisiable = listMatShape[i].get('bMatShapeVisible') || false;
+      const dracoGeometry = await getDracoGeometry(mapShape.get("qsDracoFileName"));
+      const bVisiable = listMatShape[i].get("bMatShapeVisible") || false;
 
       await splitMatSpaceToMatMesh(listMatMeshIDOnIndexedMesh, totalIndexCount, listIndexCount, dracoGeometry, bVisiable, this.drawMode);
 
-      const listLine = listMatShape[i].get('listLine');
+      const listLine = listMatShape[i].get("listLine");
+      const firstMatMeshID = listMatMeshIDOnIndexedMesh[0].get("uiMatMeshID");
+
       if (listLine) {
-        buildStyleLines(dracoGeometry, patternIdx++, listLine);
+        buildStyleLines(dracoGeometry, firstMatMeshID, listLine);
       }
     }
   },
@@ -381,4 +425,8 @@ MatMeshManager.prototype = {
   getStyleLineMap() {
     return this.styleLineMap;
   },
+
+  setColorwayIndex(index) {
+    this.colorwayIndex = index;
+  }
 };
