@@ -49,7 +49,7 @@ class TechPackManager {
     this.loadStyleLine = styleLineMap => {
       this.styleLine.load(styleLineMap, this.styleLineContainer);
     };
-    this.setStyleLineVisibleByPatternNo = this.setStyleLineVisibleByPatternNo;
+    this.setStyleLineVisibleByPatternNo = this.setStyleLineVisibleByPatternNo.bind(this);
 
     this.measure = new Measurement(this.measureContainer);
     this.loadMeasure = listPatternMeasure => {
@@ -356,7 +356,6 @@ class TechPackManager {
       const matShape = matShapeMap.get(Number(matMeshId));
       const matShapeCenter = matShape.get("v3Center");
 
-      console.log(isZero(matShapeCenter));
       // check and update marker position
       if (isZero(matShapeCenter)) {
         const matMesh = this.matMeshMap.get(matMeshId);
@@ -605,8 +604,6 @@ class TechPackManager {
   }
 
   onMarker(onMarkerItems) {
-    console.log(onMarkerItems);
-
     const actionsForPattern = patternIdx => {
       this.setAllStitchVisible(false);
       this.setAllTrimVisible(false);
