@@ -510,11 +510,19 @@ export default class ClosetViewer {
     const matShapeMap = this.zrest.meshFactory.matmeshManager.matShapeMap;
     const matMeshMap = this.zrest.matMeshMap;
     this.techPack.load(matShapeMap, matMeshMap, fabricsWithPatternsFromAPI, trimsFromAPI);
+
+    this.loadStyleLine();
+    this.loadMeasure();
   }
 
   loadStyleLine() {
     const styleLineMap = this.zrest.getStyleLineMap();
     this.techPack.loadStyleLine(styleLineMap);
+  }
+
+  loadMeasure() {
+    const measureData = this.zrest.getListPatternMeasure();
+    this.techPack.loadMeasure(measureData);
   }
 
   onUpdateCamera(callback) {
@@ -614,12 +622,6 @@ export default class ClosetViewer {
   // TEMP
   alertVersion() {
     alert(this.mobileDetect.os());
-  }
-
-  // TEST ONLY
-  measure() {
-    //this.loadZrestUrl("./pom.zrest");
-    this.techPack.measure.load(this.zrest.zProperty.rootMap.get("listPatternMeasure"));
   }
 
   safeDeallocation(object, type, type_cb, nontype_cb) {

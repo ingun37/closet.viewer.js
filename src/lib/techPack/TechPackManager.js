@@ -53,7 +53,7 @@ class TechPackManager {
 
     this.measure = new Measurement(this.measureContainer);
     this.loadMeasure = listPatternMeasure => {
-      this.measure.load(listPatternMeasure);
+      this.measure.load(this.matMeshMap, listPatternMeasure);
     };
 
     this.deleteAllMarker = this.deleteAllMarker.bind(this);
