@@ -4,40 +4,73 @@ import * as THREE from "@/lib/threejs/three";
 
 export class Measurement {
   constructor(measurementContainer) {
-    this.posMap = new Map();
+    this.geometryMap = new Map();
     this.container = measurementContainer;
-    this.lineMap = new Map();
+    this.matMeshMap = null;
 
     this.lineMaterial = new THREE.LineBasicMaterial({ color: 0x000ff });
   }
 
-  load(listPatternMeasure) {
+  load(matMeshMap, listPatternMeasure) {
+    if (!listPatternMeasure || !matMeshMap) return;
+
+    this.matMeshMap = matMeshMap;
+
+    let geometryIndex = 0;
     listPatternMeasure.forEach(entry => {
-      const id = entry.get("uiID");
       const arrPos = entry.get("arrPosition3D");
+
+      // Gather points for measure lines
       const points = [];
       arrPos.forEach(pos => {
         points.push(new THREE.Vector3(pos.x, pos.y, pos.z));
       });
+
+      // Build line and add container
       const geometry = new THREE.BufferGeometry().setFromPoints(points);
-      geometry.renderOrder;
       const line = new THREE.Line(geometry, this.lineMaterial);
+      line.visible = false; // Set invisible as default
       this.container.add(line);
 
-      this.posMap.set(id, arrPos);
-      this.lineMap.set(id, line);
+      // Add position and geometry to local maps
+      this.geometryMap.set(geometryIndex++, line);
     });
-
-    console.log(this.posMap);
   }
 
-  getStatus() {
-    return this.posMap.size > 0 && this.lineMap.size > 0;
+  isAvailable() {
+    return this.geometryMap.size > 0;
   }
 
-  setVisible(bVisible) {
-    this.lineMap.forEach(line => {
+  setVisible(index, bVisible) {
+    const line = this.geometryMap.get(index);
+    if (line) {
+      line.visible = bVisible;
+    }
+  }
+
+  setAllVisible(bVisible) {
+    this.geometryMap.forEach(line => {
       line.visible = bVisible;
     });
   }
+
+  activate() {
+    this.adjustAllMeshOffset(true);
+  }
+
+  deactivate() {
+    this.adjustAllMeshOffset(false);
+    this.setAllVisible(false);
+  }
+
+  adjustAllMeshOffset(bOffset, offset = 100) {
+    this.matMeshMap.forEach(matMesh => {
+      const material = matMesh.material;
+      if (material) {
+        material.polygonOffset = bOffset;
+        material.polygonOffsetFactor = 1;
+        material.polygonOffsetUnits = offset;
+      }
+    });
+  };
 }

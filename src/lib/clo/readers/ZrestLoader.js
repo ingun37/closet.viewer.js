@@ -43,15 +43,15 @@ export default class ZRestLoader {
     // ZREST property
     this.zProperty = zrestProperty;
     this.zProperty.drawMode = this.getParsedDrawMode(drawMode);
-
+    
     this.matMeshMap = new Map();
     this.currentColorwayIndex = 0;
     this.jsZip = null;
 
-    // this.readZrestFromBlobForWeb = readZrestFromBlob(this, blob, header);
+    // List for measurement
+    this.listPatternMeasure = [];
 
-    this.getObjectsCenter = getObjectsCenter;
-    this.zoomToObjects = zoomToObjects;
+    // this.readZrestFromBlobForWeb = readZrestFromBlob(this, blob, header);
 
     this.meshFactory = new MeshFactory({
       matMeshMap: this.matMeshMap,
@@ -60,6 +60,10 @@ export default class ZRestLoader {
       zrestProperty: this.zProperty,
       zrestVersion: this.zProperty._version
     });
+
+    // Export functions
+    this.getObjectsCenter = getObjectsCenter;
+    this.zoomToObjects = zoomToObjects;
 
     this.MATMESH_TYPE = MATMESH_TYPE;
   }
@@ -82,6 +86,7 @@ export default class ZRestLoader {
 
   clearMaps = () => {
     zrestProperty.seamPuckeringNormalMap = null;
+    this.listPatternMeasure = [];
   };
 
   load = (url, onLoad, onProgress, onError) => {
@@ -117,6 +122,8 @@ export default class ZRestLoader {
   getMatMeshMap = () => this.matMeshMap;
 
   getStyleLineMap = () => this.meshFactory.getStyleLineMap();
+
+  getListPatternMeasure = () => this.listPatternMeasure;
 
   getParsedDrawMode = drawMode => {
     const defaultDrawMode = {
@@ -159,19 +166,6 @@ export default class ZRestLoader {
     }
 
     return defaultDrawMode;
-  };
-
-  // TEST ONLY
-  adjustAllMeshOffset(bOffset, offset = 100) {
-    this.matMeshMap.forEach(matMesh => {
-      const material = matMesh.material;
-      if (material) {
-        material.polygonOffset = bOffset;
-        material.polygonOffsetFactor = 1;
-        material.polygonOffsetUnits = offset;
-        console.log(material);
-      }
-    });
   };
 
   launchTest = () => {
@@ -265,6 +259,9 @@ export default class ZRestLoader {
               };
 
               await this.meshFactory.build(this, rootMap, zip, object3D, loadedCamera);
+
+              // Build list for pattern measurement
+              this.listPatternMeasure = rootMap.get("listPatternMeasure");
 
               // 여기가 실질적으로 Zrest 로드 완료되는 시점
               this.onLoad(object3D, loadedCamera, this.data);
