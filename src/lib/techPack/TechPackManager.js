@@ -16,6 +16,8 @@ const config = {
   INF: 999999
 };
 
+let bHasMissingInfo = false;
+
 class TechPackManager {
   constructor({ scene, camera, renderer, controls }) {
     this.scene = scene;
@@ -50,6 +52,8 @@ class TechPackManager {
     };
     this.setStyleLineVisibleByPatternNo = this.setStyleLineVisibleByPatternNo;
 
+    this.getShouldReconvert = () => bHasMissingInfo;
+
     this.deleteAllMarker = this.deleteAllMarker.bind(this);
     this.onMouseDown = this.onMouseDown.bind(this);
   }
@@ -75,6 +79,8 @@ class TechPackManager {
     this.styleLineContainer = new THREE.Object3D();
     this.styleLineContainer.name = "styleLineContainer";
     this.scene.add(this.styleLineContainer);
+
+    bHasMissingInfo = false;
   }
 
   load(matShapeMap, matMeshMap, fabricsWithPatterns, trims, defaultMarker = "pattern") {
@@ -255,6 +261,8 @@ class TechPackManager {
 
             // FIXME: It's working, but should be improved.
             addOpacityToMap(matMeshIdList);
+          } else {
+            bHasMissingInfo = true;
           }
         });
       }
@@ -273,6 +281,8 @@ class TechPackManager {
         const matMeshIdList = patterns[0].MatMeshIdList;
         if (matMeshIdList) {
           fabricMeshIdList.push(fabric.Patterns[0].MatMeshIdList[0]);
+        } else {
+          bHasMissingInfo = true;
         }
       }
     });
