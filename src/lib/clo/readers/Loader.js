@@ -56,6 +56,8 @@ export function readZrestFromBlob(zrestLoader, blob, header) {
 
           console.log(dataView);
           console.log(rootMap);
+          // temp
+          this.zProperty.rootMap = rootMap;
 
           // seam puckering normal map 로드
           this.zProperty.seamPuckeringNormalMap = await loadTexture(zip, "seam_puckering_2ol97pf293f2sdk98.png");

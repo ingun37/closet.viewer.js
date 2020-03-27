@@ -4,6 +4,7 @@ import * as THREE from "@/lib/threejs/three";
 import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
 import { StyleLine } from "@/lib/techPack/StyleLine";
 import MarkerManager from "@/lib/marker/MarkerManager";
+import { Measurement } from "./Measurement";
 
 const config = {
   unselectedMarkerOpacity: 0.1,
@@ -48,7 +49,12 @@ class TechPackManager {
     this.loadStyleLine = styleLineMap => {
       this.styleLine.load(styleLineMap, this.styleLineContainer);
     };
-    this.setStyleLineVisibleByPatternNo = this.setStyleLineVisibleByPatternNo;
+    this.setStyleLineVisibleByPatternNo = this.setStyleLineVisibleByPatternNo.bind(this);
+
+    this.measure = new Measurement(this.measureContainer);
+    this.loadMeasure = listPatternMeasure => {
+      this.measure.load(this.matMeshMap, listPatternMeasure);
+    };
 
     this.deleteAllMarker = this.deleteAllMarker.bind(this);
     this.onMouseDown = this.onMouseDown.bind(this);
@@ -75,6 +81,10 @@ class TechPackManager {
     this.styleLineContainer = new THREE.Object3D();
     this.styleLineContainer.name = "styleLineContainer";
     this.scene.add(this.styleLineContainer);
+
+    this.measureContainer = new THREE.Object3D();
+    this.measureContainer.name = "measureContainer";
+    this.scene.add(this.measureContainer);
   }
 
   load(matShapeMap, matMeshMap, fabricsWithPatterns, trims, defaultMarker = "pattern") {
@@ -346,7 +356,6 @@ class TechPackManager {
       const matShape = matShapeMap.get(Number(matMeshId));
       const matShapeCenter = matShape.get("v3Center");
 
-      console.log(isZero(matShapeCenter));
       // check and update marker position
       if (isZero(matShapeCenter)) {
         const matMesh = this.matMeshMap.get(matMeshId);
@@ -595,8 +604,6 @@ class TechPackManager {
   }
 
   onMarker(onMarkerItems) {
-    console.log(onMarkerItems);
-
     const actionsForPattern = patternIdx => {
       this.setAllStitchVisible(false);
       this.setAllTrimVisible(false);
