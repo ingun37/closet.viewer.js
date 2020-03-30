@@ -11,6 +11,7 @@ import { makeMaterial } from "@/lib/clo/readers/zrest_material";
 import { loadTexture } from "@/lib/clo/readers/zrest_texture";
 import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
 import MeshFactory from "./zrest_meshFactory";
+import ZrestMaterial from "./Material";
 
 import { getObjectsCenter, zoomToObjects } from "./ObjectUtils";
 
@@ -58,6 +59,8 @@ export default class ZRestLoader {
       zrestProperty: this.zProperty,
       zrestVersion: this.zProperty._version
     });
+
+    this.material = new ZrestMaterial(this.matMeshMap);
 
     // Export functions
     this.getObjectsCenter = getObjectsCenter;
