@@ -11,7 +11,7 @@ import { makeMaterial } from "@/lib/clo/readers/zrest_material";
 import { loadTexture } from "@/lib/clo/readers/zrest_texture";
 import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
 import MeshFactory from "./zrest_meshFactory";
-import ZrestMaterial from "./Material";
+import Wireframe from "./Wireframe";
 
 import { getObjectsCenter, zoomToObjects } from "./ObjectUtils";
 
@@ -60,7 +60,7 @@ export default class ZRestLoader {
       zrestVersion: this.zProperty._version
     });
 
-    this.material = new ZrestMaterial(this.matMeshMap);
+    this.wireframe = new Wireframe(this.matMeshMap);
 
     // Export functions
     this.getObjectsCenter = getObjectsCenter;
@@ -305,7 +305,7 @@ function makeWorker(script) {
 export function checkFileReaderSyncSupport() {
   const worker = makeWorker(_syncDetectionScript);
   if (worker) {
-    worker.onmessage = function(e) {
+    worker.onmessage = function (e) {
       _fileReaderSyncSupport = e.data;
       if (_fileReaderSyncSupport) {
         console.log("Your browser supports FileReaderSync.");
