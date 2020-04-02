@@ -143,33 +143,6 @@ export default class ZRestLoader {
     return defaultDrawMode;
   };
 
-  // NOTE: This function designed to set wireframe for several types of meshes.
-  //       But for now, works for pattern meshes only.
-  setWireframe = bWireframe => {
-    try {
-      this.zProperty.drawMode.wireframe.pattern = bWireframe;
-      this.matMeshMap.forEach(matMesh => {
-        if (typeof matMesh.material === "undefined" || typeof matMesh.material.wireframe === "undefined") {
-          throw BreakException;
-        }
-        matMesh.material.wireframe = bWireframe;
-      });
-
-      return true;
-    } catch (e) {
-      return false;
-    }
-  };
-
-  parse = (data, onLoad) => {
-    if (drawMode && drawMode.wireframe) {
-      defaultDrawMode.wireframe.pattern = drawMode.wireframe.pattern || false;
-      defaultDrawMode.wireframe.button = drawMode.wireframe.button || false;
-    }
-
-    return defaultDrawMode;
-  };
-
   launchTest = () => {
     // TEST ONLY
     for (const key of this.zProperty.nameToTextureMap.keys()) {

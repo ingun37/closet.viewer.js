@@ -9,6 +9,8 @@ export default class Wireframe {
     // Default mesh material for wire
     this.wireMaterial = new THREE.MeshBasicMaterial({ color: 0x333333, wireframe: true });
 
+    this.bWire = false;
+
     // External interface
     this.set = this.set.bind(this);
     this.setColorHex = this.setColorHex.bind(this);
@@ -16,6 +18,8 @@ export default class Wireframe {
   }
 
   set = bWire => {
+    if (bWire === this.bWire) return;
+    
     if (bWire) {
       this.save();
 
@@ -30,6 +34,8 @@ export default class Wireframe {
         matMesh.material = material;
       }
     }
+
+    this.bWire = bWire;
   };
 
   // Hexadecimal color (recommended). (ex: 0xff0000)
