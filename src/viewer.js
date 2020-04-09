@@ -623,7 +623,7 @@ export default class ClosetViewer {
   }
 
   dispose() {
-    if (this.zrest.req) {
+    if (this.zrest && this.zrest.req) {
       this.zrest.abort()
     }
   }
