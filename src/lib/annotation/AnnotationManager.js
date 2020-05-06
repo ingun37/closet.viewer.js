@@ -236,11 +236,11 @@ class AnnotationManager {
   }
 
   createIntersectPosition({clientX, clientY}) {
-    if (this.zrest.matMeshList !== undefined) {
+    if (this.zrest.matMeshMap !== undefined) {
       const mouse = this.getMousePosition({clientX: clientX, clientY: clientY - 10});
 
       this.raycaster.setFromCamera(mouse, this.camera);
-      const intersects = this.raycaster.intersectObjects(this.zrest.matMeshList);
+      const intersects = this.raycaster.intersectObjects(this.zrest.matMeshMap);
 
       if (intersects.length > 0) {
         return {
