@@ -79,7 +79,7 @@ export default class ClosetViewer {
     const w = (this.defaultWidth = width);
     const h = (this.defaultHeight = height);
 
-    this.setter = document.getElementById(element) || document.querySelector(element);
+    this.setter = typeof element === 'string' ? (document.getElementById(element) || document.querySelector(element)) : element;
     this.id = element;
     this.cameraPosition = cameraPosition;
     this.stats = stats;
