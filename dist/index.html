@@ -459,6 +459,15 @@
       currentURL = url;
     }
 
+    function loadList(url) {
+      for (var i = 0; i < closetViewerArray.length; i++) {
+        var viewer = closetViewerArray[i].viewer
+        viewer.loadZrestList(url, progress, loaded)
+      }
+
+      currentURL = url;
+    }
+
     // let jsonFabricList = [];
     // let jsonPatternList = [];
     // let jsonTrimList = [];

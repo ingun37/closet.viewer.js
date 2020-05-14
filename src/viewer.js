@@ -11,7 +11,8 @@ import RendererStats from "@xailabs/three-renderer-stats";
 import screenfull from "screenfull";
 import MobileDetect from "mobile-detect";
 
-import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
+import { MATMESH_TYPE } from "@/lib/clo/readers/Predefined";
+import { getTestData } from "./test.js";
 import "@/lib/threejs/BufferGeometryUtils";
 
 let windowHalfX = window.innerWidth / 2;
@@ -249,12 +250,13 @@ export default class ClosetViewer {
   setVisibleAllGarment(visibility) {
     if (!this.zrest) return;
 
-    const isGarment = patternType => {
+    const isGarment = (patternType) => {
       return this.MATMESH_TYPE.isGarment(patternType);
     };
 
-    this.zrest.matMeshMap.forEach(matMesh => {
+    this.zrest.matMeshMap.forEach((matMesh) => {
       if (isGarment(matMesh.userData.TYPE)) {
+        console.log(matMesh);
         matMesh.visible = visibility;
       }
     });
@@ -298,7 +300,7 @@ export default class ClosetViewer {
   }
 
   setAllAvatarVisible(visibility) {
-    this.zrest.matMeshMap.forEach(matMesh => {
+    this.zrest.matMeshMap.forEach((matMesh) => {
       if (matMesh.userData.TYPE === MATMESH_TYPE.AVATAR_MATMESH) {
         matMesh.visible = visibility;
       }
@@ -342,7 +344,7 @@ export default class ClosetViewer {
 
   getCameraMatrix() {
     const camMatrix = this.camera.matrix.elements;
-    return camMatrixPushOrder.map(index => camMatrix[index]);
+    return camMatrixPushOrder.map((index) => camMatrix[index]);
   }
 
   fullscreen() {
@@ -444,7 +446,7 @@ export default class ClosetViewer {
   }
 
   loadZrestUrlWithParameters(url, onProgress, onLoad, colorwayIndex = -1) {
-    const progress = function(xhr) {
+    const progress = function (xhr) {
       if (xhr.lengthComputable) {
         const percentComplete = (xhr.loaded / xhr.total) * 100;
         const percent = Math.round(percentComplete, 2);
@@ -452,7 +454,7 @@ export default class ClosetViewer {
       }
     };
 
-    const error = function(xhr) {};
+    const error = function (xhr) {};
 
     const loaded = async (object, loadedCamera, data) => {
       this.annotation.init({
@@ -536,7 +538,9 @@ export default class ClosetViewer {
   }
 
   getColorwaySize() {
-    return this.zrest.getColorwaySize();
+    const colorwaySize = this.zrest.getColorwaySize();
+    console.log("colorwaySize: " + colorwaySize);
+    return colorwaySize;
   }
 
   getCurrentColorwayIndex() {
@@ -554,24 +558,95 @@ export default class ClosetViewer {
     return false;
   }
 
+  loadZrestDisassembly = (zrestJSON) => {
+    const rest = zrestJSON.rest;
+    const imgs = zrestJSON.imgs;
+    const dracos = zrestJSON.dracos;
+
+    this.zrest = new ZRestLoader({
+      scene: this.scene,
+      camera: this.camera,
+      controls: this.controls,
+      cameraPosition: this.cameraPosition
+    });
+
+    const loaded = async (object, loadedCamera) => {
+      this.annotation.init({
+        zrest: this.zrest
+      });
+
+      // FIXME: This module does not work correctly
+      // delete object3D, geometry, material dispose
+      for (let i = 0; i < this.scene.children.length; ++i) {
+        if (this.scene.children[i].name === "object3D") {
+          clearThree(this.scene.children[i]);
+        }
+      }
+
+      // if (colorwayIndex > -1) {
+      //   await this.changeColorway(colorwayIndex);
+      // }
+      this.scene.add(object);
+      this.object3D = object;
+      this.zrest.zoomToObjects(this.zrest.zProperty.loadedCamera, this.scene);
+
+      // if (onLoad) onLoad(this);
+
+      // TODO
+      //  1. Colorway
+      //  2. zoomToObject
+      //  3. onLoad function
+
+      console.log("==============================");
+      console.log("UPDATE RENDERER");
+      console.log("==============================");
+      this.updateRenderer();
+    };
+
+    this.zrest.loadZrestDisassembly(rest, dracos, imgs, loaded, this.updateRenderer);
+  };
+
+  // NOTE: This is test only
+  loadZrestTest = (testNo) => {
+    const testData = getTestData(testNo);
+    console.log(testData);
+
+    const json = Object();
+    json.rest = [testData.testRest];
+    json.imgs = testData.testImgs;
+    json.dracos = testData.testDraco;
+
+    this.loadZrestDisassembly(json);
+  };
+
   // TODO: This function should be moved to zrestReader.js
   async changeColorway(colorwayIdx) {
     if (colorwayIdx === undefined) {
       return;
     }
 
-    if (this.zrest.colorwaySize - 1 < colorwayIdx) {
-      console.log("index is over colorway size");
+    const colorwaySize = this.zrest.getColorwaySize();
+
+    if (colorwaySize - 1 < colorwayIdx || colorwaySize < 0) {
+      console.error("Colorway index is out of range");
       return;
     }
 
-    if (this.zrest.jsZip === undefined || this.zrest.jsZip === null) {
+    if (!this.zrest.isDisassembled && (this.zrest.jsZip === undefined || this.zrest.jsZip === null)) {
       console.log("zip is null");
       return;
     }
 
     this.zrest.currentColorwayIndex = colorwayIdx;
+    this.zrest.zProperty.colorwayIndex = colorwayIdx;
     console.log("selected colorway index: " + colorwayIdx);
+
+    if (this.zrest.zProperty.bDisassembled) {
+      console.log("Disassembled zrest detected");
+      this.zrest.changeColorway(colorwayIdx);
+      this.updateRenderer();
+      return;
+    }
 
     this.clear();
     const matMeshMap = this.zrest.matMeshMap;
@@ -582,14 +657,15 @@ export default class ClosetViewer {
       const id = matMesh.userData.MATMESH_ID;
 
       // TODO: hide this function!
-      matMesh.material = await this.zrest.makeMaterialForZrest(
+      const material = await this.zrest.makeMaterialForZRest(
         this.zrest.jsZip,
         this.zrest.getMaterialInformationMap().get(id),
         colorwayIdx,
         bPrevUseSeamPuckeringMap,
-        this.zrest.camera,
+        this.zrest.loadedCamera,
         this.zrest.meshFactory.version
       );
+      matMesh.material = material;
     }
 
     this.updateRenderer();
@@ -607,10 +683,10 @@ export default class ClosetViewer {
       this.safeDeallocation(
         matMesh.material,
         THREE.ShaderMaterial,
-        function() {
+        function () {
           // console.log("success deallocation");
         },
-        function() {
+        function () {
           console.log("unsuccess deallocation");
         }
       );
@@ -633,7 +709,7 @@ export default class ClosetViewer {
   }
 
   dispose() {
-    if (this.zrest.req) {
+    if (this.zrest && this.zrest.req) {
       this.zrest.abort();
     }
   }
@@ -645,7 +721,7 @@ function clearThree(obj) {
     obj.remove(obj.children[0]);
   }
 
-  const disposeIfExists = component => {
+  const disposeIfExists = (component) => {
     if (component !== undefined) {
       component.dispose();
     }

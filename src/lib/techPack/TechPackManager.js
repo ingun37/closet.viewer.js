@@ -1,7 +1,7 @@
 /* eslint-disable require-jsdoc */
 import * as THREE from "@/lib/threejs/three";
 // import {Marker, makeTextSprite} from '@/lib/marker/Marker';
-import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
+import { MATMESH_TYPE } from "@/lib/clo/readers/Predefined";
 import { StyleLine } from "@/lib/techPack/StyleLine";
 import MarkerManager from "@/lib/marker/MarkerManager";
 import { Measurement } from "./Measurement";
@@ -14,7 +14,7 @@ const config = {
   meshHighlightColor: new THREE.Vector3(1, 1, 0),
   meshDefaultColor: new THREE.Vector3(1, 1, 1),
   boundingBoxThreshold: 15.0,
-  INF: 999999
+  INF: 999999,
 };
 
 class TechPackManager {
@@ -46,13 +46,15 @@ class TechPackManager {
     this.init();
 
     this.styleLine = new StyleLine(this.styleLineContainer);
-    this.loadStyleLine = styleLineMap => {
+    this.loadStyleLine = (styleLineMap) => {
       this.styleLine.load(styleLineMap, this.styleLineContainer);
     };
-    this.setStyleLineVisibleByPatternNo = this.setStyleLineVisibleByPatternNo.bind(this);
+    this.setStyleLineVisibleByPatternNo = this.setStyleLineVisibleByPatternNo.bind(
+      this
+    );
 
     this.measure = new Measurement(this.measureContainer);
-    this.loadMeasure = listPatternMeasure => {
+    this.loadMeasure = (listPatternMeasure) => {
       this.measure.load(this.matMeshMap, listPatternMeasure);
     };
 
@@ -65,7 +67,7 @@ class TechPackManager {
       scene: this.scene,
       camera: this.camera,
       renderer: this.renderer,
-      controls: this.controls
+      controls: this.controls,
     };
 
     this.initTrimMapList();
@@ -75,7 +77,11 @@ class TechPackManager {
     this.fabricMarker = new MarkerManager("fabric", params);
     this.trimMarker = new MarkerManager("trim", params);
 
-    this.markerManagers = [this.patternMarker, this.fabricMarker, this.trimMarker];
+    this.markerManagers = [
+      this.patternMarker,
+      this.fabricMarker,
+      this.trimMarker,
+    ];
 
     // Init the container for style line
     this.styleLineContainer = new THREE.Object3D();
@@ -87,18 +93,26 @@ class TechPackManager {
     this.scene.add(this.measureContainer);
   }
 
-  load(matShapeMap, matMeshMap, fabricsWithPatterns, trims, defaultMarker = "pattern") {
+  load(
+    matShapeMap,
+    matMeshMap,
+    fabricsWithPatterns,
+    trims,
+    defaultMarker = "pattern"
+  ) {
     // TODO: Write completely this code
     this.clear();
     this.init();
 
     this.matShapeMap = matShapeMap || new Map();
     this.matMeshMap = matMeshMap || new Map();
-    this.extractInfoFromAPI(fabricsWithPatterns, trims).then(this.setActiveMarkerManager(defaultMarker));
+    this.extractInfoFromAPI(fabricsWithPatterns, trims).then(
+      this.setActiveMarkerManager(defaultMarker)
+    );
   }
 
   setActiveMarkerManager(markerType) {
-    this.markerManagers.forEach(markerManager => {
+    this.markerManagers.forEach((markerManager) => {
       if (markerManager.markerName === markerType) {
         markerManager.activate();
         console.log(markerManager.markerName + " activated");
@@ -114,7 +128,7 @@ class TechPackManager {
       ButtonHead: new Map(),
       ButtonHole: new Map(),
       Topstitch: new Map(),
-      Zipper: new Map()
+      Zipper: new Map(),
     };
   }
 
@@ -133,7 +147,7 @@ class TechPackManager {
     this.baseColorMap = new Map();
     this.uncategorizedMeshMap = new Map();
 
-    this.markerManagers.forEach(manager => {
+    this.markerManagers.forEach((manager) => {
       manager.deactivate();
     });
     this.styleLine.clear();
@@ -146,18 +160,18 @@ class TechPackManager {
     this.fabricsWithPatterns = fabricsWithPatterns;
     this.uncategorizedMeshMap = new Map(this.matMeshMap);
 
-    const isEmpty = obj => {
+    const isEmpty = (obj) => {
       if (typeof obj === "undefined") return true;
       else return obj.length <= 0;
     };
 
-    const buildPatternMap = fabricsWithPatterns => {
+    const buildPatternMap = (fabricsWithPatterns) => {
       if (isEmpty(fabricsWithPatterns)) return;
 
-      fabricsWithPatterns.forEach(fabric => {
+      fabricsWithPatterns.forEach((fabric) => {
         const patterns = fabric.Patterns;
         if (patterns.length) {
-          patterns.forEach(pattern => {
+          patterns.forEach((pattern) => {
             this.patternMap.set(parseInt(pattern.Number), pattern);
           });
         }
@@ -166,14 +180,14 @@ class TechPackManager {
 
     // NOTE: This filter is temperal.
     // The filter should be removed when updating API with the right information about topstitch.
-    const buildTrimMapList = trims => {
+    const buildTrimMapList = (trims) => {
       if (!trims || isEmpty(trims)) return;
 
-      let numberForNull = 0;  // NOTE: Temporary code. There is a bug on API.
-      trims.forEach(group => {
+      let numberForNull = 0; // NOTE: Temporary code. There is a bug on API.
+      trims.forEach((group) => {
         // Remove spaces on string
         const groupName = group.GroupName.replace(/\s/g, "");
-        group.Trims.forEach(trim => {
+        group.Trims.forEach((trim) => {
           if (trim.Number) {
             numberForNull = trim.Number;
           } else {
@@ -188,7 +202,7 @@ class TechPackManager {
       if (this.matMeshMap.size <= 0) return;
 
       this.stitchMeshMap = new Map();
-      this.matMeshMap.forEach(mesh => {
+      this.matMeshMap.forEach((mesh) => {
         if (mesh.userData.TYPE == MATMESH_TYPE.STITCH_MATMESH) {
           const matMeshID = mesh.userData.MATMESH_ID;
           this.stitchMeshMap.set(matMeshID, mesh);
@@ -197,10 +211,10 @@ class TechPackManager {
     };
 
     const buildUncategrizedMeshMap = () => {
-      const extractMatMeshId = map => {
-        map.forEach(element => {
+      const extractMatMeshId = (map) => {
+        map.forEach((element) => {
           if (element.MatMeshIdList) {
-            element.MatMeshIdList.forEach(matMeshId => {
+            element.MatMeshIdList.forEach((matMeshId) => {
               this.uncategorizedMeshMap.delete(matMeshId);
             });
           }
@@ -212,12 +226,12 @@ class TechPackManager {
 
       // Remove matMeshes that recorded on patternMap and trimMapList
       extractMatMeshId(this.patternMap);
-      Object.values(this.trimMapList).forEach(trimMap => {
+      Object.values(this.trimMapList).forEach((trimMap) => {
         extractMatMeshId(trimMap);
       });
 
       // Remove avatar meshes
-      this.uncategorizedMeshMap.forEach(matMesh => {
+      this.uncategorizedMeshMap.forEach((matMesh) => {
         if (matMesh.userData.TYPE === MATMESH_TYPE.AVATAR_MATMESH) {
           this.uncategorizedMeshMap.delete(matMesh.userData.MATMESH_ID);
         }
@@ -241,8 +255,8 @@ class TechPackManager {
   buildPatternMarkers(fabricsWithPatterns) {
     if (!fabricsWithPatterns) return;
 
-    const addOpacityToMap = matMeshIdList => {
-      matMeshIdList.forEach(matMeshId => {
+    const addOpacityToMap = (matMeshIdList) => {
+      matMeshIdList.forEach((matMeshId) => {
         const mesh = this.matMeshMap.get(matMeshId);
         if (mesh) {
           const bVisible = mesh.visible;
@@ -255,10 +269,10 @@ class TechPackManager {
     };
 
     const patternMeshIdList = [];
-    fabricsWithPatterns.forEach(fabric => {
+    fabricsWithPatterns.forEach((fabric) => {
       const patterns = fabric.Patterns;
       if (patterns) {
-        patterns.forEach(pattern => {
+        patterns.forEach((pattern) => {
           const matMeshIdList = pattern.MatMeshIdList;
           if (matMeshIdList) {
             patternMeshIdList.push(matMeshIdList[0]);
@@ -270,14 +284,18 @@ class TechPackManager {
       }
     });
 
-    this.buildMarkersFromList(this.patternMarker, patternMeshIdList, this.matShapeMap);
+    this.buildMarkersFromList(
+      this.patternMarker,
+      patternMeshIdList,
+      this.matShapeMap
+    );
   }
 
   buildFabricMarkers(fabricsWithPatterns) {
     if (!fabricsWithPatterns) return;
 
     const fabricMeshIdList = [];
-    fabricsWithPatterns.forEach(fabric => {
+    fabricsWithPatterns.forEach((fabric) => {
       const patterns = fabric.Patterns;
       if (patterns.length) {
         const matMeshIdList = patterns[0].MatMeshIdList;
@@ -286,14 +304,18 @@ class TechPackManager {
         }
       }
     });
-    this.buildMarkersFromList(this.fabricMarker, fabricMeshIdList, this.matShapeMap);
+    this.buildMarkersFromList(
+      this.fabricMarker,
+      fabricMeshIdList,
+      this.matShapeMap
+    );
   }
 
   buildTrimMarkers(trims) {
     if (!trims) return;
 
-    const addColorToMap = matMeshIdList => {
-      matMeshIdList.forEach(matMeshId => {
+    const addColorToMap = (matMeshIdList) => {
+      matMeshIdList.forEach((matMeshId) => {
         const mesh = this.matMeshMap.get(matMeshId);
         if (mesh) {
           const baseColor = mesh.material.uniforms.materialBaseColor.value;
@@ -302,28 +324,36 @@ class TechPackManager {
           }
         }
       });
-    };    
+    };
 
     // NOTE: This is a temporary code to filter zipper.
     //       Because zipper needs only 1 marker, unlike other type trims.
-    const isZipper = groupName => {
+    const isZipper = (groupName) => {
       return groupName === "Zipper";
     };
-    const isTopstitch = groupName => {
+    const isTopstitch = (groupName) => {
       return groupName === "Topstitch";
     };
 
     let labelCounter = 1;
-    trims.forEach(trimGroup => {
+    trims.forEach((trimGroup) => {
       // NOTE: labelIncrement should be 0 to build to multiple markers that have the same number.
       //       Because trims except zipper could have many markers.
       const labelIncrement = isZipper(trimGroup.GroupName) ? 1 : 0;
 
-      trimGroup.Trims.forEach(trim => {
+      trimGroup.Trims.forEach((trim) => {
         if (trim.MatMeshIdList) {
           addColorToMap(trim.MatMeshIdList);
-          const matMeshIdList = isTopstitch(trimGroup.GroupName) ? [trim.MatMeshIdList[0]] : trim.MatMeshIdList;  // NOTE: Topstitch has only one marker
-          labelCounter = this.buildMarkersFromList(this.trimMarker, matMeshIdList, this.matShapeMap, labelCounter, labelIncrement);
+          const matMeshIdList = isTopstitch(trimGroup.GroupName)
+            ? [trim.MatMeshIdList[0]]
+            : trim.MatMeshIdList; // NOTE: Topstitch has only one marker
+          labelCounter = this.buildMarkersFromList(
+            this.trimMarker,
+            matMeshIdList,
+            this.matShapeMap,
+            labelCounter,
+            labelIncrement
+          );
         }
       });
     });
@@ -338,7 +368,13 @@ class TechPackManager {
     }
   }
 
-  buildMarkersFromList(markerManager, matMeshIdList, matShapeMap, labelStartNumber = 1, labelIncrement = 1) {
+  buildMarkersFromList(
+    markerManager,
+    matMeshIdList,
+    matShapeMap,
+    labelStartNumber = 1,
+    labelIncrement = 1
+  ) {
     if (!markerManager || !matMeshIdList || !matShapeMap) {
       console.log("Some information missed to build markers");
       return;
@@ -348,11 +384,11 @@ class TechPackManager {
     let amountOfBuiltMarkers = 0;
 
     const shouldTranslate = this.isSmallerThanMarker(matMeshIdList[0]);
-    const isZero = center => {
+    const isZero = (center) => {
       return center.x === 0 && center.y === 0 && center.z === 0;
     };
 
-    matMeshIdList.forEach(matMeshId => {
+    matMeshIdList.forEach((matMeshId) => {
       const matShape = matShapeMap.get(Number(matMeshId));
       const matShapeCenter = matShape.get("v3Center");
 
@@ -366,7 +402,13 @@ class TechPackManager {
         }
       }
 
-      const isSucceedToBuild = this.buildMarker(labelCounter, markerManager, matShape, -1, shouldTranslate);
+      const isSucceedToBuild = this.buildMarker(
+        labelCounter,
+        markerManager,
+        matShape,
+        -1,
+        shouldTranslate
+      );
       if (isSucceedToBuild) {
         amountOfBuiltMarkers++;
       }
@@ -376,25 +418,35 @@ class TechPackManager {
     const isAlreadyIncreased = labelIncrement > 0;
     const isBuildMarkersSuccess = amountOfBuiltMarkers > 0;
 
-    return isAlreadyIncreased || !isBuildMarkersSuccess ? labelCounter : labelCounter + 1;
+    return isAlreadyIncreased || !isBuildMarkersSuccess
+      ? labelCounter
+      : labelCounter + 1;
   }
 
   // NOTE: Returns 'true' if success to build
-  buildMarker(markerMessage, markerManager, matShape, index = -1, shouldTranslate = false) {
+  buildMarker(
+    markerMessage,
+    markerManager,
+    matShape,
+    index = -1,
+    shouldTranslate = false
+  ) {
     if (!matShape) {
       return false;
     }
 
     const center = matShape.get("v3Center");
     const radius = matShape.get("fBoundingSphereRadius");
-    const translatedCenter = shouldTranslate ? { x: center.x + 2 * radius, y: center.y, z: center.z } : center;
+    const translatedCenter = shouldTranslate
+      ? { x: center.x + 2 * radius, y: center.y, z: center.z }
+      : center;
     const normal = matShape.get("v3Normal");
     const position = {
       pointerPos: translatedCenter,
       faceNormal: normal,
       cameraPos: this.camera.position,
       cameraTarget: this.controls.target,
-      cameraQuaternion: this.camera.quaternion
+      cameraQuaternion: this.camera.quaternion,
     };
 
     if (index > 0) {
@@ -414,7 +466,7 @@ class TechPackManager {
 
     if (!matMeshIdList) return;
 
-    matMeshIdList.forEach(matMeshId => {
+    matMeshIdList.forEach((matMeshId) => {
       const mesh = this.matMeshMap.get(matMeshId);
       if (mesh) {
         mesh.visible = bVisible;
@@ -423,7 +475,7 @@ class TechPackManager {
   }
 
   setAllPatternVisible(bVisible) {
-    this.patternMap.forEach(pattern => {
+    this.patternMap.forEach((pattern) => {
       this.setPatternVisible(pattern.Number, bVisible);
     });
   }
@@ -436,13 +488,13 @@ class TechPackManager {
 
     if (!matMeshIdList) return;
 
-    matMeshIdList.forEach(matMeshId => {
+    matMeshIdList.forEach((matMeshId) => {
       this.setMatMeshTransparent(matMeshId, bTransparent);
     });
   }
 
   setAllPatternTransparent(bTransparent) {
-    this.patternMap.forEach(pattern => {
+    this.patternMap.forEach((pattern) => {
       this.setPatternTransparent(pattern.Number, bTransparent);
     });
   }
@@ -452,11 +504,11 @@ class TechPackManager {
   }
 
   setTrimVisible(trimNo, bVisible) {
-    Object.values(this.trimMapList).forEach(trimMap => {
+    Object.values(this.trimMapList).forEach((trimMap) => {
       if (trimMap.has(trimNo)) {
         const matMeshIdList = trimMap.get(trimNo).MatMeshIdList;
         if (matMeshIdList) {
-          matMeshIdList.forEach(matMeshId => {
+          matMeshIdList.forEach((matMeshId) => {
             this.setMatMeshVisible(matMeshId, bVisible);
           });
         }
@@ -465,11 +517,11 @@ class TechPackManager {
   }
 
   setTrimHighlight(trimNo, bHighlight) {
-    Object.values(this.trimMapList).forEach(trimMap => {
+    Object.values(this.trimMapList).forEach((trimMap) => {
       if (trimMap.has(trimNo)) {
         const matMeshIdList = trimMap.get(trimNo).MatMeshIdList;
         if (matMeshIdList) {
-          matMeshIdList.forEach(matMeshId => {
+          matMeshIdList.forEach((matMeshId) => {
             this.setMatMeshHighlight(matMeshId, bHighlight);
           });
         }
@@ -478,14 +530,14 @@ class TechPackManager {
   }
 
   setAllStitchTransparent(bTransparent) {
-    this.stitchMeshMap.forEach(stitchMesh => {
+    this.stitchMeshMap.forEach((stitchMesh) => {
       const matMeshId = stitchMesh.userData.MATMESH_ID;
       this.setMatMeshTransparent(matMeshId, bTransparent);
     });
   }
 
   setAllStitchVisible(bVisible) {
-    this.stitchMeshMap.forEach(stitchMesh => {
+    this.stitchMeshMap.forEach((stitchMesh) => {
       const matMeshId = stitchMesh.userData.MATMESH_ID;
       this.setMatMeshVisible(matMeshId, bVisible);
     });
@@ -493,11 +545,16 @@ class TechPackManager {
 
   setMatMeshTransparent(matMeshId, bTransparent) {
     const set = () => {
-      this.setMatMeshTransparencyByValue(matMeshId, config.meshTransparentOpacity);
+      this.setMatMeshTransparencyByValue(
+        matMeshId,
+        config.meshTransparentOpacity
+      );
     };
 
     const reset = () => {
-      const opacity = this.opacityValueMap.has(matMeshId) ? this.opacityValueMap.get(matMeshId) : config.meshDefaultOpacity;
+      const opacity = this.opacityValueMap.has(matMeshId)
+        ? this.opacityValueMap.get(matMeshId)
+        : config.meshDefaultOpacity;
       this.setMatMeshTransparencyByValue(matMeshId, opacity);
     };
 
@@ -514,7 +571,9 @@ class TechPackManager {
     };
 
     const reset = () => {
-      const baseColor = this.baseColorMap.has(matMeshId) ? this.baseColorMap.get(matMeshId) : config.meshDefaultColor;
+      const baseColor = this.baseColorMap.has(matMeshId)
+        ? this.baseColorMap.get(matMeshId)
+        : config.meshDefaultColor;
       this.setMatMeshColor(matMeshId, baseColor);
     };
 
@@ -522,7 +581,7 @@ class TechPackManager {
     if (mesh) {
       if (bHighlight) set();
       else reset(mesh);
-    }    
+    }
   }
 
   setMatMeshTransparencyByValue(matMeshId, opacity) {
@@ -530,7 +589,7 @@ class TechPackManager {
     if (mesh) {
       mesh.material.uniforms.materialOpacity = {
         type: "f",
-        value: opacity
+        value: opacity,
       };
     }
   }
@@ -550,11 +609,11 @@ class TechPackManager {
   }
 
   setAllTrimVisible(bVisible) {
-    Object.values(this.trimMapList).forEach(groupMap => {
+    Object.values(this.trimMapList).forEach((groupMap) => {
       if (groupMap.size > 0) {
-        groupMap.forEach(trim => {
+        groupMap.forEach((trim) => {
           if (trim.MatMeshIdList) {
-            trim.MatMeshIdList.forEach(matMeshId => {
+            trim.MatMeshIdList.forEach((matMeshId) => {
               this.setMatMeshVisible(matMeshId, bVisible);
             });
           }
@@ -564,11 +623,11 @@ class TechPackManager {
   }
 
   setAllTrimHighlight(bHighlight) {
-    Object.values(this.trimMapList).forEach(groupMap => {
+    Object.values(this.trimMapList).forEach((groupMap) => {
       if (groupMap.size > 0) {
-        groupMap.forEach(trim => {
+        groupMap.forEach((trim) => {
           if (trim.MatMeshIdList) {
-            trim.MatMeshIdList.forEach(matMeshId => {
+            trim.MatMeshIdList.forEach((matMeshId) => {
               this.setMatMeshHighlight(matMeshId, bHighlight);
             });
           }
@@ -578,13 +637,13 @@ class TechPackManager {
   }
 
   setAllMarkerVisible(bVisible) {
-    this.markerManagers.forEach(manager => {
+    this.markerManagers.forEach((manager) => {
       manager.setVisibleForAll(bVisible);
     });
   }
 
   deleteAllMarker() {
-    this.markerManagers.forEach(manager => {
+    this.markerManagers.forEach((manager) => {
       manager.removeAll();
     });
   }
@@ -604,7 +663,7 @@ class TechPackManager {
   }
 
   onMarker(onMarkerItems) {
-    const actionsForPattern = patternIdx => {
+    const actionsForPattern = (patternIdx) => {
       this.setAllStitchVisible(false);
       this.setAllTrimVisible(false);
 
@@ -615,13 +674,13 @@ class TechPackManager {
       this.setStyleLineVisibleByPatternNo(patternNo, true);
     };
 
-    const actionsForFabric = fabricIdx => {
+    const actionsForFabric = (fabricIdx) => {
       this.setAllStitchVisible(false);
       this.setAllTrimVisible(false);
 
       const selectedPattern = this.fabricsWithPatterns[fabricIdx].Patterns;
       this.fabricMarker.setVisible(fabricIdx, true);
-      selectedPattern.forEach(pattern => {
+      selectedPattern.forEach((pattern) => {
         const patternNo = pattern.Number;
         this.setPatternVisible(patternNo, true);
         this.setPatternTransparent(patternNo, false);
@@ -629,7 +688,7 @@ class TechPackManager {
       });
     };
 
-    const actionsForTrim = trimIdx => {
+    const actionsForTrim = (trimIdx) => {
       //this.setTrimHighlightOff();
 
       const trimNo = trimIdx + 1;
@@ -638,8 +697,8 @@ class TechPackManager {
       this.trimMarker.setVisibleByMessage(trimNo, true);
     };
 
-    const uncategorizedMeshVisible = bVisible => {
-      this.uncategorizedMeshMap.forEach(mesh => {
+    const uncategorizedMeshVisible = (bVisible) => {
+      this.uncategorizedMeshMap.forEach((mesh) => {
         mesh.visible = bVisible;
       });
     };
@@ -678,7 +737,7 @@ class TechPackManager {
   }
 
   updatePointerSize() {
-    this.markerManagers.forEach(manager => {
+    this.markerManagers.forEach((manager) => {
       if (manager.isActivated()) {
         manager.updatePointerSize();
       }
@@ -714,9 +773,9 @@ class TechPackManager {
 
   checkIntersectObject({ clientX, clientY }) {
     const mousePos = this.getMousePosition({ clientX, clientY });
-    this.markerManagers.forEach(markerManager => {
+    this.markerManagers.forEach((markerManager) => {
       if (markerManager.isActivated()) {
-        return  markerManager.checkIntersect(mousePos, this.raycaster);
+        return markerManager.checkIntersect(mousePos, this.raycaster);
       }
     });
   }
