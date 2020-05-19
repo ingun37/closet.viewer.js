@@ -38,7 +38,7 @@ function makeTextSprite(
     borderColor = { r: 0, g: 0, b: 0, a: 1.0 },
     backgroundColor = { r: 255, g: 255, b: 255, a: 1.0 },
     fillStyle,
-    name
+    name,
   }
 ) {
   const canvas = document.createElement("canvas");
@@ -101,7 +101,7 @@ function makeTextSprite(
   const spriteMaterial = new THREE.SpriteMaterial({
     map: texture,
     // useScreenCoordinates: false,
-    depthTest: false
+    depthTest: false,
   });
 
   const sprite = new THREE.Sprite(spriteMaterial);

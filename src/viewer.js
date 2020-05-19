@@ -620,10 +620,8 @@ export default class ClosetViewer {
   };
 
   async changeColorway(colorwayIdx) {
-    const result = await this.zrest.changeColorway(colorwayIdx);
-    if (result) {
-      this.updateRenderer();
-    }
+    await this.zrest.changeColorway(colorwayIdx);
+    this.updateRenderer();
   }
 
   // TEMP

@@ -27,8 +27,8 @@ export class StyleLine {
   }
 
   addToContainer(bVisible = true) {
-    this.styleLineMap.forEach(styleLineSet => {
-      styleLineSet.forEach(line => {
+    this.styleLineMap.forEach((styleLineSet) => {
+      styleLineSet.forEach((line) => {
         line.visible = bVisible;
         this.styleLineContainer.add(line);
       });
@@ -37,15 +37,15 @@ export class StyleLine {
 
   setVisible(firstLayerMatMeshID, bVisible) {
     if (this.styleLineMap.get(firstLayerMatMeshID)) {
-      this.styleLineMap.get(firstLayerMatMeshID).forEach(line => {
+      this.styleLineMap.get(firstLayerMatMeshID).forEach((line) => {
         line.visible = bVisible;
       });
     }
   }
 
   setVisibleAll(bVisible) {
-    this.styleLineMap.forEach(styleLineSet => {
-      styleLineSet.forEach(line => {
+    this.styleLineMap.forEach((styleLineSet) => {
+      styleLineSet.forEach((line) => {
         line.visible = bVisible;
       });
     });

@@ -177,7 +177,7 @@ export default class MeshFactory {
     // console.warn({ rootMap: rootMap, loadedCamera: loadedCamera });
 
     const zrestVersion = this.parseVersion(rootMap);
-    this.materialInformationMap = new Map();
+    this.materialInformationMap.clear();
     this.rootMap = rootMap;
     const camLtoW = rootMap.get("m4CameraLocalToWorldMatrix");
     this.getCameraLtoW(camLtoW, this.zProperty.loadedCamera);

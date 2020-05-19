@@ -15,11 +15,11 @@ export default class Wireframe {
     this.setColorRGB = this.setColorRGB.bind(this);
   }
 
-  set = bWire => {
+  set = (bWire) => {
     if (bWire) {
       this.save();
 
-      this.matMeshMap.forEach(matMesh => {
+      this.matMeshMap.forEach((matMesh) => {
         matMesh.material = this.wireMaterial;
       });
     } else {
@@ -33,16 +33,16 @@ export default class Wireframe {
   };
 
   // Hexadecimal color (recommended). (ex: 0xff0000)
-  setColorHex = hexColor => {
+  setColorHex = (hexColor) => {
     const color = new THREE.Color(hexColor);
     this.wireMaterial.color = color;
-  }
+  };
 
   // Separate RGB values between 0 and 1. (ex: (1, 0, 0.5))
   setColorRGB = (R, G, B) => {
     const color = new THREE.Color(R, G, B);
     this.wireMaterial.color = color;
-  }
+  };
 
   save = () => {
     for (const [id, mesh] of this.matMeshMap.entries()) {
@@ -51,5 +51,5 @@ export default class Wireframe {
         this.materialMap.set(id, material);
       }
     }
-  }
+  };
 }
