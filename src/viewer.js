@@ -80,7 +80,7 @@ export default class ClosetViewer {
     const w = (this.defaultWidth = width);
     const h = (this.defaultHeight = height);
 
-    this.setter = typeof element === 'string' ? (document.getElementById(element) || document.querySelector(element)) : element;
+    this.setter = typeof element === "string" ? document.getElementById(element) || document.querySelector(element) : element;
     this.id = element;
     this.cameraPosition = cameraPosition;
     this.stats = stats;
@@ -544,7 +544,7 @@ export default class ClosetViewer {
   }
 
   getCurrentColorwayIndex() {
-    return this.zrest.meshFactory.currentColorwayIndex;
+    return this.zrest.getCurrentColorwayIndex();
   }
 
   isExistMatMeshType(type) {
@@ -619,93 +619,16 @@ export default class ClosetViewer {
     this.loadZrestDisassembly(json);
   };
 
-  // TODO: This function should be moved to zrestReader.js
   async changeColorway(colorwayIdx) {
-    if (colorwayIdx === undefined) {
-      return;
-    }
-
-    const colorwaySize = this.zrest.getColorwaySize();
-
-    if (colorwaySize - 1 < colorwayIdx || colorwaySize < 0) {
-      console.error("Colorway index is out of range");
-      return;
-    }
-
-    if (!this.zrest.isDisassembled && (this.zrest.jsZip === undefined || this.zrest.jsZip === null)) {
-      console.log("zip is null");
-      return;
-    }
-
-    this.zrest.currentColorwayIndex = colorwayIdx;
-    this.zrest.zProperty.colorwayIndex = colorwayIdx;
-    console.log("selected colorway index: " + colorwayIdx);
-
-    if (this.zrest.zProperty.bDisassembled) {
-      console.log("Disassembled zrest detected");
-      this.zrest.changeColorway(colorwayIdx);
+    const result = await this.zrest.changeColorway(colorwayIdx);
+    if (result) {
       this.updateRenderer();
-      return;
     }
-
-    this.clear();
-    const matMeshMap = this.zrest.matMeshMap;
-    for (const matMesh of matMeshMap.values()) {
-      const prevMaterial = matMesh.material;
-      if (!prevMaterial) return;
-      const bPrevUseSeamPuckeringMap = prevMaterial.uniforms.bUseSeamPuckeringNormal !== undefined ? prevMaterial.uniforms.bUseSeamPuckeringNormal.value : false;
-      const id = matMesh.userData.MATMESH_ID;
-
-      // TODO: hide this function!
-      const material = await this.zrest.makeMaterialForZRest(
-        this.zrest.jsZip,
-        this.zrest.getMaterialInformationMap().get(id),
-        colorwayIdx,
-        bPrevUseSeamPuckeringMap,
-        this.zrest.loadedCamera,
-        this.zrest.meshFactory.version
-      );
-      matMesh.material = material;
-    }
-
-    this.updateRenderer();
-  }
-
-  clear() {
-    if (!this.zrest) {
-      console.log(this.zrest);
-      console.log("ZRest not found!");
-      return;
-    }
-
-    const matMeshMap = this.zrest.matMeshMap;
-    for (const matMesh of matMeshMap.values()) {
-      this.safeDeallocation(
-        matMesh.material,
-        THREE.ShaderMaterial,
-        function () {
-          // console.log("success deallocation");
-        },
-        function () {
-          console.log("unsuccess deallocation");
-        }
-      );
-    }
-
-    this.zrest.clearMaps();
   }
 
   // TEMP
   alertVersion() {
     alert(this.mobileDetect.os());
-  }
-
-  safeDeallocation(object, type, type_cb, nontype_cb) {
-    if (object instanceof type) {
-      type_cb(object);
-    } else {
-      nontype_cb(object);
-    }
   }
 
   dispose() {

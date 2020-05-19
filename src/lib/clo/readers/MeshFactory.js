@@ -42,14 +42,10 @@ export default class MeshFactory {
       const mapColorways = rootMap.get("mapColorWay");
       if (mapColorways !== undefined) {
         // NOTE: CLO SW에서 선택한 기본 colorIndex(로 예상됨)
-        this.currentColorwayIndex = mapColorways.get("uiCurrentCoordinationIndex");
-        this.zProperty.colorwayIndex = this.currentColorwayIndex;
+        this.zProperty.colorwayIndex = mapColorways.get("uiCurrentCoordinationIndex");
         this.colorwaySize = mapColorways.get("listColorway").length;
         this.zProperty.colorwaySize = this.colorwaySize;
       }
-
-      // Set colorway index to default
-      this.matmeshManager.setColorwayIndex(this.currentColorwayIndex);
     };
 
     const parseListMaterial = () => {
@@ -214,12 +210,13 @@ export default class MeshFactory {
 
       if (zrestLoader.aborted) return;
 
+      const colorwayIndex = this.zProperty.colorwayIndex;
       // TODO: 투명 여부에 따른 mesh 순서 파악해야 함
-      let tf = await this.matmeshManager.getMatMeshs(zrestLoader, mapGeometry, dracosData, false, this.materialInformationMap, this.currentColorwayIndex, this.camera, true);
+      let tf = await this.matmeshManager.getMatMeshs(zrestLoader, mapGeometry, dracosData, false, this.materialInformationMap, colorwayIndex, this.camera, true);
       retObject.add(tf);
       if (zrestLoader.aborted) return;
 
-      tf = await this.matmeshManager.getMatMeshs(zrestLoader, mapGeometry, dracosData, true, this.materialInformationMap, this.currentColorwayIndex, this.camera);
+      tf = await this.matmeshManager.getMatMeshs(zrestLoader, mapGeometry, dracosData, true, this.materialInformationMap, colorwayIndex, this.camera);
       retObject.add(tf);
 
       if (zrestLoader.aborted) return;
@@ -247,14 +244,17 @@ export default class MeshFactory {
       if (zrestLoader.aborted) return;
 
       console.warn("Assembled ZRest build @ MeshFactory");
+      const colorwayIndex = this.zProperty.colorwayIndex;
+      console.log(this.zProperty);
+      console.log(colorwayIndex);
       // 불투명 부터 추가해서 불투명 object 부터 그리기
-      let tf = await this.matmeshManager.getMatMeshs(zrestLoader, mapGeometry, jsZip, false, this.materialInformationMap, this.currentColorwayIndex, this.camera);
+      let tf = await this.matmeshManager.getMatMeshs(zrestLoader, mapGeometry, jsZip, false, this.materialInformationMap, colorwayIndex, this.camera);
       if (zrestLoader.aborted) return;
       retObject.add(tf);
       console.log("first cycle");
 
       // 투명한것 추가
-      tf = await this.matmeshManager.getMatMeshs(zrestLoader, mapGeometry, jsZip, true, this.materialInformationMap, this.currentColorwayIndex, this.camera);
+      tf = await this.matmeshManager.getMatMeshs(zrestLoader, mapGeometry, jsZip, true, this.materialInformationMap, colorwayIndex, this.camera);
       if (zrestLoader.aborted) return;
       retObject.add(tf);
       console.log("second cycle");

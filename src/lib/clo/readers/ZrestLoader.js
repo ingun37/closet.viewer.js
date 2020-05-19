@@ -16,6 +16,7 @@ import Wireframe from "./Wireframe";
 
 import { getObjectsCenter, zoomToObjects } from "./ObjectUtils";
 import { makeMaterial } from "./zrest_material";
+import { safeDeallocation } from "@/lib/clo/readers/MemoryUtils";
 
 const zrestProperty = {
   version: -1,
@@ -62,7 +63,7 @@ export default class ZRestLoader {
     this.zProperty.drawMode = this.getParsedDrawMode(drawMode);
 
     this.matMeshMap = new Map();
-    this.currentColorwayIndex = 0;
+    // this.currentColorwayIndex = 0;
     this.jsZip = null;
 
     this.textureMap = new Map();
@@ -89,6 +90,7 @@ export default class ZRestLoader {
     this.isDisassembled = () => {
       return this.zProperty.bDisassembled;
     };
+    this.safeDeallocation = safeDeallocation;
   }
 
   // TODO: This wrapper function placed very temporarily.
@@ -105,9 +107,26 @@ export default class ZRestLoader {
     });
   };
 
+  // TODO: Write more code very carefully
+  clear = () => {
+    for (const matMesh of this.zProperty.matMeshMap.values()) {
+      this.safeDeallocation(
+        matMesh.material,
+        THREE.ShaderMaterial,
+        function () {
+          // console.log("success deallocation");
+        },
+        function () {
+          console.log("unsuccess deallocation");
+        }
+      );
+    }
+
+    this.clearMaps();
+  };
+
   clearMaps = () => {
     // TODO: 여기 좀 고치자
-    console.log("map clear");
     // this.zProperty.seamPuckeringNormalMap = null;
     this.zProperty.nameToTextureMap.clear();
     this.listPatternMeasure = [];
@@ -223,6 +242,8 @@ export default class ZRestLoader {
 
   getColorwaySize = () => this.meshFactory.getColorwaySize();
 
+  getCurrentColorwayIndex = () => this.zProperty.colorwayIndex;
+
   getMaterialInformationMap = () => this.meshFactory.materialInformationMap;
 
   getMatShapeMap = () => this.meshFactory.matShapeMap;
@@ -248,15 +269,41 @@ export default class ZRestLoader {
 
     return defaultDrawMode;
   };
+  checkColorwayIndex = (colorwayIdx) => {
+    if (colorwayIdx === undefined) {
+      return false;
+    }
+
+    const colorwaySize = this.getColorwaySize();
+    if (colorwaySize - 1 < colorwayIdx || colorwaySize < 0) {
+      console.error("Colorway index is out of range");
+      return false;
+    }
+
+    if (!this.isDisassembled() && (this.jsZip === undefined || this.jsZip === null)) {
+      console.log("zip is null");
+      return false;
+    }
+
+    return true;
+  };
 
   changeColorway = async (colorwayIndex) => {
-    /* NOTE:
-      1. 이 colorway에 쓰는 texture들을 읽고
-      2. texture의 속성을 colorway에 맞춰서 바꾸고
-      3. mesh 속성을 colorway에 맞춰서 바꾸고
-    */
+    if (!this.checkColorwayIndex(colorwayIndex)) {
+      return false;
+    }
+
+    if (this.isDisassembled()) {
+      await this.changeColorwayForSeparatedZRest(colorwayIndex);
+    } else {
+      await this.changeColorwayForUnitedZRest(colorwayIndex);
+    }
+
+    return true;
+  };
+
+  changeColorwayForSeparatedZRest = async (colorwayIndex) => {
     this.zProperty.colorwayIndex = colorwayIndex;
-    console.log(this.zProperty.nameToTextureMap);
     const materialInformationMap = this.getMaterialInformationMap();
 
     for (const entries of this.zProperty.matMeshMap.entries()) {
@@ -284,6 +331,23 @@ export default class ZRestLoader {
         zProperty: this.zProperty
       });
     });
+  };
+
+  changeColorwayForUnitedZRest = async (colorwayIndex) => {
+    // this.currentColorwayIndex = colorwayIndex;
+    this.zProperty.colorwayIndex = colorwayIndex;
+
+    this.clear();
+    const matMeshMap = this.zProperty.matMeshMap;
+    for (const matMesh of matMeshMap.values()) {
+      const prevMaterial = matMesh.material;
+      if (!prevMaterial) return;
+      const bPrevUseSeamPuckeringMap = prevMaterial.uniforms.bUseSeamPuckeringNormal !== undefined ? prevMaterial.uniforms.bUseSeamPuckeringNormal.value : false;
+      const id = matMesh.userData.MATMESH_ID;
+
+      const material = await this.makeMaterialForZRest(this.jsZip, this.getMaterialInformationMap().get(id), colorwayIndex, bPrevUseSeamPuckeringMap, this.loadedCamera, this.meshFactory.version);
+      matMesh.material = material;
+    }
   };
 
   parseRest = (restFileData) => {
