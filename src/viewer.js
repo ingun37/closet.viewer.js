@@ -558,9 +558,9 @@ export default class ClosetViewer {
     return false;
   }
 
-  loadZrestDisassembly = (zrestJSON) => {
+  loadSeparatedZrest = (zrestJSON) => {
     const rest = zrestJSON.rest;
-    const imgs = zrestJSON.imgs;
+    const imgs = zrestJSON.images;
     const dracos = zrestJSON.dracos;
 
     this.zrest = new ZRestLoader({
@@ -616,7 +616,7 @@ export default class ClosetViewer {
     json.imgs = testData.testImgs;
     json.dracos = testData.testDraco;
 
-    this.loadZrestDisassembly(json);
+    this.loadSeparatedZrest(json);
   };
 
   async changeColorway(colorwayIdx) {
