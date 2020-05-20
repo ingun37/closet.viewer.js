@@ -37,6 +37,7 @@ const zrestProperty = {
     ltow: new THREE.Matrix4(),
     bLoaded: false
   },
+  renderCamera: null,
 
   // zElement
   rootMap: new Map(),
@@ -58,6 +59,7 @@ export default class ZRestLoader {
     // ZREST property
     this.zProperty = zrestProperty;
     this.zProperty.drawMode = this.getParsedDrawMode(drawMode);
+    this.zProperty.renderCamera = camera;
 
     this.matMeshMap = new Map();
     // this.currentColorwayIndex = 0;

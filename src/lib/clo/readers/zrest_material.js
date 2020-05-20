@@ -24,7 +24,7 @@ export async function makeMaterial({
   const seamPuckeringNormalMap = zProperty.seamPuckeringNormalMap;
   const version = zProperty.version;
   const drawMode = zProperty.drawMode;
-  const loadedCamera = zProperty.loadedCamera;
+  const renderCamera = zProperty.renderCamera;
 
   /*
   "matProperty"
@@ -255,8 +255,8 @@ export async function makeMaterial({
         gTransMatrix: identityMatrix,
 
         positionOffset: buildFValue(matProperty.zOffset),
-        cameraNear: buildFValue(loadedCamera.near),
-        cameraFar: buildFValue(loadedCamera.far),
+        cameraNear: buildFValue(renderCamera.near),
+        cameraFar: buildFValue(renderCamera.far),
         sGlobal: tNull,
         sNormal: tNull,
         sSeamPuckeringNormal: tNull,
