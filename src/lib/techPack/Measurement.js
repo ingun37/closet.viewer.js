@@ -17,12 +17,12 @@ export class Measurement {
     this.matMeshMap = matMeshMap;
 
     let geometryIndex = 0;
-    listPatternMeasure.forEach(entry => {
+    listPatternMeasure.forEach((entry) => {
       const arrPos = entry.get("arrPosition3D");
 
       // Gather points for measure lines
       const points = [];
-      arrPos.forEach(pos => {
+      arrPos.forEach((pos) => {
         points.push(new THREE.Vector3(pos.x, pos.y, pos.z));
       });
 
@@ -49,7 +49,7 @@ export class Measurement {
   }
 
   setAllVisible(bVisible) {
-    this.geometryMap.forEach(line => {
+    this.geometryMap.forEach((line) => {
       line.visible = bVisible;
     });
   }
@@ -64,7 +64,7 @@ export class Measurement {
   }
 
   adjustAllMeshOffset(bOffset, offset = 100) {
-    this.matMeshMap.forEach(matMesh => {
+    this.matMeshMap.forEach((matMesh) => {
       const material = matMesh.material;
       if (material) {
         material.polygonOffset = bOffset;
@@ -72,5 +72,5 @@ export class Measurement {
         material.polygonOffsetUnits = offset;
       }
     });
-  };
+  }
 }

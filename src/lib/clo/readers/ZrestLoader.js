@@ -16,6 +16,8 @@ import Wireframe from "./Wireframe";
 
 import { getObjectsCenter, zoomToObjects } from "./ObjectUtils";
 import { makeMaterial } from "./zrest_material";
+import Colorway, { changeColorway } from "./Colorway";
+import { safeDeallocation } from "@/lib/clo/readers/MemoryUtils";
 
 const zrestProperty = {
   version: -1,
@@ -39,11 +41,7 @@ const zrestProperty = {
   // zElement
   rootMap: new Map(),
   seamPuckeringNormalMap: null,
-  // colorwayTextures: new Map(),
   listMapTextureMatMeshId: null
-  // textureMap: new Map()
-  // test: [],
-  // test2: []
 };
 
 let _fileReaderSyncSupport = false;
@@ -62,13 +60,14 @@ export default class ZRestLoader {
     this.zProperty.drawMode = this.getParsedDrawMode(drawMode);
 
     this.matMeshMap = new Map();
-    this.currentColorwayIndex = 0;
+    // this.currentColorwayIndex = 0;
     this.jsZip = null;
 
     this.textureMap = new Map();
 
     // List for measurement
     this.listPatternMeasure = [];
+    this.materialInformationMap = new Map();
 
     this.meshFactory = new MeshFactory({
       matMeshMap: this.matMeshMap,
@@ -76,6 +75,12 @@ export default class ZRestLoader {
       materialInformationMap: this.materialInformationMap,
       camera: this.camera,
       zrestProperty: this.zProperty
+    });
+
+    this.colorway = new Colorway({
+      zProperty: this.zProperty,
+      matInfoMap: this.materialInformationMap,
+      clearFunc: this.clear
     });
 
     this.wireframe = new Wireframe(this.matMeshMap);
@@ -89,25 +94,47 @@ export default class ZRestLoader {
     this.isDisassembled = () => {
       return this.zProperty.bDisassembled;
     };
+    this.safeDeallocation = safeDeallocation;
+    this.changeColorway = (colorwayIndex) => {
+      this.colorway.changeColorway({ colorwayIndex: colorwayIndex, jsZip: this.jsZip });
+      // changeColorway({ colorwayIndex: colorwayIndex, zProperty: this.zProperty, jsZip: this.jsZip });
+    };
   }
 
   // TODO: This wrapper function placed very temporarily.
-  makeMaterialForZRest = async (zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera) => {
-    zrestProperty.colorwayIndex = colorwayIndex;
-    zrestProperty.bUseSeamPuckeringNormalMap = zrestProperty;
-    //zrestProperty.loadedCamera = camera;
+  // makeMaterialForZRest = async (zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera) => {
+  //   zrestProperty.colorwayIndex = colorwayIndex;
+  //   zrestProperty.bUseSeamPuckeringNormalMap = zrestProperty;
+  //   //zrestProperty.loadedCamera = camera;
 
-    return await makeMaterial({
-      jsZip: zip,
-      matProperty: matProperty,
-      zProperty: zrestProperty,
-      bUseSeamPuckeringNormalMap: bUseSeamPuckeringNormalMap
-    });
+  //   return await makeMaterial({
+  //     jsZip: zip,
+  //     matProperty: matProperty,
+  //     zProperty: zrestProperty,
+  //     bUseSeamPuckeringNormalMap: bUseSeamPuckeringNormalMap
+  //   });
+  // };
+
+  // TODO: Write more code very carefully
+  clear = () => {
+    for (const matMesh of this.zProperty.matMeshMap.values()) {
+      this.safeDeallocation(
+        matMesh.material,
+        THREE.ShaderMaterial,
+        function () {
+          // console.log("success deallocation");
+        },
+        function () {
+          console.log("unsuccess deallocation");
+        }
+      );
+    }
+
+    this.clearMaps();
   };
 
   clearMaps = () => {
     // TODO: 여기 좀 고치자
-    console.log("map clear");
     // this.zProperty.seamPuckeringNormalMap = null;
     this.zProperty.nameToTextureMap.clear();
     this.listPatternMeasure = [];
@@ -223,6 +250,8 @@ export default class ZRestLoader {
 
   getColorwaySize = () => this.meshFactory.getColorwaySize();
 
+  getCurrentColorwayIndex = () => this.zProperty.colorwayIndex;
+
   getMaterialInformationMap = () => this.meshFactory.materialInformationMap;
 
   getMatShapeMap = () => this.meshFactory.matShapeMap;
@@ -247,43 +276,6 @@ export default class ZRestLoader {
     }
 
     return defaultDrawMode;
-  };
-
-  changeColorway = async (colorwayIndex) => {
-    /* NOTE:
-      1. 이 colorway에 쓰는 texture들을 읽고
-      2. texture의 속성을 colorway에 맞춰서 바꾸고
-      3. mesh 속성을 colorway에 맞춰서 바꾸고
-    */
-    this.zProperty.colorwayIndex = colorwayIndex;
-    console.log(this.zProperty.nameToTextureMap);
-    const materialInformationMap = this.getMaterialInformationMap();
-
-    for (const entries of this.zProperty.matMeshMap.entries()) {
-      const matMeshId = entries[0];
-      const matMesh = entries[1];
-
-      const matProperty = materialInformationMap.get(matMeshId);
-      const bPrevUseSeamPuckeringMap = matMesh.material.uniforms.bUseSeamPuckeringNormal.value;
-      const material = await makeMaterial({
-        jsZip: null,
-        matProperty: matProperty,
-        zProperty: this.zProperty,
-        matMeshID: matMeshId,
-        bUseSeamPuckeringNormalMap: bPrevUseSeamPuckeringMap //this.zProperty.seamPuckeringNormalMap !== undefined && this.zProperty.seamPuckeringNormalMap !== null
-      });
-
-      matMesh.material = material;
-    }
-
-    this.zProperty.nameToTextureMap.forEach(async (threeJSTexture, textureFilename) => {
-      await setTexturePropertyDisassembly({
-        textureFilename: textureFilename,
-        threeJSTexture: threeJSTexture,
-        materialInformationMap: this.getMaterialInformationMap(), // NOTE: 이거 property에 넣을까?
-        zProperty: this.zProperty
-      });
-    });
   };
 
   parseRest = (restFileData) => {
