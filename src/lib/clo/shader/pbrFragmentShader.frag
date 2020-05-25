@@ -20,6 +20,7 @@ uniform bool bUseSeamPuckeringNormal;
 uniform bool bUseTransparent;
 uniform bool bUseGlossinessMap;
 uniform bool bUseMetalnessMap;
+uniform bool bUseFittingMap;
 //uniform bool bUseAmbientOcclusion;
 
 uniform mat4 matGlobal;
@@ -41,6 +42,10 @@ uniform vec3 materialBaseColor;
 uniform vec3 materialSpecular;
 uniform float materialOpacity;
 uniform float normalMapIntensityInPercentage;
+
+// For fitting map
+varying vec4 fittingColor;
+
 
 // 다음 불러줘야 한다. three.js 버전 업 후에 #include <lights_pars_begin> 로 대체하면 됨
 #if NUM_DIR_LIGHTS > 0
@@ -285,8 +290,8 @@ void main( void )
         diffuseColor *= texColor.rgb;
         texAlpha = texColor.a;
 
-            if (!m_bUseMetalnessRoughnessPBR)
-            specularColor *= texColor.rgb;
+        if (!m_bUseMetalnessRoughnessPBR)
+        specularColor *= texColor.rgb;
     }
 
     // linear -> sRGB 감마 코렉션
@@ -435,4 +440,11 @@ void main( void )
     // 안에서 감마 코렉션(linear -> sRGB) 도 수행한다
     gl_FragColor.rgb = Tonemapping(gl_FragColor.rgb);
     gl_FragColor.a = materialOpacity * texAlpha;
+
+    if (bUseFittingMap) {
+        if (fittingColor.r * fittingColor.g * fittingColor.b >= 0.0) {
+            gl_FragColor.rgb = (gl_FragColor.rgb * 0.3 + fittingColor.rgb * 0.7);
+            gl_FragColor.a = 0.5;
+        }
+    } 
 }

@@ -244,6 +244,8 @@ export async function makeMaterial({
         bUseGlossinessMap: iZero,
         bUseMetalnessMap: iZero,
         bUseAmbientOcclusion: iZero,
+        // 테스트
+        bUseFittingMap: iZero,
 
         matGlobal: identityMatrix,
         matNormal: identityMatrix,

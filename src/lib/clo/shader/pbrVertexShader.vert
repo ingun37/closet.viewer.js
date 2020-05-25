@@ -1,5 +1,7 @@
 #include    <shadowmap_pars_vertex>
 attribute vec2 uv2;
+attribute vec4 vFittingColor;
+
 uniform mat4 gRotMatrix;
 uniform mat4 gTransMatrix;
 
@@ -7,6 +9,7 @@ varying vec2 vUV;
 varying vec2 vUV2;
 varying vec3 vNormal;
 varying vec3 posAtEye;
+varying vec4 fittingColor;
 
 uniform float positionOffset;
 uniform float cameraNear;
@@ -36,6 +39,7 @@ void main(void)
     mat4 transform = gRotMatrix * gTransMatrix;
     vUV = (transform * vec4(uv.st, 0.0, 1.0)).xy;
     vUV2 = uv2.st;
+    fittingColor = vFittingColor;
 
     #include <begin_vertex>
     #include <worldpos_vertex>

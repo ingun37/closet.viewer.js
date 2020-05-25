@@ -22,6 +22,9 @@ export default function MatMeshManager({
   this.colorwayIndex = zProperty.colorwayIndex;
   this.styleLineMap = new Map();
   this.matShapeMap = new Map();
+
+  // TODO: 피팅맵 임시
+  this.zProperty.mapChangedIndex = new Map();
 }
 
 MatMeshManager.prototype = {
@@ -367,6 +370,11 @@ MatMeshManager.prototype = {
           } else if (matMeshType === 7) {
             type = MATMESH_TYPE.BUTTONHOLE_MATMESH;
           }
+        }
+
+        // TODO: 피팅맵 임시
+        if (type === MATMESH_TYPE.PATTERN_MATMESH) {
+          this.zProperty.mapChangedIndex.set(matMeshID, changeVertexIndex);
         }
 
         const center = new THREE.Vector3(-1, -1, -1);
