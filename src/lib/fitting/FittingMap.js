@@ -11,10 +11,11 @@ export default class FittingMap {
 
   clear() {
     this.mapVertexColor.clear();
+    this.mapChangedIndex.clear();
   }
 
   load({ mapGeometry: mapGeometry, mapChangedIndex: mapChangedIndex }) {
-    // console.log({ mapGeometry: mapGeometry, mapChangedIndex: mapChangedIndex });
+    this.clear();
     this.extract(mapGeometry);
     this.mapChangedIndex = mapChangedIndex;
   }
