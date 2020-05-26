@@ -15,9 +15,9 @@ export default class FittingMap {
   }
 
   load({ mapGeometry: mapGeometry, mapChangedIndex: mapChangedIndex }) {
+    this.mapChangedIndex = mapChangedIndex;
     this.clear();
     this.extract(mapGeometry);
-    this.mapChangedIndex = mapChangedIndex;
   }
 
   extract(mapInput) {
@@ -46,13 +46,14 @@ export default class FittingMap {
 
   extractFitmapData(listMatShape) {
     const vertexColor = "baFitmapVertexColor";
-    const vertexValue = "baFitmapVertexValue";
+    //  const vertexValue = "baFitmapVertexValue";  // NOTE: Not used yet.
     listMatShape.forEach((matShape) => {
       if (matShape.has(vertexColor)) {
         const meshIDs = matShape.get("listMatMeshIDOnIndexedMesh");
         const baVertexColor = readByteArray("Float", matShape.get(vertexColor));
         meshIDs.forEach((meshID) => {
-          const matMeshID = meshID.get("uiMatMeshID"); // NOTE: meshID is an array but might have only 1 element
+          // NOTE: meshID is an array but might have only 1 element
+          const matMeshID = meshID.get("uiMatMeshID");
           this.mapVertexColor.set(matMeshID, baVertexColor);
         });
       }
