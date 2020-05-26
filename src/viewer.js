@@ -15,6 +15,7 @@ import MobileDetect from "mobile-detect";
 import { MATMESH_TYPE } from "@/lib/clo/readers/Predefined";
 import { getTestData } from "./test.js";
 import "@/lib/threejs/BufferGeometryUtils";
+import Avatar from "./lib/fitting/Avatar.js";
 
 let windowHalfX = window.innerWidth / 2;
 let windowHalfY = window.innerHeight / 2;
@@ -185,6 +186,7 @@ export default class ClosetViewer {
     });
 
     this.fittingMap = new FittingMap();
+    this.avatar = new Avatar();
 
     // canvas event
     const canvas = this.setter;
@@ -221,6 +223,11 @@ export default class ClosetViewer {
     const c = this.zrest.zProperty.mapChangedIndex;
     this.fittingMap.load({ mapGeometry: m, mapChangedIndex: c });
     this.fittingMap.createVertice(mapMatMesh);
+  }
+
+  av() {
+    const m = this.zrest.zProperty.rootMap.get("mapGeometry");
+    return this.avatar.load({ mapGeometry: m });
   }
 
   onMouseMove(e) {
