@@ -186,7 +186,7 @@ export default class ClosetViewer {
     });
 
     this.fittingMap = new FittingMap();
-    this.avatar = new Avatar();
+    this.avatar = new Avatar(this.scene);
 
     // canvas event
     const canvas = this.setter;
@@ -225,9 +225,13 @@ export default class ClosetViewer {
     this.fittingMap.createVertice(mapMatMesh);
   }
 
-  av() {
-    const m = this.zrest.zProperty.rootMap.get("mapGeometry");
-    return this.avatar.load({ mapGeometry: m });
+  av(url) {
+    const test = () => {
+      const m = this.zrest.zProperty.rootMap.get("mapGeometry");
+      const l = this.avatar.load({ mapGeometry: m });
+      this.avatar.test(l);
+    };
+    this.loadZrestUrlWithParameters(url, null, test);
   }
 
   onMouseMove(e) {

@@ -1,8 +1,10 @@
+import * as THREE from "@/lib/threejs/three";
 import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 
 export default class Avatar {
-  constructor() {
+  constructor(scene) {
     this.listSkinController = new Map();
+    this.scene = scene;
   }
 
   load({ mapGeometry: mapGeometry }) {
@@ -39,13 +41,37 @@ export default class Avatar {
   }
 
   buildMesh(mapMesh) {
-    console.log(readByteArray("Int", mapMesh.get("baIndex")));
-    console.log(readByteArray("Float", mapMesh.get("baPosition")));
+    const bufferGeometry = new THREE.BufferGeometry();
+    const arrayIndex = readByteArray("Int", mapMesh.get("baIndex"));
+    const arrayPosition = readByteArray("Float", mapMesh.get("baPosition"));
+
+    bufferGeometry.addAttribute(
+      "position",
+      new THREE.BufferAttribute(new Float32Array(arrayPosition), 3)
+    );
+    bufferGeometry.setIndex(
+      new THREE.BufferAttribute(new Uint32Array(arrayIndex), 1)
+    );
+    bufferGeometry.computeFaceNormals();
+    bufferGeometry.computeVertexNormals();
+
+    const material = new THREE.MeshPhongMaterial();
+    // material.wireframe = true;
+    material.color = THREE.Vector3(1, 1, 1);
+    const threeMesh = new THREE.Mesh(bufferGeometry, material);
+
+    this.scene.add(threeMesh);
+
+    // const light = new THREE.DirectionalLight(0xffffff);
+    // light.position.set(0, 1, 1).normalize();
+    // this.scene.add(light);
+
+    console.log(threeMesh);
   }
 
   test(listSkinController) {
     const sc = listSkinController[0];
-    const mapMesh = skinController.get("mapMesh");
+    const mapMesh = sc.get("mapMesh");
 
     this.buildMesh(mapMesh);
     //const baVertexColor = readByteArray("Float", matShape.get(vertexColor));
