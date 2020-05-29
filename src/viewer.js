@@ -570,7 +570,7 @@ export default class ClosetViewer {
     return false;
   }
 
-  loadSeparatedZrest = (zrestJSON) => {
+  loadSeparatedZrest = async (zrestJSON) => {
     const rest = zrestJSON.rest;
     const imgs = zrestJSON.images;
     const dracos = zrestJSON.dracos;
@@ -582,40 +582,37 @@ export default class ClosetViewer {
       cameraPosition: this.cameraPosition
     });
 
-    const loaded = async (object, loadedCamera) => {
-      this.annotation.init({
-        zrest: this.zrest
-      });
+    const object = await this.zrest.loadZrestDisassembly(rest, dracos, imgs, this.updateRenderer);
+    this.annotation.init({
+      zrest: this.zrest
+    });
 
-      // FIXME: This module does not work correctly
-      // delete object3D, geometry, material dispose
-      for (let i = 0; i < this.scene.children.length; ++i) {
-        if (this.scene.children[i].name === "object3D") {
-          clearThree(this.scene.children[i]);
-        }
+    // FIXME: This module does not work correctly
+    // delete object3D, geometry, material dispose
+    for (let i = 0; i < this.scene.children.length; ++i) {
+      if (this.scene.children[i].name === "object3D") {
+        clearThree(this.scene.children[i]);
       }
+    }
 
-      // if (colorwayIndex > -1) {
-      //   await this.changeColorway(colorwayIndex);
-      // }
-      this.scene.add(object);
-      this.object3D = object;
-      this.zrest.zoomToObjects(this.zrest.zProperty.loadedCamera, this.scene);
+    // if (colorwayIndex > -1) {
+    //   await this.changeColorway(colorwayIndex);
+    // }
+    this.scene.add(object);
+    this.object3D = object;
+    this.zrest.zoomToObjects(this.zrest.zProperty.loadedCamera, this.scene);
 
-      // if (onLoad) onLoad(this);
+    // if (onLoad) onLoad(this);
 
-      // TODO
-      //  1. Colorway
-      //  2. zoomToObject
-      //  3. onLoad function
+    // TODO
+    //  1. Colorway
+    //  2. zoomToObject
+    //  3. onLoad function
 
-      console.log("==============================");
-      console.log("UPDATE RENDERER");
-      console.log("==============================");
-      this.updateRenderer();
-    };
-
-    this.zrest.loadZrestDisassembly(rest, dracos, imgs, loaded, this.updateRenderer);
+    console.log("==============================");
+    console.log("UPDATE RENDERER");
+    console.log("==============================");
+    this.updateRenderer();
   };
 
   // NOTE: This is test only

@@ -396,7 +396,7 @@ export default class ZRestLoader {
     console.log("processTextureFiles done.");
   };
 
-  loadZrestDisassembly = async (restURL, dracoURLList, textureURLList, onLoad, updateRenderer) => {
+  loadZrestDisassembly = async (restURL, dracoURLList, textureURLList, updateRenderer) => {
     const loadSeamPuckeringMap = async () => {
       const seamPuckeringMapURL = textureURLList.filter((url) => url.includes("seam_puckering_2ol97pf293f2sdk98.png"));
       if (seamPuckeringMapURL.length <= 0) return;
@@ -413,9 +413,9 @@ export default class ZRestLoader {
     this.zProperty.seamPuckeringNormalMap = await loadSeamPuckeringMap();
     await this.processDracoFiles(dracoURLList, object3D);
 
-    onLoad(object3D);
+    await this.processTextureFiles(textureURLList, object3D, updateRenderer);
 
-    this.processTextureFiles(textureURLList, object3D, updateRenderer);
+    return object3D
     console.log("=== after RestFile ===");
   };
 }
