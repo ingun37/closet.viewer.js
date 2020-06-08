@@ -6,7 +6,7 @@ import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 import { MATMESH_TYPE } from "@/lib/clo/readers/Predefined";
 import { makeMaterial } from "@/lib/clo/readers/zrest_material";
 import { unZip } from "./FileLoader";
-import {createMatMesh} from "@/lib/clo/readers/zrest_draco";
+import { createMatMesh } from "@/lib/clo/readers/zrest_draco";
 
 export default function MatMeshManager({
   materialInformationMap: materialInformationMap,
@@ -29,8 +29,7 @@ MatMeshManager.prototype = {
   constructor: MatMeshManager,
 
   // 난 이 지옥을 벗어날 수 있을까?
-  async
-  getMatMeshs(
+  async getMatMeshs(
     zrestLoader,
     mapGeometry,
     zip,
@@ -45,19 +44,19 @@ MatMeshManager.prototype = {
       const listCT3D = mapGeometry.get("listChildrenTransformer3D");
       if (!listCT3D) return;
 
-      const newListCT3DPromise = listCT3D.map(async childTF3D => {
+      const newListCT3DPromise = listCT3D.map(async (childTF3D) => {
         return await this.getMatMeshs(
-            zrestLoader,
-            childTF3D,
-            zip,
-            bLoadTransparentObject,
-            materialInformationMap,
-            colorwayIndex,
-            loadedCamera
+          zrestLoader,
+          childTF3D,
+          zip,
+          bLoadTransparentObject,
+          materialInformationMap,
+          colorwayIndex,
+          loadedCamera
         );
-      })
-      const newListCT3D = await Promise.all(newListCT3DPromise)
-      newListCT3D.map(childTF => tf.add(childTF));
+      });
+      const newListCT3D = await Promise.all(newListCT3DPromise);
+      newListCT3D.map((childTF) => tf.add(childTF));
     };
 
     const processMapTransformer3D = async () => {
@@ -107,10 +106,13 @@ MatMeshManager.prototype = {
         });
       });
 
-      await this.parseListMatShape(
-        zrestLoader,
-        zip,
+      if (zrestLoader.aborted) return;
+
+      // 여기가 끝판왕; 여기만 잡으면 승산 있다
+      await createMatMesh(
+        this,
         listMatShape,
+        zip,
         tf,
         bLoadTransparentObject,
         materialInformationMap
@@ -133,21 +135,7 @@ MatMeshManager.prototype = {
     return tf;
   },
 
-  // 여기가 끝판왕; 여기만 잡으면 승산 있다
-  async parseListMatShape(
-    zrestLoader,
-    JSZipOrDracoData,
-    listMatShape,
-    tf,
-    bLoadTransparentObject,
-    materialInformationMap
-  ) {
-
-    await createMatMesh(this, listMatShape, JSZipOrDracoData, tf, bLoadTransparentObject, materialInformationMap);
-  },
-
   getStyleLineMap() {
     return this.styleLineMap;
   },
 };
-
