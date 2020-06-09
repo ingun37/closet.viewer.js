@@ -229,6 +229,9 @@ export default class ClosetViewer {
     const test = () => {
       const m = this.zrest.zProperty.rootMap.get("mapGeometry");
       const l = this.avatar.load({ mapGeometry: m });
+      this.setAllAvatarVisible(false);
+      this.setVisibleAllGarment(false);
+      // this.avatar.extractAvatarMeshes(this.zrest.matMeshMap);
       this.avatar.test(l);
     };
     this.loadZrestUrlWithParameters(url, null, test);
@@ -279,7 +282,6 @@ export default class ClosetViewer {
 
     this.zrest.matMeshMap.forEach((matMesh) => {
       if (isGarment(matMesh.userData.TYPE)) {
-        console.log(matMesh);
         matMesh.visible = visibility;
       }
     });
