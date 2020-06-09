@@ -100,7 +100,7 @@ export async function setTexturePropertyDisassembly({
     return;
   }
 
-  matMeshIdList.forEach(async (matMeshId) => {
+  matMeshIdList.map(async (matMeshId) => {
     const materialInfo = materialInformationMap.get(matMeshId);
     const listTextureInfo =
       materialInfo.colorwayMaterials[colorwayIndex].texture;
@@ -110,8 +110,7 @@ export async function setTexturePropertyDisassembly({
     }
     const threeJSMaterial = zProperty.matMeshMap.get(matMeshId).material;
 
-    // TODO: 함수형으로 변환하자
-    for (const textureInfo of listTextureInfo) {
+    listTextureInfo.map(async textureInfo => {
       if (textureInfo.file.includes(textureFilename)) {
         await setTextureMaterial({
           textureInfo: textureInfo,
@@ -119,8 +118,8 @@ export async function setTexturePropertyDisassembly({
           threeJSMaterial: threeJSMaterial,
           zrestVersion: version,
           bUseSeamPuckeringNormalMap:
-            zProperty.seamPuckeringNormalMap !== undefined &&
-            zProperty.seamPuckeringNormalMap !== null,
+              zProperty.seamPuckeringNormalMap !== undefined &&
+              zProperty.seamPuckeringNormalMap !== null,
         });
 
         setTextureProperty({
@@ -129,7 +128,7 @@ export async function setTexturePropertyDisassembly({
           colorwayIndex: colorwayIndex,
         });
       }
-    }
+    })
   });
 }
 

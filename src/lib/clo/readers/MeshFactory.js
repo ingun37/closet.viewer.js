@@ -220,7 +220,7 @@ export default class MeshFactory {
       retObject.add(tf);
 
       if (zrestLoader.aborted) return;
-      retObject.add(tf);
+      // retObject.add(tf);
 
       console.log("parseMapGeometry@buildDracos done");
     };

@@ -1,4 +1,4 @@
-
+﻿
 function SafeDeallocation(object, type, type_cb, nontype_cb){
 	if(object instanceof type){type_cb(object);}
 	else{nontype_cb(object);}
@@ -111,4 +111,46 @@ function getInvert(m){
   ret.multiplyScalar(oodet);
 
   return ret;
+}
+
+function getClosestValue(inputValue, avgValue, stepSize, minValue, maxValue) {
+    var localMin = stepSize * parseInt((inputValue - avgValue) / stepSize) + avgValue;
+    var localMax = localMin + stepSize;
+    var closestValue = 0;
+    if (Math.abs(inputValue - localMin) < Math.abs(inputValue - localMax))
+        closestValue = localMin;
+    else
+        closestValue = localMax;
+
+    if (closestValue < minValue)
+        closestValue = minValue;
+    else if (closetValue > maxValue)
+        closestValue = maxValue;
+
+    return closestValue;
+}
+
+// inputHeight, inputWeight 는 float value
+// samplingSpec
+// - version : integer value. ex) 100 -> 1.00,  234 -> 2.34
+// - category : "female", "male" or "kid"
+// - avgHeight : Integer. Average height (cm)
+// - avgWeight : Integer. Average weight (kg)
+// - minWeight : Integer
+// - heightOffset : Integer
+// - weightOffset : Integer
+// - heightStepSize : Integer
+// - weightStepSize : Integer
+function getClosestSize(inputHeight, inputWeight, samplingSpec) {
+
+    var returnValue;
+    returnValue.closestHeight = getClosestValue(inputHeight, samplineSpec.avgHeight, samplingSpec.heightStepSize, samplingSpec.avgHeight - samplingSpec.heightOffset, samplineSpec.avgHeight + samplingSpec.heightOffset);
+
+    var avgWeight = samplingSpec.avgWeight + returnValue.closestHeight - avgHeight;
+    var minWeight = Math.max(samplingSpec.minWeight, avgWeight - samplingSpec.weightOffset);
+    var maxWeight = avgWeight + samplingSpec.weightOffset;
+
+    returnValue.closestWeight = getClosestValue(inputWeight, avgWeight, samplingSpec.weightStepSize, minWeight, maxWeight);
+
+    return returnValue;    
 }

@@ -457,7 +457,7 @@ export default class ClosetViewer {
     this.loadZrestUrlWithParameters(data, null, onLoad, colorwayIndex);
   }
 
-  loadZrestUrlWithParameters(url, onProgress, onLoad, colorwayIndex = -1) {
+  async loadZrestUrlWithParameters(url, onProgress, onLoad, colorwayIndex = -1, isAsync = false) {
     const progress = function (xhr) {
       if (xhr.lengthComputable) {
         const percentComplete = (xhr.loaded / xhr.total) * 100;
@@ -506,6 +506,19 @@ export default class ClosetViewer {
         cameraPosition: this.cameraPosition
       });
       this.zrest.parse(url, loaded);
+      return;
+    }
+
+    if(isAsync) {
+      if (url.constructor === String) {
+        this.zrest = new ZRestLoader({
+          scene: this.scene,
+          camera: this.camera,
+          controls: this.controls,
+          cameraPosition: this.cameraPosition
+        });
+        await this.zrest.loadUrl(url, loaded, progress, error);
+      }
       return;
     }
 
@@ -570,7 +583,7 @@ export default class ClosetViewer {
     return false;
   }
 
-  loadSeparatedZrest = async (zrestJSON) => {
+  loadSeparatedZrest = async (zrestJSON, onProgress, colorwayIndex) => {
     const rest = zrestJSON.rest;
     const imgs = zrestJSON.images;
     const dracos = zrestJSON.dracos;
@@ -582,7 +595,7 @@ export default class ClosetViewer {
       cameraPosition: this.cameraPosition
     });
 
-    const object = await this.zrest.loadZrestDisassembly(rest, dracos, imgs, this.updateRenderer);
+    const object = await this.zrest.loadZrestDisassembly(rest, dracos, imgs, this.updateRenderer, onProgress);
     this.annotation.init({
       zrest: this.zrest
     });
@@ -614,6 +627,24 @@ export default class ClosetViewer {
     console.log("==============================");
     this.updateRenderer();
   };
+
+  loadZrest = async (zrestData, onProgress, colorwayIndex) => {
+    const zrestItem = zrestData && zrestData.result;
+    if(!zrestItem) {
+      throw new Error('require zrest data');
+    }
+    if (typeof zrestItem === 'string') {
+      await this.loadZrestUrlWithParameters(
+          zrestItem,
+          onProgress,
+  () => {},
+          colorwayIndex,
+          true
+      );
+    } else {
+      await this.loadSeparatedZrest(zrestItem, onProgress, colorwayIndex);
+    }
+  }
 
   // NOTE: This is test only
   loadZrestTest = (testNo) => {

@@ -157,6 +157,23 @@ export default class ZRestLoader {
     );
   };
 
+  loadUrl = (url, onLoad, onProgress, onError) => {
+    zrestProperty.bDisassembled = false;
+    const loader = new THREE.FileLoader(this.manager);
+    loader.setResponseType("arraybuffer");
+    return new Promise((resolve, reject) => {
+      this.req = loader.load(
+          url,
+          (data) => {
+            this.parse(data, onLoad);
+            resolve()
+          },
+          onProgress,
+          reject
+      );
+    });
+  };
+
   loadFile = async (url, onLoad, onProgress, onError) => {
     const loader = new THREE.FileLoader(this.manager);
     loader.setResponseType("arraybuffer");
@@ -325,32 +342,44 @@ export default class ZRestLoader {
     return filenameWithoutToken;
   };
 
-  processDracoFiles = async (dracoURLList, object3D) => {
+  processDracoFiles = async (dracoURLList, object3D, onProgress) => {
     const loadDracoFiles = async () => {
       // NOTE: forEach not working correctly with await/async
-      const mapDracoData = new Map();
-      for (const dracoURL of dracoURLList) {
+
+      const newDracoURLPromise = dracoURLList.map(async(dracoURL) => {
         const loadedData = await this.loadFile(dracoURL);
         const dracoFilenameWithoutZip = this.getFilename(dracoURL).replace(".zip", "");
-
-        mapDracoData.set(dracoFilenameWithoutZip, loadedData);
-
-        // TODO: 극단적인 테스트!
-        // console.log(loadedData);
-        // await this.meshFactory.buildDracos(this, mapDracoData, object3D);
-        // mapDracoData.clear();
-        // await this.meshFactory.buildDracos(this, loadedData, object3D);
-
-        console.log("Geometry: " + dracoFilenameWithoutZip + " loaded");
-      }
-      return mapDracoData;
+        return [
+          dracoFilenameWithoutZip,
+          loadedData,
+        ]
+      })
+      return await Promise.all(newDracoURLPromise);
     };
+
+    const unzipDracoFiles = async (mapDracoUrls) => {
+
+      const newDracoURLPromise = mapDracoUrls.map(async(data) => {
+        const [ dracoFilenameWithoutZip, loadedData] = data;
+        const drcArrayBuffer = await unZip(loadedData, dracoFilenameWithoutZip);
+        return [
+          dracoFilenameWithoutZip,
+          drcArrayBuffer,
+        ]
+      })
+      const newDracoArrayBuffer = await Promise.all(newDracoURLPromise);
+      return new Map(newDracoArrayBuffer);
+
+    }
 
     console.log("=======================");
     console.log("Set mesh material without texture");
     console.log("=======================");
 
-    const mapDracoData = await loadDracoFiles();
+    const mapDracoUrls = await loadDracoFiles();
+    onProgress(80)
+    const mapDracoData = await unzipDracoFiles(mapDracoUrls);
+    onProgress(90)
     await this.meshFactory.buildDracos(this, mapDracoData, object3D); //, reObject, loadedCamera);
     mapDracoData.clear();
     console.log("processDracoFiles done.");
@@ -370,7 +399,7 @@ export default class ZRestLoader {
     // console.log(textureURLList);
 
     // NOTE: 만약 texture list가 중요도 순으로 sort가 되어 있다면 참 좋을텐데
-    textureURLList.forEach(async (textureURL) => {
+    textureURLList.map(async (textureURL) => {
       const threeJSTexture = await this.loadTextureFromURL(textureURL);
       const textureFilename = this.getFilename(textureURL);
 
@@ -396,7 +425,7 @@ export default class ZRestLoader {
     console.log("processTextureFiles done.");
   };
 
-  loadZrestDisassembly = async (restURL, dracoURLList, textureURLList, updateRenderer) => {
+  loadZrestDisassembly = async (restURL, dracoURLList, textureURLList, updateRenderer, onProgress) => {
     const loadSeamPuckeringMap = async () => {
       const seamPuckeringMapURL = textureURLList.filter((url) => url.includes("seam_puckering_2ol97pf293f2sdk98.png"));
       if (seamPuckeringMapURL.length <= 0) return;
@@ -410,13 +439,13 @@ export default class ZRestLoader {
     object3D.name = "object3D";
 
     await this.processRestFile(restURL[0]);
+    onProgress(50)
     this.zProperty.seamPuckeringNormalMap = await loadSeamPuckeringMap();
-    await this.processDracoFiles(dracoURLList, object3D);
-
+    await this.processDracoFiles(dracoURLList, object3D, onProgress);
     await this.processTextureFiles(textureURLList, object3D, updateRenderer);
-
-    return object3D
+    onProgress(100)
     console.log("=== after RestFile ===");
+    return object3D
   };
 }
 
