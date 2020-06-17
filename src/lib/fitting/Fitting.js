@@ -1,13 +1,13 @@
 import * as THREE from "@/lib/threejs/three";
 import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
-import FitGarment from "./FitGarment";
+import FitGarment from "./FittingGarment";
 
-export default class Avatar {
+export default class Fitting {
   constructor(scene, zProperty) {
     this.listSkinController = new Map();
     this.scene = scene;
     this.container = new THREE.Object3D();
-    this.container.name = "avatarContainer";
+    this.container.name = "fittingContainer";
     this.scene.add(this.container);
     this.mapTriangleIdx = new Map();
     this.listPositions = [];
