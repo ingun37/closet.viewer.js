@@ -286,6 +286,19 @@ export default class Fitting {
   }
   */
 
+  init({ rootPath: rootPath, mapAvatarPath: mapAvatarPath }) {
+    // Load path list
+    console.log(rootPath);
+
+    // Load Avatar zrest
+    mapAvatarPath.forEach((listAvatarPath) => {
+      console.log(listAvatarPath);
+      listAvatarPath.forEach((avatarPath) => {
+        console.log(rootPath + "/" + avatarPath);
+      });
+    });
+  }
+
   test(listSkinController) {
     const bodySkinController = this.findBodySkinController(listSkinController);
     console.log("bodySkin is");
