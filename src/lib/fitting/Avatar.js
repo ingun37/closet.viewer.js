@@ -1,5 +1,6 @@
 import * as THREE from "@/lib/threejs/three";
 import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
+import FitGarment from "./FitGarment";
 
 export default class Avatar {
   constructor(scene, zProperty) {
@@ -15,12 +16,53 @@ export default class Avatar {
     this.bodySkinController = null;
     this.bodyVertexIndex = [];
     this.bodyVertexPos = [];
+
+    this.garments = new FitGarment();
+    this.loadZcrp = this.garments.loadZcrp;
   }
 
   load({ mapGeometry: mapGeometry }) {
     this.extractController(mapGeometry);
     return this.listSkinController;
   }
+
+  loadGarment = async (zcrpURL, zcrpFilename) => {
+    console.log("loadGarment");
+    const listBarycentricCoord = await this.garments.loadZcrp(
+      zcrpURL,
+      zcrpFilename
+    );
+    if (!listBarycentricCoord) return;
+
+    listBarycentricCoord.forEach((garment) => {
+      const listABG = readByteArray("Float", garment.get("baAbgs"));
+      const listTriangleIndex = readByteArray(
+        "Uint",
+        garment.get("baTriangleIndices")
+      );
+
+      console.log(listABG);
+      console.log(listTriangleIndex);
+
+      const calculatedCoord = this.computeBarycentric(
+        listABG,
+        listTriangleIndex
+      );
+
+      const bufferGeometry = new THREE.BufferGeometry();
+      bufferGeometry.addAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(new Float32Array(calculatedCoord), 3)
+      );
+
+      // bufferGeometry.setIndex(
+      //   new THREE.BufferAttribute(new Uint32Array(meshIndex), 1)
+      // );
+      this.buildMesh(bufferGeometry);
+    });
+
+    console.log("loadGarment Done");
+  };
 
   clear() {}
 
@@ -104,8 +146,11 @@ export default class Avatar {
     }
     console.log(skinController);
 
-    const calculatedPosition = [];
-    console.log(triangleIndexList);
+    const calculatedPosition = this.computeBarycentric(
+      ABGList,
+      triangleIndexList
+    );
+    // console.log(triangleIndexList);
     // console.log("vertexCount: " + vertexCount);
     // const max = Math.max(...triangleIndexList);
     // const min = Math.min(...triangleIndexList);
@@ -114,61 +159,6 @@ export default class Avatar {
 
     // for (let i = min; i < max; ++i) {
     // for (let i = 0; i < 18; ++i) {
-    for (let i = 0; i < vertexCount; ++i) {
-      // const triIndex = i;
-      const triIndex = triangleIndexList[i];
-
-      const abg = new THREE.Vector3();
-      abg.x = ABGList[i * 3];
-      abg.y = ABGList[i * 3 + 1];
-      abg.z = ABGList[i * 3 + 2];
-
-      if (1) {
-        // if (abg.z <= demarcationLine) {
-        // console.log(abg.z, demarcationLine, abg.z <= demarcationLine);
-
-        const v0 = this.get3VerticeFromBody(triIndex * 3);
-        const v1 = this.get3VerticeFromBody(triIndex * 3 + 1);
-        const v2 = this.get3VerticeFromBody(triIndex * 3 + 2);
-
-        // const v0 = get3Vertice(triIndex, meshIndex, meshPosition);
-        // const v1 = get3Vertice(triIndex + 1, meshIndex, meshPosition);
-        // const v2 = get3Vertice(triIndex + 2, meshIndex, meshPosition);
-
-        const n = this.triangleCross(v0, v1, v2);
-        n.normalize();
-
-        const p0 = new THREE.Vector3(v0.x, v0.y, v0.z);
-        const A = new THREE.Vector3().subVectors(v1, v0);
-        const B = new THREE.Vector3().subVectors(v2, v0);
-
-        const alphaXA = new THREE.Vector3(
-          abg.x * A.x,
-          abg.x * A.y,
-          abg.x * A.z
-        );
-        const betaXB = new THREE.Vector3(abg.y * B.x, abg.y * B.y, abg.y * B.z);
-        const normalXG = new THREE.Vector3(
-          abg.z * n.x,
-          abg.z * n.y,
-          abg.z * n.z
-        );
-
-        let position = new THREE.Vector3(0, 0, 0)
-          .add(p0)
-          .add(alphaXA)
-          .add(betaXB)
-          .add(normalXG);
-
-        calculatedPosition.push(position.x, position.y, position.z);
-
-        // calculatedPosition.push(v0.x, v0.y, v0.z);
-        // calculatedPosition.push(v1.x, v1.y, v1.z);
-        // calculatedPosition.push(v2.x, v2.y, v2.z);
-      } else {
-        console.warn("ELSE");
-      }
-    }
 
     console.log("calculatedPosition");
     console.log(calculatedPosition);
@@ -206,17 +196,69 @@ export default class Avatar {
     this.buildMesh(bufferGeometry);
   }
 
-  buildMesh(bufferGeometry) {
-    const material = new THREE.MeshPhongMaterial({
-      // side: THREE.DoubleSide,
-    });
-    material.color = THREE.Vector3(1, 1, 1);
-    const threeMesh = new THREE.Mesh(bufferGeometry, material);
+  computeBarycentric(listAGB, listTriangleIndex, demarcationLine) {
+    const calculatedPosition = [];
+    for (let i = 0; i < listTriangleIndex.length; ++i) {
+      const triIndex = listTriangleIndex[i];
 
-    // const material = new THREE.PointsMaterial({
-    //   color: 0x880000,
+      const abg = new THREE.Vector3();
+      abg.x = listAGB[i * 3];
+      abg.y = listAGB[i * 3 + 1];
+      abg.z = listAGB[i * 3 + 2];
+
+      // FIX ME: Check this out
+      if (1) {
+        // if (abg.z <= demarcationLine) {
+
+        const v0 = this.get3VerticeFromBody(triIndex * 3);
+        const v1 = this.get3VerticeFromBody(triIndex * 3 + 1);
+        const v2 = this.get3VerticeFromBody(triIndex * 3 + 2);
+
+        const n = this.triangleCross(v0, v1, v2);
+        n.normalize();
+
+        const p0 = new THREE.Vector3(v0.x, v0.y, v0.z);
+        const A = new THREE.Vector3().subVectors(v1, v0);
+        const B = new THREE.Vector3().subVectors(v2, v0);
+
+        const alphaXA = new THREE.Vector3(
+          abg.x * A.x,
+          abg.x * A.y,
+          abg.x * A.z
+        );
+        const betaXB = new THREE.Vector3(abg.y * B.x, abg.y * B.y, abg.y * B.z);
+        const normalXG = new THREE.Vector3(
+          abg.z * n.x,
+          abg.z * n.y,
+          abg.z * n.z
+        );
+
+        let position = new THREE.Vector3(0, 0, 0)
+          .add(p0)
+          .add(alphaXA)
+          .add(betaXB)
+          .add(normalXG);
+
+        calculatedPosition.push(position.x, position.y, position.z);
+      } else {
+        console.warn("ELSE");
+      }
+    }
+
+    return calculatedPosition;
+  }
+
+  buildMesh(bufferGeometry) {
+    // const material = new THREE.MeshPhongMaterial({
+    //   // side: THREE.DoubleSide,
     // });
-    // const threeMesh = new THREE.Points(bufferGeometry, material);
+    // material.color = THREE.Vector3(1, 1, 1);
+    // const threeMesh = new THREE.Mesh(bufferGeometry, material);
+
+    const material = new THREE.PointsMaterial({
+      color: 0x880000,
+    });
+    const threeMesh = new THREE.Points(bufferGeometry, material);
 
     this.container.add(threeMesh);
   }
