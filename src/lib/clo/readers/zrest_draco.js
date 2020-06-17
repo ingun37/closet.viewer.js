@@ -119,6 +119,8 @@ const splitMatSpaceToMatMesh = async (
   bLoadTransparentObject,
   materialInformationMap
 ) => {
+  // console.log(dracoGeometry);
+  // console.log(dracoGeometry.indices);
   const zrestVersion = matMeshManager.zProperty.version;
   let indexOffset = zrestVersion > 4 ? 0 : totalIdxCount;
   for (let m = 0; m < listIdxCount.length; ++m) {
@@ -366,6 +368,12 @@ const splitMatSpaceToMatMesh = async (
     threeMesh.castShadow = b;
     threeMesh.receiveShadow = b;
     tf.add(threeMesh);
+
+    // TEST for fitting
+    if (type === MATMESH_TYPE.PATTERN_MATMESH) {
+      threeMesh.userData.originalIndices = dracoGeometry.indices;
+      // matMeshManager.mapMatMeshIndex.set(matMeshID, dracoGeometry.indices);
+    }
 
     matMeshManager.matMeshMap.set(matMeshID, threeMesh);
 

@@ -30,12 +30,12 @@ export default class FitGarment {
     const fileOffset = { Offset: 0 };
     const dataView = new DataView(unzippedData);
     const loadedMap = readMap(dataView, fileOffset);
-    console.log(loadedMap);
+    // console.log(loadedMap);
     // console.log(this.listBarycentricCoord);
-    // this.listBarycentricCoord = loadedMap.get("listBarycentric"); // FIX ME: Would be "listBarycentric"
+    this.listBarycentricCoord = loadedMap.get("listBarycentric"); // FIX ME: Would be "listBarycentric"
     // console.log(this.listBarycentricCoord);
 
-    // return this.listBarycentricCoord;
+    return this.listBarycentricCoord;
   };
 
   getListBaryCoord = () => {

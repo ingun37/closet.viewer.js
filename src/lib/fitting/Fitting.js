@@ -3,7 +3,7 @@ import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 import FitGarment from "./FittingGarment";
 
 export default class Fitting {
-  constructor(scene, zProperty) {
+  constructor(scene) {
     this.listSkinController = new Map();
     this.scene = scene;
     this.container = new THREE.Object3D();
@@ -26,7 +26,7 @@ export default class Fitting {
     return this.listSkinController;
   }
 
-  loadGarment = async (zcrpURL, zcrpFilename) => {
+  loadGarment = async (zcrpURL, zcrpFilename, mapMatMesh) => {
     console.log("loadGarment");
     const listBarycentricCoord = await this.garments.loadZcrp(
       zcrpURL,
@@ -35,30 +35,64 @@ export default class Fitting {
     if (!listBarycentricCoord) return;
 
     listBarycentricCoord.forEach((garment) => {
+      // const garment = listBarycentricCoord[0];
+      console.log(garment)
       const listABG = readByteArray("Float", garment.get("baAbgs"));
       const listTriangleIndex = readByteArray(
         "Uint",
         garment.get("baTriangleIndices")
       );
+      console.log(listTriangleIndex.length);
+      const listMatMeshID = garment.get("listMatMeshID");
+      console.log(listMatMeshID);
 
-      console.log(listABG);
-      console.log(listTriangleIndex);
+      const totalIndex = [];
+      let lastCnt = 0;
+      // listMatMeshID.forEach(matMeshId => {
+        const matMeshId = listMatMeshID[0];
+        console.log("-----------")
+        console.log("lastCnt: " + lastCnt)
+        const matMesh = mapMatMesh.get(matMeshId);
+
+        // console.log(count);
+        console.log(matMesh);
+        const index = matMesh.userData.originalIndices;
+        // const index = Array.from(matMesh.geometry.index.array);
+        // index.forEach(i => totalIndex.push((i + lastCnt)));
+        totalIndex.push(...index);
+
+        const count = matMesh.geometry.attributes.position.count;
+        // lastCnt += count;
+
+        console.log(index);
+        // console.log(totalIndex);
+      // })
+
+
+      // console.log(listABG);
+      // console.log(listTriangleIndex);
 
       const calculatedCoord = this.computeBarycentric(
         listABG,
         listTriangleIndex
       );
 
+      console.log("calculatedCoord.length: " + calculatedCoord.length)
+
+      // console.log(calculatedCoord);
       const bufferGeometry = new THREE.BufferGeometry();
       bufferGeometry.addAttribute(
         "position",
         new THREE.Float32BufferAttribute(new Float32Array(calculatedCoord), 3)
       );
 
-      // bufferGeometry.setIndex(
-      //   new THREE.BufferAttribute(new Uint32Array(meshIndex), 1)
-      // );
+      bufferGeometry.setIndex(
+        new THREE.BufferAttribute(new Uint32Array(totalIndex), 1)
+      );
       this.buildMesh(bufferGeometry);
+
+      bufferGeometry.computeFaceNormals();
+      bufferGeometry.computeVertexNormals();
     });
 
     console.log("loadGarment Done");
@@ -249,16 +283,16 @@ export default class Fitting {
   }
 
   buildMesh(bufferGeometry) {
-    // const material = new THREE.MeshPhongMaterial({
-    //   // side: THREE.DoubleSide,
-    // });
-    // material.color = THREE.Vector3(1, 1, 1);
-    // const threeMesh = new THREE.Mesh(bufferGeometry, material);
-
-    const material = new THREE.PointsMaterial({
-      color: 0x880000,
+    const material = new THREE.MeshPhongMaterial({
+      // side: THREE.DoubleSide,
     });
-    const threeMesh = new THREE.Points(bufferGeometry, material);
+    material.color = THREE.Vector3(1, 1, 1);
+    const threeMesh = new THREE.Mesh(bufferGeometry, material);
+
+    // const material = new THREE.PointsMaterial({
+    //   color: 0x880000,
+    // });
+    // const threeMesh = new THREE.Points(bufferGeometry, material);
 
     this.container.add(threeMesh);
   }

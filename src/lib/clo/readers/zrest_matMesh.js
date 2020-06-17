@@ -16,6 +16,7 @@ export default function MatMeshManager({
 }) {
   this.matMeshMap = zProperty.matMeshMap;
   this.matShapeMap = zProperty.matShapeMap;
+
   this.materialInformationMap = materialInformationMap;
   this.camera = loadedCamera;
   this.drawMode = drawMode;
@@ -23,6 +24,8 @@ export default function MatMeshManager({
   this.colorwayIndex = zProperty.colorwayIndex;
   this.styleLineMap = new Map();
   this.matShapeMap = new Map();
+
+  this.matMeshManager = zProperty.matMeshManager;
 
   // TODO: 피팅맵 임시
   this.zProperty.mapChangedIndex = new Map();

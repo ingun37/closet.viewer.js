@@ -42,7 +42,8 @@ const zrestProperty = {
   // zElement
   rootMap: new Map(),
   seamPuckeringNormalMap: null,
-  listMapTextureMatMeshId: null
+  listMapTextureMatMeshId: null,
+  mapMatMeshIndex: new Map(),
 };
 
 let _fileReaderSyncSupport = false;
