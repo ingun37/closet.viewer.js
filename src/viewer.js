@@ -470,7 +470,7 @@ export default class ClosetViewer {
     this.loadZrestUrlWithParameters(data, null, onLoad, colorwayIndex);
   }
 
-  loadZrestUrlWithParameters(url, onProgress, onLoad, colorwayIndex = -1) {
+  async loadZrestUrlWithParameters(url, onProgress, onLoad, colorwayIndex = -1, isAsync = false) {
     const progress = function (xhr) {
       if (xhr.lengthComputable) {
         const percentComplete = (xhr.loaded / xhr.total) * 100;
@@ -519,6 +519,19 @@ export default class ClosetViewer {
         cameraPosition: this.cameraPosition
       });
       this.zrest.parse(url, loaded);
+      return;
+    }
+
+    if(isAsync) {
+      if (url.constructor === String) {
+        this.zrest = new ZRestLoader({
+          scene: this.scene,
+          camera: this.camera,
+          controls: this.controls,
+          cameraPosition: this.cameraPosition
+        });
+        await this.zrest.loadUrl(url, loaded, progress, error);
+      }
       return;
     }
 
@@ -583,7 +596,7 @@ export default class ClosetViewer {
     return false;
   }
 
-  loadSeparatedZrest = (zrestJSON) => {
+  loadSeparatedZrest = async (zrestJSON, onProgress, colorwayIndex) => {
     const rest = zrestJSON.rest;
     const imgs = zrestJSON.images;
     const dracos = zrestJSON.dracos;
@@ -595,41 +608,56 @@ export default class ClosetViewer {
       cameraPosition: this.cameraPosition
     });
 
-    const loaded = async (object, loadedCamera) => {
-      this.annotation.init({
-        zrest: this.zrest
-      });
+    const object = await this.zrest.loadZrestDisassembly(rest, dracos, imgs, this.updateRenderer, onProgress);
+    this.annotation.init({
+      zrest: this.zrest
+    });
 
-      // FIXME: This module does not work correctly
-      // delete object3D, geometry, material dispose
-      for (let i = 0; i < this.scene.children.length; ++i) {
-        if (this.scene.children[i].name === "object3D") {
-          clearThree(this.scene.children[i]);
-        }
+    // FIXME: This module does not work correctly
+    // delete object3D, geometry, material dispose
+    for (let i = 0; i < this.scene.children.length; ++i) {
+      if (this.scene.children[i].name === "object3D") {
+        clearThree(this.scene.children[i]);
       }
+    }
 
-      // if (colorwayIndex > -1) {
-      //   await this.changeColorway(colorwayIndex);
-      // }
-      this.scene.add(object);
-      this.object3D = object;
-      this.zrest.zoomToObjects(this.zrest.zProperty.loadedCamera, this.scene);
+    // if (colorwayIndex > -1) {
+    //   await this.changeColorway(colorwayIndex);
+    // }
+    this.scene.add(object);
+    this.object3D = object;
+    this.zrest.zoomToObjects(this.zrest.zProperty.loadedCamera, this.scene);
 
-      // if (onLoad) onLoad(this);
+    // if (onLoad) onLoad(this);
 
-      // TODO
-      //  1. Colorway
-      //  2. zoomToObject
-      //  3. onLoad function
+    // TODO
+    //  1. Colorway
+    //  2. zoomToObject
+    //  3. onLoad function
 
-      console.log("==============================");
-      console.log("UPDATE RENDERER");
-      console.log("==============================");
-      this.updateRenderer();
-    };
-
-    this.zrest.loadZrestDisassembly(rest, dracos, imgs, loaded, this.updateRenderer);
+    console.log("==============================");
+    console.log("UPDATE RENDERER");
+    console.log("==============================");
+    this.updateRenderer();
   };
+
+  loadZrest = async (zrestData, onProgress, colorwayIndex) => {
+    const zrestItem = zrestData && zrestData.result;
+    if(!zrestItem) {
+      throw new Error('require zrest data');
+    }
+    if (typeof zrestItem === 'string') {
+      await this.loadZrestUrlWithParameters(
+          zrestItem,
+          onProgress,
+  () => {},
+          colorwayIndex,
+          true
+      );
+    } else {
+      await this.loadSeparatedZrest(zrestItem, onProgress, colorwayIndex);
+    }
+  }
 
   // NOTE: This is test only
   loadZrestTest = (testNo) => {
