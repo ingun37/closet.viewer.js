@@ -1,7 +1,7 @@
 "use strict";
 import * as THREE from "@/lib/threejs/three";
 
-import { unZip } from "@/lib/clo/readers/FileLoader";
+import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
 import { readMap } from "@/lib/clo/file/KeyValueMapReader";
 
 export default class FitGarment {
@@ -9,16 +9,16 @@ export default class FitGarment {
   constructor() {
     this.listBarycentricCoord = [];
   }
-  loadFile = async (url, onLoad, onProgress, onError) => {
-    const loader = new THREE.FileLoader(this.manager);
-    loader.setResponseType("arraybuffer");
-    return new Promise((onLoad) => {
-      loader.load(url, onLoad, onProgress, onError);
-    });
-  };
+  // loadFile = async (url, onLoad, onProgress, onError) => {
+  //   const loader = new THREE.FileLoader(this.manager);
+  //   loader.setResponseType("arraybuffer");
+  //   return new Promise((onLoad) => {
+  //     loader.load(url, onLoad, onProgress, onError);
+  //   });
+  // };
 
   loadZcrp = async (url, zcrpFileName) => {
-    const loadedData = await this.loadFile(url);
+    const loadedData = await loadFile(url);
     console.log("loadedData");
     console.log(loadedData);
     if (!loadedData) return;

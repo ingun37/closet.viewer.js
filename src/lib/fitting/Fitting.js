@@ -1,9 +1,12 @@
 import * as THREE from "@/lib/threejs/three";
 import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 import FitGarment from "./FittingGarment";
+import { loadJson } from "@/lib/clo/readers/FileLoader";
+
+// import ZrestLoader from "@/lib/clo/readers/ZrestLoader";
 
 export default class Fitting {
-  constructor(scene) {
+  constructor(scene, funcLoadZrest) {
     this.listSkinController = new Map();
     this.scene = scene;
     this.container = new THREE.Object3D();
@@ -19,9 +22,66 @@ export default class Fitting {
 
     this.garments = new FitGarment();
     this.loadZcrp = this.garments.loadZcrp;
+
+    this.avtId = 0;
+    this.avtRace = 0;
   }
 
-  load({ mapGeometry: mapGeometry }) {
+  init({ rootPath: rootPath, mapAvatarPath: mapAvatarPath }) {
+    this.avtRootPath = rootPath;
+    this.mapAvtPath = mapAvatarPath;
+    // Load path list
+    console.log(rootPath);
+
+    // Load Avatar zrest
+    mapAvatarPath.forEach((listAvatarPath) => {
+      console.log(listAvatarPath);
+      listAvatarPath.forEach((avatarPath) => {
+        console.log(rootPath + "/" + avatarPath);
+      });
+    });
+  }
+
+  getAvatarURL({ id: avatarId, race: avatarRace }) {
+    this.avtId = avatarId;
+    // this.avtRace = avatarRace;
+
+    const listById = this.mapAvtPath.get(avatarId);
+    const zrestFileName = listById[avatarRace];
+    const avtURL = this.avtRootPath + "/" + zrestFileName;
+    console.log(avtURL);
+    return avtURL;
+  }
+
+  async getSamplingJson(styleId, version) {
+    const jsonURL =
+      this.avtRootPath +
+      "/" +
+      styleId +
+      "/" +
+      version +
+      "/" +
+      this.avtId +
+      "/sampling.json";
+    console.log(jsonURL);
+
+    const onLoad = (data) => {
+      console.log("json");
+      console.log(data);
+      return data;
+    };
+    const jsonData = await loadJson(jsonURL, onLoad);
+    console.log(jsonData);
+
+    // const fileOffset = { Offset: 0 };
+    // const dataView = new DataView(jsonData);
+    // const loadedMap = readMap(dataView, fileOffset);
+    // console.log(loadedMap);
+
+    // https://files.clo-set.com/public/fitting/33dbf1ff4a5f4f599317915f9343d6ca/1/0/sampling.json
+  }
+
+  loadGeometry({ mapGeometry: mapGeometry }) {
     this.extractController(mapGeometry);
     return this.listSkinController;
   }
@@ -36,7 +96,7 @@ export default class Fitting {
 
     listBarycentricCoord.forEach((garment) => {
       // const garment = listBarycentricCoord[0];
-      console.log(garment)
+      console.log(garment);
       const listABG = readByteArray("Float", garment.get("baAbgs"));
       const listTriangleIndex = readByteArray(
         "Uint",
@@ -47,27 +107,30 @@ export default class Fitting {
       console.log(listMatMeshID);
 
       const totalIndex = [];
-      let lastCnt = 0;
       // listMatMeshID.forEach(matMeshId => {
-        const matMeshId = listMatMeshID[0];
-        console.log("-----------")
-        console.log("lastCnt: " + lastCnt)
-        const matMesh = mapMatMesh.get(matMeshId);
+      const matMeshId = listMatMeshID[0];
+      const matMesh = mapMatMesh.get(matMeshId);
+      const material = matMesh.material;
+      // console.log(count);
+      console.log("matMesh");
+      console.log(matMesh);
+      const index = matMesh.userData.originalIndices;
+      const uv = matMesh.userData.originalUv;
+      const uv2 = matMesh.userData.originalUv2;
+      console.log(index);
 
-        // console.log(count);
-        console.log(matMesh);
-        const index = matMesh.userData.originalIndices;
-        // const index = Array.from(matMesh.geometry.index.array);
-        // index.forEach(i => totalIndex.push((i + lastCnt)));
-        totalIndex.push(...index);
+      // const index = Array.from(matMesh.geometry.index.array);
+      // index.forEach(i => totalIndex.push((i + lastCnt)));
 
-        const count = matMesh.geometry.attributes.position.count;
-        // lastCnt += count;
+      // const count = matMesh.geometry.attributes.position.count;
+      // const uv = matMesh.geometry.attributes.uv;
+      // const uv2 = matMesh.geometry.attributes.uv2;
+      // lastCnt += count;
 
-        console.log(index);
-        // console.log(totalIndex);
+      console.log(index);
+
+      // console.log(totalIndex);
       // })
-
 
       // console.log(listABG);
       // console.log(listTriangleIndex);
@@ -76,8 +139,7 @@ export default class Fitting {
         listABG,
         listTriangleIndex
       );
-
-      console.log("calculatedCoord.length: " + calculatedCoord.length)
+      console.log("calculatedCoord.length: " + calculatedCoord.length);
 
       // console.log(calculatedCoord);
       const bufferGeometry = new THREE.BufferGeometry();
@@ -87,12 +149,34 @@ export default class Fitting {
       );
 
       bufferGeometry.setIndex(
-        new THREE.BufferAttribute(new Uint32Array(totalIndex), 1)
+        new THREE.BufferAttribute(new Uint32Array(index), 1)
       );
-      this.buildMesh(bufferGeometry);
-
       bufferGeometry.computeFaceNormals();
       bufferGeometry.computeVertexNormals();
+      // bufferGeometry.computeBoundingBox();
+      // console.log(uv);
+      // console.log(uv2);
+      // const new_uv = this.buildUVs(calculatedCoord, totalIndex);
+      // const new_uv = this.assignUVs(bufferGeometry);
+      // console.log(new_uv);
+      // bufferGeometry.attributes.uv = uv;
+      bufferGeometry.addAttribute(
+        "uv",
+        new THREE.Float32BufferAttribute(uv, 2)
+      ).needsUpdate = true;
+      bufferGeometry.addAttribute(
+        "uv2",
+        new THREE.Float32BufferAttribute(uv2, 2)
+      ).needsUpdate = true;
+
+      // bufferGeometry.attributes.uv2 = uv2;
+
+      const threeMesh = new THREE.Mesh(bufferGeometry, material);
+      console.log("threeMesh");
+      console.log(threeMesh);
+      this.container.add(threeMesh);
+
+      // this.buildMesh(bufferGeometry, material);
     });
 
     console.log("loadGarment Done");
@@ -282,18 +366,20 @@ export default class Fitting {
     return calculatedPosition;
   }
 
-  buildMesh(bufferGeometry) {
-    const material = new THREE.MeshPhongMaterial({
+  buildMesh(bufferGeometry, material = null) {
+    const defaultMaterial = new THREE.MeshPhongMaterial({
       // side: THREE.DoubleSide,
     });
-    material.color = THREE.Vector3(1, 1, 1);
-    const threeMesh = new THREE.Mesh(bufferGeometry, material);
+    defaultMaterial.color = THREE.Vector3(1, 1, 1);
 
-    // const material = new THREE.PointsMaterial({
+    // const defaultMaterial = new THREE.PointsMaterial({
     //   color: 0x880000,
     // });
-    // const threeMesh = new THREE.Points(bufferGeometry, material);
-
+    // const threeMesh = new THREE.Points(bufferGeometry, threeMaterial);
+    const threeMaterial = material ? material : defaultMaterial;
+    console.log(threeMaterial);
+    const threeMesh = new THREE.Mesh(bufferGeometry, threeMaterial);
+    console.log(threeMesh);
     this.container.add(threeMesh);
   }
 
@@ -319,19 +405,6 @@ export default class Fitting {
     console.log("total: " + cnt);
   }
   */
-
-  init({ rootPath: rootPath, mapAvatarPath: mapAvatarPath }) {
-    // Load path list
-    console.log(rootPath);
-
-    // Load Avatar zrest
-    mapAvatarPath.forEach((listAvatarPath) => {
-      console.log(listAvatarPath);
-      listAvatarPath.forEach((avatarPath) => {
-        console.log(rootPath + "/" + avatarPath);
-      });
-    });
-  }
 
   test(listSkinController) {
     const bodySkinController = this.findBodySkinController(listSkinController);
