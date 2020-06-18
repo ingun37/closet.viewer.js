@@ -1,46 +1,38 @@
-﻿
-function SafeDeallocation(object, type, type_cb, nontype_cb){
-	if(object instanceof type){type_cb(object);}
-	else{nontype_cb(object);}
+﻿function SafeDeallocation(object, type, type_cb, nontype_cb) {
+  if (object instanceof type) {
+    type_cb(object);
+  } else {
+    nontype_cb(object);
+  }
 }
 
-function getAngle(x, y){
+function getAngle(x, y) {
   var ret = 0.0;
 
   var v = new THREE.Vector2(x, y);
   v.normalize();
 
-  if(v.x > 0)
-  {
-    if(v.y > 0)
-      ret = Math.acos(v.x) * 180.0 / Math.PI;
-    else
-      ret = 360.0 - Math.acos(v.x) * 180.0 / Math.PI;
-  }
-  else
-  {
-    if(v.y > 0)
-      ret = 180.0 - Math.acos(-v.x) * 180.0 / Math.PI;
-    else
-      ret = 180.0 + Math.acos(-v.x) * 180.0 / Math.PI;
+  if (v.x > 0) {
+    if (v.y > 0) ret = (Math.acos(v.x) * 180.0) / Math.PI;
+    else ret = 360.0 - (Math.acos(v.x) * 180.0) / Math.PI;
+  } else {
+    if (v.y > 0) ret = 180.0 - (Math.acos(-v.x) * 180.0) / Math.PI;
+    else ret = 180.0 + (Math.acos(-v.x) * 180.0) / Math.PI;
   }
 
-  if(ret >= 360.0)
-    ret = 0.0;
+  if (ret >= 360.0) ret = 0.0;
 
-  if(ret < 0.0)
-    ret = 0.0;
+  if (ret < 0.0) ret = 0.0;
 
   return ret;
 }
 
-function getAngleAtWorld(m){
-  
+function getAngleAtWorld(m) {
   var matrix = m;
 
   var yAxis = new THREE.Vector3(0, 1, 0);
 
-  var angleVec = multiplyMatrix3AndVector3(matrix , yAxis);
+  var angleVec = multiplyMatrix3AndVector3(matrix, yAxis);
 
   var ret = getAngle(angleVec.x, angleVec.y);
   //console.log(ret);
@@ -54,22 +46,47 @@ function getAngleAtWorld(m){
 //(element1, element4, element7) row1
 //(element2, element5, element8) row2
 
-
-function convertToMatrix3(m){
-  return new THREE.Matrix3().set(m.a00, m.a01, m.a02, m.a10, m.a11, m.a12, m.a20, m.a21, m.a22);
+function convertToMatrix3(m) {
+  return new THREE.Matrix3().set(
+    m.a00,
+    m.a01,
+    m.a02,
+    m.a10,
+    m.a11,
+    m.a12,
+    m.a20,
+    m.a21,
+    m.a22
+  );
 }
 
-function convertToMatrix4(m){
-  return new THREE.Matrix4().set(m.a00, m.a01, m.a02, m.a03, m.a10, m.a11, m.a12, m.a13, m.a20, m.a21, m.a22, m.a23, m.a30, m.a31, m.a32, m.a33);
+function convertToMatrix4(m) {
+  return new THREE.Matrix4().set(
+    m.a00,
+    m.a01,
+    m.a02,
+    m.a03,
+    m.a10,
+    m.a11,
+    m.a12,
+    m.a13,
+    m.a20,
+    m.a21,
+    m.a22,
+    m.a23,
+    m.a30,
+    m.a31,
+    m.a32,
+    m.a33
+  );
 }
 
-function getInverseMatrixFromPatternRotationAndTranslation(matrix){
-  
+function getInverseMatrixFromPatternRotationAndTranslation(matrix) {
   var angle = getAngleAtWorld(matrix);
 
-  var cos = Math.cos(Math.PI * angle / 180.0);
+  var cos = Math.cos((Math.PI * angle) / 180.0);
   //console.log(cos);
-  var sin = Math.sin(Math.PI * angle / 180.0);
+  var sin = Math.sin((Math.PI * angle) / 180.0);
   //console.log(sin);
 
   var m = new THREE.Matrix3();
@@ -81,31 +98,57 @@ function getInverseMatrixFromPatternRotationAndTranslation(matrix){
   return ret;
 }
 
-function multiplyMatrix3AndVector2(m, v){
-  return new THREE.Vector2(m.elements[0] * v.x + m.elements[3] * v.y + m.elements[2], m.elements[1] * v.x + m.elements[4] * v.y + m.elements[7]);
+function multiplyMatrix3AndVector2(m, v) {
+  return new THREE.Vector2(
+    m.elements[0] * v.x + m.elements[3] * v.y + m.elements[2],
+    m.elements[1] * v.x + m.elements[4] * v.y + m.elements[7]
+  );
 }
 
-function multiplyMatrix3AndVector3(m, v){
-  return new THREE.Vector3(m.elements[0] * v.x + m.elements[3] * v.y + m.elements[6] * v.z, m.elements[1] * v.x + m.elements[4] * v.y + m.elements[7] * v.z, m.elements[2] * v.x + m.elements[5] * v.y + m.elements[8] * v.z);
+function multiplyMatrix3AndVector3(m, v) {
+  return new THREE.Vector3(
+    m.elements[0] * v.x + m.elements[3] * v.y + m.elements[6] * v.z,
+    m.elements[1] * v.x + m.elements[4] * v.y + m.elements[7] * v.z,
+    m.elements[2] * v.x + m.elements[5] * v.y + m.elements[8] * v.z
+  );
 }
 
-function getInvert(m){
-  
+function getInvert(m) {
   var det, oodet;
 
   var ret = new THREE.Matrix3();
 
-  ret.elements[0] = (m.elements[4] * m.elements[8] - m.elements[5] * m.elements[7]);
-  ret.elements[1] = -(m.elements[1] * m.elements[8] - m.elements[2] * m.elements[4]);
-  ret.elements[2] = (m.elements[1] * m.elements[5] - m.elements[2] * m.elements[4]);
-  ret.elements[3] = -(m.elements[3] * m.elements[8] - m.elements[5] * m.elements[6]);
-  ret.elements[4] = (m.elements[0] * m.elements[8] - m.elements[2] * m.elements[6]);
-  ret.elements[5] = -(m.elements[0] * m.elements[5] - m.elements[2] * m.elements[7]);
-  ret.elements[6] = (m.elements[4] * m.elements[7] - m.elements[4] * m.elements[6]);
-  ret.elements[7] = -(m.elements[0] * m.elements[7] - m.elements[1] * m.elements[6]);
-  ret.elements[8] = (m.elements[0] * m.elements[4] - m.elements[1] * m.elements[7]);
+  ret.elements[0] =
+    m.elements[4] * m.elements[8] - m.elements[5] * m.elements[7];
+  ret.elements[1] = -(
+    m.elements[1] * m.elements[8] -
+    m.elements[2] * m.elements[4]
+  );
+  ret.elements[2] =
+    m.elements[1] * m.elements[5] - m.elements[2] * m.elements[4];
+  ret.elements[3] = -(
+    m.elements[3] * m.elements[8] -
+    m.elements[5] * m.elements[6]
+  );
+  ret.elements[4] =
+    m.elements[0] * m.elements[8] - m.elements[2] * m.elements[6];
+  ret.elements[5] = -(
+    m.elements[0] * m.elements[5] -
+    m.elements[2] * m.elements[7]
+  );
+  ret.elements[6] =
+    m.elements[4] * m.elements[7] - m.elements[4] * m.elements[6];
+  ret.elements[7] = -(
+    m.elements[0] * m.elements[7] -
+    m.elements[1] * m.elements[6]
+  );
+  ret.elements[8] =
+    m.elements[0] * m.elements[4] - m.elements[1] * m.elements[7];
 
-  det = (m.elements[0] * ret.elements[0]) + (m.elements[1] * ret.elements[3]) + (m.elements[6] * ret.elements[2]);
+  det =
+    m.elements[0] * ret.elements[0] +
+    m.elements[1] * ret.elements[3] +
+    m.elements[6] * ret.elements[2];
   oodet = 1.0 / det;
 
   ret.multiplyScalar(oodet);
@@ -114,20 +157,18 @@ function getInvert(m){
 }
 
 function getClosestValue(inputValue, avgValue, stepSize, minValue, maxValue) {
-    var localMin = stepSize * parseInt((inputValue - avgValue) / stepSize) + avgValue;
-    var localMax = localMin + stepSize;
-    var closestValue = 0;
-    if (Math.abs(inputValue - localMin) < Math.abs(inputValue - localMax))
-        closestValue = localMin;
-    else
-        closestValue = localMax;
+  var localMin =
+    stepSize * parseInt((inputValue - avgValue) / stepSize) + avgValue;
+  var localMax = localMin + stepSize;
+  var closestValue = 0;
+  if (Math.abs(inputValue - localMin) < Math.abs(inputValue - localMax))
+    closestValue = localMin;
+  else closestValue = localMax;
 
-    if (closestValue < minValue)
-        closestValue = minValue;
-    else if (closetValue > maxValue)
-        closestValue = maxValue;
+  if (closestValue < minValue) closestValue = minValue;
+  else if (closestValue > maxValue) closestValue = maxValue;
 
-    return closestValue;
+  return closestValue;
 }
 
 // inputHeight, inputWeight 는 float value
@@ -143,21 +184,43 @@ function getClosestValue(inputValue, avgValue, stepSize, minValue, maxValue) {
 // - heightStepSize : Integer
 // - weightStepSize : Integer
 function getClosestSize(inputHeight, inputWeight, samplingConfiguration) {
+  var returnValue = new Object();
+  returnValue.height = getClosestValue(
+    inputHeight,
+    samplingConfiguration.avgHeight,
+    samplingConfiguration.heightStepSize,
+    samplingConfiguration.avgHeight - samplingConfiguration.heightOffset,
+    samplingConfiguration.avgHeight + samplingConfiguration.heightOffset
+  );
 
-    var returnValue;
-    returnValue.height = getClosestValue(inputHeight, samplineSpec.avgHeight, samplingConfiguration.heightStepSize, samplingConfiguration.avgHeight - samplingConfiguration.heightOffset, samplineSpec.avgHeight + samplingConfiguration.heightOffset);
+  const avgWeight =
+    samplingConfiguration.avgWeight +
+    returnValue.height -
+    samplingConfiguration.avgHeight;
+  var minWeight = Math.max(
+    samplingConfiguration.minWeight,
+    avgWeight - samplingConfiguration.weightOffset
+  );
+  var maxWeight = avgWeight + samplingConfiguration.weightOffset;
 
-    var avgWeight = samplingConfiguration.avgWeight + returnValue.closestHeight - avgHeight;
-    var minWeight = Math.max(samplingConfiguration.minWeight, avgWeight - samplingConfiguration.weightOffset);
-    var maxWeight = avgWeight + samplingConfiguration.weightOffset;
+  returnValue.weight = getClosestValue(
+    inputWeight,
+    avgWeight,
+    samplingConfiguration.weightStepSize,
+    minWeight,
+    maxWeight
+  );
 
-    returnValue.weight = getClosestValue(inputWeight, avgWeight, samplingConfiguration.weightStepSize, minWeight, maxWeight);
-
-    return returnValue;
+  return returnValue;
 }
 
-function getGarmentFileName(height, weight, samplingConfiguration) {
-
-    var closestSize = getClosestSize(height, weight, samplingConfiguration);
-    return "P0_" + String(closestSize.height) + "_" + String(closestSize.weight) + ".zcrp";
+export function getGarmentFileName(height, weight, samplingConfiguration) {
+  var closestSize = getClosestSize(height, weight, samplingConfiguration);
+  return (
+    "P0_" +
+    String(closestSize.height) +
+    "_" +
+    String(closestSize.weight) +
+    ".zcrp"
+  );
 }
