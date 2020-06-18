@@ -17,22 +17,32 @@ export default class FitGarment {
   //   });
   // };
 
-  loadZcrp = async (url, zcrpFileName) => {
+  loadZcrp = async (url) => {
+    const getFilename = (textureURL) => {
+      const splitTextureURL = textureURL.split("/");
+      const filenameWithToken = splitTextureURL[splitTextureURL.length - 1];
+      const filenameWithoutToken = filenameWithToken.split("?")[0];
+
+      return filenameWithoutToken;
+    };
+
     const loadedData = await loadFile(url);
     console.log("loadedData");
     console.log(loadedData);
     if (!loadedData) return;
 
-    const unzippedData = await unZip(loadedData, zcrpFileName);
+    const crpFilename = getFilename(url).replace(".zcrp", ".crp");
+    const unzippedData = await unZip(loadedData, crpFilename);
     console.log("unzippedData");
     console.log(unzippedData);
 
     const fileOffset = { Offset: 0 };
     const dataView = new DataView(unzippedData);
     const loadedMap = readMap(dataView, fileOffset);
-    // console.log(loadedMap);
+    console.log(loadedMap);
     // console.log(this.listBarycentricCoord);
-    this.listBarycentricCoord = loadedMap.get("listBarycentric"); // FIX ME: Would be "listBarycentric"
+    this.listBarycentricCoord =
+      loadedMap.get("listBarycentric") || loadedMap.get("listBaryCentric"); // FIX ME: Would be "listBarycentric"
     // console.log(this.listBarycentricCoord);
 
     return this.listBarycentricCoord;

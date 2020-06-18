@@ -197,7 +197,7 @@ export default class ClosetViewer {
     });
 
     this.fittingMap = new FittingMap();
-    this.avatar = new Fitting(this.scene);
+    this.fitting = new Fitting(this.scene, this.zrest);
 
     // canvas event
     const canvas = this.setter;
@@ -236,14 +236,82 @@ export default class ClosetViewer {
     this.fittingMap.createVertice(mapMatMesh);
   }
 
+  // NOTE: avatar test
+  // fitting({ rootPath: rootPath, listAvatarPath: listAvatarPath }) {
+  async ft(race = 0) {
+    const rootPath = "https://files.clo-set.com/public/fitting";
+    const mapAvatarPath = new Map();
+    mapAvatarPath.set(0, [
+      "avatar/0/Henry.zrest",
+      "avatar/0/Nate.zrest",
+      "avatar/0/Thomas.zrest",
+    ]);
+    this.fittingInit({
+      rootPath: rootPath,
+      mapAvatarPath: mapAvatarPath,
+    });
+
+    await this.fittingGetAvatar({
+      id: 0,
+      race: race,
+    });
+
+    await this.fittingGetGarment({
+      styleId: "cf2b110b89074e5ead4293bdd29f1c52",
+      styleVersion: 1,
+      height: 180,
+      weight: 75,
+      gradingIndex: 0,
+    });
+  }
+
+  fittingInit({ rootPath: rootPath, mapAvatarPath: mapAvatarPath }) {
+    this.fitting.init({
+      rootPath: rootPath,
+      mapAvatarPath: mapAvatarPath,
+    });
+  }
+
+  async fittingGetAvatar({ id: id, race: race }) {
+    const url = this.fitting.getAvatarURL({
+      id: id,
+      race: race,
+    });
+    const onLoad = async () => {
+      const m = this.zrest.zProperty.rootMap.get("mapGeometry");
+      const l = this.fitting.loadGeometry({ mapGeometry: m });
+    };
+    this.loadZrestUrlWithParameters(url, null, onLoad);
+  }
+
+  async fittingGetGarment({
+    styleId: styleId,
+    styleVersion: styleVersion,
+    height: height,
+    weight: weight,
+    gradingIndex: gradingIndex,
+  }) {
+    const samplingData = await this.fitting.getSamplingJson(
+      styleId,
+      styleVersion
+    );
+    const garmentURL = this.fitting.getGarmentURL(
+      height,
+      weight,
+      samplingData,
+      gradingIndex
+    );
+    await this.fitting.loadGarment(garmentURL, this.zrest.zProperty.matMeshMap);
+  }
+
   av(url) {
     const test = () => {
       const m = this.zrest.zProperty.rootMap.get("mapGeometry");
-      const l = this.avatar.load({ mapGeometry: m });
+      const l = this.fitting.loadGeometry({ mapGeometry: m });
       this.setAllAvatarVisible(false);
       this.setVisibleAllGarment(false);
       // this.avatar.extractAvatarMeshes(this.zrest.matMeshMap);
-      this.avatar.test(l);
+      this.fitting.test(l);
     };
     this.loadZrestUrlWithParameters(url, null, test);
   }
@@ -265,7 +333,10 @@ export default class ClosetViewer {
       if (selectedMarker) {
         const selectedMarkerIdx = selectedMarker.message - 1;
         this.techPack.onMarker([
-          { index: selectedMarkerIdx, id: selectedMarker.message },
+          {
+            index: selectedMarkerIdx,
+            id: selectedMarker.message,
+          },
         ]);
         this.updateRenderer();
       }
