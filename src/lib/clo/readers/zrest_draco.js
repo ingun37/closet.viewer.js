@@ -371,7 +371,10 @@ const splitMatSpaceToMatMesh = async (
 
     // TEST for fitting
     if (type === MATMESH_TYPE.PATTERN_MATMESH) {
+      console.log(dracoGeometry);
       threeMesh.userData.originalIndices = dracoGeometry.indices;
+      threeMesh.userData.originalUv = dracoGeometry.uvs;
+      threeMesh.userData.originalUv2 = dracoGeometry.uv2s;
       // matMeshManager.mapMatMeshIndex.set(matMeshID, dracoGeometry.indices);
     }
 
