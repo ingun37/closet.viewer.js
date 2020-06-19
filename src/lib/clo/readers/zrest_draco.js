@@ -119,8 +119,6 @@ const splitMatSpaceToMatMesh = async (
   bLoadTransparentObject,
   materialInformationMap
 ) => {
-  // console.log(dracoGeometry);
-  // console.log(dracoGeometry.indices);
   const zrestVersion = matMeshManager.zProperty.version;
   let indexOffset = zrestVersion > 4 ? 0 : totalIdxCount;
   for (let m = 0; m < listIdxCount.length; ++m) {

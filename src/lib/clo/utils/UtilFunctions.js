@@ -1,4 +1,4 @@
-﻿function SafeDeallocation(object, type, type_cb, nontype_cb) {
+function SafeDeallocation(object, type, type_cb, nontype_cb) {
   if (object instanceof type) {
     type_cb(object);
   } else {
