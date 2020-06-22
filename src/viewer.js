@@ -236,9 +236,10 @@ export default class ClosetViewer {
     this.fittingMap.createVertice(mapMatMesh);
   }
 
-  // NOTE: avatar test
+  // NOTE: avatar test codes for example
+  // Should be removed until live
   // fitting({ rootPath: rootPath, listAvatarPath: listAvatarPath }) {
-  async ft(race = 0) {
+  async ft(skinType = 0) {
     const rootPath = "https://files.clo-set.com/public/fitting";
     const mapAvatarPath = new Map();
     mapAvatarPath.set(0, [
@@ -253,7 +254,7 @@ export default class ClosetViewer {
 
     await this.fittingGetAvatar({
       id: 0,
-      race: race,
+      skinType: skinType,
     });
 
     await this.fittingGetGarment({
@@ -272,10 +273,10 @@ export default class ClosetViewer {
     });
   }
 
-  async fittingGetAvatar({ id: id, race: race }) {
+  async fittingGetAvatar({ id: id, skinType: skinType }) {
     const url = this.fitting.getAvatarURL({
       id: id,
-      race: race,
+      skinType: skinType,
     });
     const onLoad = async () => {
       const m = this.zrest.zProperty.rootMap.get("mapGeometry");
@@ -308,7 +309,7 @@ export default class ClosetViewer {
     const test = () => {
       const m = this.zrest.zProperty.rootMap.get("mapGeometry");
       const l = this.fitting.loadGeometry({ mapGeometry: m });
-      this.setAllAvatarVisible(false);
+      // this.setAllAvatarVisible(false);
       this.setVisibleAllGarment(false);
       // this.avatar.extractAvatarMeshes(this.zrest.matMeshMap);
       this.fitting.test(l);

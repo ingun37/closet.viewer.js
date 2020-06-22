@@ -25,7 +25,7 @@ export default class Fitting {
     this.loadZcrp = this.garments.loadZcrp;
 
     this.avatarId = 0;
-    this.avatarRace = 0;
+    this.avatarSkinType = 0;
   }
 
   init({ rootPath: rootPath, mapAvatarPath: mapAvatarPath }) {
@@ -43,12 +43,11 @@ export default class Fitting {
     });
   }
 
-  getAvatarURL({ id: avatarId, race: avatarRace }) {
+  getAvatarURL({ id: avatarId, skinType: avatarSkinType }) {
     this.avatarId = avatarId;
-    // this.avtRace = avatarRace;
 
     const listById = this.mapAvtPath.get(avatarId);
-    const zrestFileName = listById[avatarRace];
+    const zrestFileName = listById[avatarSkinType];
     const avtURL = this.avtRootPath + "/" + zrestFileName;
     console.log(avtURL);
     return avtURL;
@@ -74,13 +73,6 @@ export default class Fitting {
     const jsonData = await loadJson(jsonURL, onLoad);
     console.log(jsonData);
     return jsonData;
-
-    // const fileOffset = { Offset: 0 };
-    // const dataView = new DataView(jsonData);
-    // const loadedMap = readMap(dataView, fileOffset);
-    // console.log(loadedMap);
-
-    // https://files.clo-set.com/public/fitting/33dbf1ff4a5f4f599317915f9343d6ca/1/0/sampling.json
   }
 
   getGarmentURL(height, weight, samplingData, gradingIndex) {
@@ -126,51 +118,29 @@ export default class Fitting {
         "Uint",
         garment.get("baTriangleIndices")
       );
-      console.log(listTriangleIndex.length);
       const listMatMeshID = garment.get("listMatMeshID");
-      console.log(listMatMeshID);
-
       if (!listMatMeshID) {
         console.warn("MatMeshID info missing");
         return;
       }
 
-      // listMatMeshID.forEach(matMeshId => {
+      const listUV = readByteArray("Float", garment.get("baTexCoord"));
+
       const matMeshId = listMatMeshID[0];
       const matMesh = mapMatMesh.get(matMeshId);
       const material = matMesh.material;
-      // console.log(count);
-      // console.log("matMesh");
-      // console.log(matMesh);
+      console.log(matMesh);
       const index = matMesh.userData.originalIndices;
       const uv = matMesh.userData.originalUv;
       const uv2 = matMesh.userData.originalUv2;
-      // console.log(index);
-
-      // const index = Array.from(matMesh.geometry.index.array);
-      // index.forEach(i => totalIndex.push((i + lastCnt)));
-
-      // const count = matMesh.geometry.attributes.position.count;
-      // const uv = matMesh.geometry.attributes.uv;
-      // const uv2 = matMesh.geometry.attributes.uv2;
-      // lastCnt += count;
-
-      // console.log(index);
-
-      // console.log(totalIndex);
-      // })
-
-      // console.log(listABG);
-      // console.log(listTriangleIndex);
 
       const calculatedCoord = this.computeBarycentric(
         listABG,
         listTriangleIndex
       );
-      // console.log("calculatedCoord.length: " + calculatedCoord.length);
-
-      // console.log(calculatedCoord);
-      const bufferGeometry = new THREE.BufferGeometry();
+      // const calculatedCoord = matMesh.userData.originalPos;
+      // const bufferGeometry = new THREE.BufferGeometry();
+      const bufferGeometry = matMesh.geometry;
       bufferGeometry.addAttribute(
         "position",
         new THREE.Float32BufferAttribute(new Float32Array(calculatedCoord), 3)
@@ -179,35 +149,69 @@ export default class Fitting {
       bufferGeometry.setIndex(
         new THREE.BufferAttribute(new Uint32Array(index), 1)
       );
+      // bufferGeometry.computeBoundingBox();
       bufferGeometry.computeFaceNormals();
       bufferGeometry.computeVertexNormals();
-      // bufferGeometry.computeBoundingBox();
-      // console.log(uv);
-      // console.log(uv2);
-      // const new_uv = this.buildUVs(calculatedCoord, totalIndex);
-      // const new_uv = this.assignUVs(bufferGeometry);
-      // console.log(new_uv);
-      // bufferGeometry.attributes.uv = uv;
+
       bufferGeometry.addAttribute(
         "uv",
         new THREE.Float32BufferAttribute(uv, 2)
-      ).needsUpdate = true;
+      );
       bufferGeometry.addAttribute(
         "uv2",
         new THREE.Float32BufferAttribute(uv2, 2)
-      ).needsUpdate = true;
+      );
 
       // bufferGeometry.attributes.uv2 = uv2;
 
-      const threeMesh = new THREE.Mesh(bufferGeometry, material);
+      // const threeMesh = new THREE.Mesh(bufferGeometry, material);
       // console.log("threeMesh");
       // console.log(threeMesh);
-      this.container.add(threeMesh);
+      // this.container.add(threeMesh);
 
       // this.buildMesh(bufferGeometry, material);
     });
 
     console.log("loadGarment Done");
+  };
+
+  // NOTE: Temporary code that not used
+  updateUVs = (calculatedPos) => {
+    calculatedPos.computeBoundingBox();
+
+    var max = calculatedPos.boundingBox.max;
+    var min = calculatedPos.boundingBox.min;
+
+    var offset = new THREE.Vector2(0 - min.x, 0 - min.y);
+    var range = new THREE.Vector2(max.x - min.x, max.y - min.y);
+
+    var faces = calculatedPos.faces;
+    const uvs = [];
+
+    for (i = 0; i < calculatedPos.faces.length; i++) {
+      var v1 = calculatedPos.vertices[faces[i].a];
+      var v2 = calculatedPos.vertices[faces[i].b];
+      var v3 = calculatedPos.vertices[faces[i].c];
+
+      var uv0 = new THREE.Vector2(
+        (v1.x + offset.x) / range.x,
+        (v1.y + offset.y) / range.y
+      );
+      var uv1 = new THREE.Vector2(
+        (v2.x + offset.x) / range.x,
+        (v2.y + offset.y) / range.y
+      );
+      var uv2 = new THREE.Vector2(
+        (v3.x + offset.x) / range.x,
+        (v3.y + offset.y) / range.y
+      );
+
+      uvs.push(uv0, uv1, uv2);
+    }
+
+    console.log(uvs);
+
+    calculatedPos.uvsNeedUpdate = true;
   };
 
   clear() {}
@@ -296,46 +300,20 @@ export default class Fitting {
       ABGList,
       triangleIndexList
     );
-    // console.log(triangleIndexList);
-    // console.log("vertexCount: " + vertexCount);
-    // const max = Math.max(...triangleIndexList);
-    // const min = Math.min(...triangleIndexList);
-    // console.log(max, min);
-    // console.log(triangleIndexList.length);
-
-    // for (let i = min; i < max; ++i) {
-    // for (let i = 0; i < 18; ++i) {
 
     console.log("calculatedPosition");
     console.log(calculatedPosition);
 
     // Build Mesh
     const bufferGeometry = new THREE.BufferGeometry();
-    // bufferGeometry.addAttribute(
-    //   "position",
-    //   new THREE.Float32BufferAttribute(new Float32Array(this.bodyVertexPos), 3)
-    // );
-    // bufferGeometry.setIndex(
-    //   new THREE.BufferAttribute(new Uint32Array(this.bodyVertexIndex), 1)
-    // );
 
     bufferGeometry.addAttribute(
       "position",
       new THREE.Float32BufferAttribute(new Float32Array(calculatedPosition), 3)
     );
-    // bufferGeometry.addAttribute(
-    //   "position",
-    //   new THREE.Float32BufferAttribute(new Float32Array(meshPosition), 3)
-    // );
-    // console.log(meshIndex);
-
     bufferGeometry.setIndex(
       new THREE.BufferAttribute(new Uint32Array(meshIndex), 1)
     );
-    // bufferGeometry.setIndex(
-    //   new THREE.BufferAttribute(new Uint32Array(calculatedIndex), 1)
-    // );
-
     bufferGeometry.computeVertexNormals();
     bufferGeometry.computeFaceNormals();
 
@@ -352,7 +330,7 @@ export default class Fitting {
       abg.y = listAGB[i * 3 + 1];
       abg.z = listAGB[i * 3 + 2];
 
-      // FIX ME: Check this out
+      // FIXME: Check this out
       if (1) {
         // if (abg.z <= demarcationLine) {
 
@@ -395,9 +373,7 @@ export default class Fitting {
   }
 
   buildMesh(bufferGeometry, material = null) {
-    const defaultMaterial = new THREE.MeshPhongMaterial({
-      // side: THREE.DoubleSide,
-    });
+    const defaultMaterial = new THREE.MeshPhongMaterial({});
     defaultMaterial.color = THREE.Vector3(1, 1, 1);
 
     // const defaultMaterial = new THREE.PointsMaterial({
@@ -452,15 +428,15 @@ export default class Fitting {
 
     // this.buildMeshUsingMapMesh(mapMesh);
 
-    for (let i = 0; i < listSkinController.length; ++i) {
-      const sc = listSkinController[i];
+    // for (let i = 0; i < listSkinController.length; ++i) {
+    //   const sc = listSkinController[i];
 
-      if (sc !== bodySkinController) {
-        // console.log(i);
-        this.parseSkinControllerUsingABG(sc);
-        // break;
-      }
-    }
+    //   if (sc !== bodySkinController) {
+    //     // console.log(i);
+    //     this.parseSkinControllerUsingABG(sc);
+    //     // break;
+    //   }
+    // }
 
     // this.parseSkinControllerUsingABG(listSkinController[2]);
 
@@ -505,10 +481,6 @@ export default class Fitting {
     const y = (v1.z - v0.z) * (v2.x - v0.x) - (v1.x - v0.x) * (v2.z - v0.z);
     const z = (v1.x - v0.x) * (v2.y - v0.y) - (v1.y - v0.y) * (v2.x - v0.x);
 
-    // console.log("---");
-    // console.log(v0, v1, v2);
-    // console.log(x, y, z);
-
     return new THREE.Vector3(x, y, z);
   }
 
@@ -546,30 +518,6 @@ export default class Fitting {
   }
   */
 
-  /*
-  updateRenderPositionFromPhysical(calculatedPos, v3PhyPos, v3PhyNormal) {
-    const pos = calculatedPos;
-    // vec3* pos = GetPosition();
-    // vec3* normal = GetNormal();
-    // mat4 wtol = GetWorldToLocalMatrix();
-    // #pragma omp parallel for
-    // for(int i=0;i<(int)GetVertexCount();i++)
-    // {
-    // 	pos[i] = wtol * phyPos[m_RenderToSkinPos[i]];
-    // 	if (phyNormal)
-    // 	{
-    // 		vec3 tmpV; // omp 바깥으로 빼서 공유하게 되면 결과값 이상해 진다
-    // 		normal[i] = mult_dir(tmpV, wtol, phyNormal[m_RenderToSkinPos[i]]);
-    // 		normal[i].normalize();
-    // 	}
-    // }
-    // Shape_sptr this_sptr = GetSharedPointerThis();
-    // if(phyNormal)
-    // 	VertexBufferUtility::MakeDirtyNormal(this_sptr);
-    // VertexBufferUtility::MakeDirtyPosition(this_sptr);
-  }
-  */
-
   get3VerticeFromBody = (triangleIndex) => {
     // const triIdxOnVertexIdx = triangleIndex * 3;
     const triIdxOnVertexIdx = triangleIndex;
@@ -592,29 +540,3 @@ export default class Fitting {
     return v;
   };
 }
-
-/*
-    const get3Vertice = (triangleIndex, idx, pos) => {
-      const triIdxOnVertexIdx = triangleIndex * 3;
-      if (
-        triIdxOnVertexIdx < 0 ||
-        triIdxOnVertexIdx > this.bodyVertexIndex.length
-      ) {
-        console.warn("Wrong meshIdx");
-      }
-      // console.log(triIdxOnVertexIdx);
-
-      // 3 vertice for 1 triangle
-      const vertexIdx = idx[triIdxOnVertexIdx];
-      // console.log(vertexIdx);
-      const v = new THREE.Vector3(
-        pos[vertexIdx * 3],
-        pos[vertexIdx * 3 + 1],
-        pos[vertexIdx * 3 + 2]
-      );
-
-      // console.log(v);
-
-      return v;
-    };
-    */
