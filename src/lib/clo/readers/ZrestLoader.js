@@ -22,6 +22,7 @@ import { makeMaterial } from "./zrest_material";
 import Colorway, { changeColorway } from "./Colorway";
 import { safeDeallocation } from "@/lib/clo/readers/MemoryUtils";
 import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
+import { getFilename } from "@/lib/clo/readers/FileLoader";
 
 const zrestProperty = {
   version: -1,
@@ -169,22 +170,6 @@ export default class ZRestLoader {
 
   loadUrl = (url, onLoad, onProgress, onError) => {
     zrestProperty.bDisassembled = false;
-    const loader = new THREE.FileLoader(this.manager);
-    loader.setResponseType("arraybuffer");
-    return new Promise((resolve, reject) => {
-      this.req = loader.load(
-          url,
-          (data) => {
-            this.parse(data, onLoad);
-            resolve()
-          },
-          onProgress,
-          reject
-      );
-    });
-  };
-
-  loadFile = async (url, onLoad, onProgress, onError) => {
     const loader = new THREE.FileLoader(this.manager);
     loader.setResponseType("arraybuffer");
     return new Promise((resolve, reject) => {
@@ -353,7 +338,7 @@ export default class ZRestLoader {
 
   processRestFile = async (restURL) => {
     // Load Rest file
-    const loadedData = await this.loadFile(restURL);
+    const loadedData = await loadFile(restURL);
 
     // Unzip Rest data
     const restFileName = "viewer.rest";
@@ -364,63 +349,50 @@ export default class ZRestLoader {
     this.zProperty.rootMap = rootMap;
   };
 
-  getFilename = (textureURL) => {
-    const splitTextureURL = textureURL.split("/");
-    const filenameWithToken = splitTextureURL[splitTextureURL.length - 1];
-    const filenameWithoutToken = filenameWithToken.split("?")[0];
-
-    return filenameWithoutToken;
-  };
-
   processDracoFiles = async (dracoURLList, object3D, onProgress) => {
     const loadDracoFiles = async () => {
       // NOTE: forEach not working correctly with await/async
 
       const newDracoURLPromise = dracoURLList.map(async (dracoURL) => {
-        const loadedData = await this.loadFile(dracoURL);
-        const dracoFilenameWithoutZip = this.getFilename(dracoURL).replace(".zip", "");
-        return [
-          dracoFilenameWithoutZip,
-          loadedData,
-        ]
-      })
+        const loadedData = await loadFile(dracoURL);
+        const dracoFilenameWithoutZip = getFilename(dracoURL).replace(
+          ".zip",
+          ""
+        );
+        return [dracoFilenameWithoutZip, loadedData];
+      });
       return await Promise.all(newDracoURLPromise);
     };
 
     const unzipDracoFiles = async (mapDracoUrls) => {
-
-      const newDracoURLPromise = mapDracoUrls.map(async(data) => {
-        const [ dracoFilenameWithoutZip, loadedData] = data;
+      const newDracoURLPromise = mapDracoUrls.map(async (data) => {
+        const [dracoFilenameWithoutZip, loadedData] = data;
         const drcArrayBuffer = await unZip(loadedData, dracoFilenameWithoutZip);
-        return [
-          dracoFilenameWithoutZip,
-          drcArrayBuffer,
-        ]
-      })
+        return [dracoFilenameWithoutZip, drcArrayBuffer];
+      });
       const newDracoArrayBuffer = await Promise.all(newDracoURLPromise);
       return new Map(newDracoArrayBuffer);
-
-    }
+    };
 
     console.log("=======================");
     console.log("Set mesh material without texture");
     console.log("=======================");
 
     const mapDracoUrls = await loadDracoFiles();
-    onProgress(80)
+    onProgress(80);
     const mapDracoData = await unzipDracoFiles(mapDracoUrls);
-    onProgress(90)
+    onProgress(90);
     await this.meshFactory.buildDracos(this, mapDracoData, object3D); //, reObject, loadedCamera);
     mapDracoData.clear();
     console.log("processDracoFiles done.");
   };
 
   loadTextureFromURL = async (url) => {
-    const textureArrayBuffer = await this.loadFile(url);
+    const textureArrayBuffer = await loadFile(url);
     const threeJSTexture = await getTexture(textureArrayBuffer);
 
     // TODO: 개발 마무리 할 것
-    this.zProperty.nameToTextureMap.set(this.getFilename(url), threeJSTexture);
+    this.zProperty.nameToTextureMap.set(getFilename(url), threeJSTexture);
 
     return threeJSTexture;
   };
@@ -431,7 +403,7 @@ export default class ZRestLoader {
     // NOTE: 만약 texture list가 중요도 순으로 sort가 되어 있다면 참 좋을텐데
     textureURLList.map(async (textureURL) => {
       const threeJSTexture = await this.loadTextureFromURL(textureURL);
-      const textureFilename = this.getFilename(textureURL);
+      const textureFilename = getFilename(textureURL);
 
       // if (this.zProperty.listMapTextureMatMeshId[colorwayIndex].has(textureFilename)) {
       // NOTE: colorway와 상관 없이 모든 texture의 정보를 취득한다
@@ -477,13 +449,13 @@ export default class ZRestLoader {
     object3D.name = "object3D";
 
     await this.processRestFile(restURL[0]);
-    onProgress(50)
+    onProgress(50);
     this.zProperty.seamPuckeringNormalMap = await loadSeamPuckeringMap();
     await this.processDracoFiles(dracoURLList, object3D, onProgress);
     await this.processTextureFiles(textureURLList, object3D, updateRenderer);
-    onProgress(100)
+    onProgress(100);
     console.log("=== after RestFile ===");
-    return object3D
+    return object3D;
   };
 }
 
