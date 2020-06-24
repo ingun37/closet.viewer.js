@@ -227,8 +227,8 @@ class AnnotationManager {
   }
 
   createIntersectPosition({ clientX, clientY }) {
-    if (this.zrest.matMeshMap === undefined) {
-      console.log("matMeshMap is missing");
+    if (!this.zrest || this.zrest.matMeshMap === undefined) {
+      // console.log("matMeshMap is missing");
       return;
     }
 
