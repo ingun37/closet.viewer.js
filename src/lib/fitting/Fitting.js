@@ -130,7 +130,7 @@ export default class Fitting {
 
     listBarycentricCoord.forEach((garment) => {
       // const garment = listBarycentricCoord[0];
-      console.log(garment);
+      // console.log(garment);
       const listABG = readByteArray("Float", garment.get("baAbgs"));
       const listTriangleIndex = readByteArray(
         "Uint",
@@ -157,15 +157,15 @@ export default class Fitting {
 
           return;
         }
-        console.log(matMesh);
+        // console.log(matMesh);
 
         const index = matMesh.userData.originalIndices;
         const uv = matMesh.userData.originalUv;
         const uv2 = matMesh.userData.originalUv2;
 
-        console.log(index);
-        console.log(uv);
-        console.log(uv2);
+        // console.log(index);
+        // console.log(uv);
+        // console.log(uv2);
 
         const calculatedCoord = this.computeBarycentric(
           listABG,
@@ -446,7 +446,7 @@ export default class Fitting {
   }
   */
 
-  test(listSkinController) {
+  setAvatarInfo(listSkinController) {
     const bodySkinController = this.findBodySkinController(listSkinController);
     console.log("bodySkin is");
     console.log(bodySkinController);
@@ -458,30 +458,7 @@ export default class Fitting {
     this.bodyVertexIndex = meshIndex;
     this.bodyVertexPos = meshPosition;
     console.log(this.bodyVertexIndex);
-    // console.log(readByteArray("Int", mapMesh.get("baIndex")));
     console.log(this.bodyVertexPos);
-    // console.log(readByteArray("Double", mapMesh.get("baPosition")));
-
-    // this.buildMeshUsingMapMesh(mapMesh);
-
-    // for (let i = 0; i < listSkinController.length; ++i) {
-    //   const sc = listSkinController[i];
-
-    //   if (sc !== bodySkinController) {
-    //     // console.log(i);
-    //     this.parseSkinControllerUsingABG(sc);
-    //     // break;
-    //   }
-    // }
-
-    // this.parseSkinControllerUsingABG(listSkinController[2]);
-
-    // listSkinController.forEach((sc) => {
-    //   if (sc !== bodySkinController) {
-    //     this.parseSkinControllerUsingABG(sc);
-    //     // this.buildMeshUsingInitPos(sc.get("mapMesh"));
-    //   }
-    // });
   }
 
   findBodySkinController(listSkinController) {
