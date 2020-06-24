@@ -367,6 +367,15 @@ const splitMatSpaceToMatMesh = async (
     threeMesh.receiveShadow = b;
     tf.add(threeMesh);
 
+    // TEST for fitting
+    if (type === MATMESH_TYPE.PATTERN_MATMESH) {
+      console.log(dracoGeometry);
+      threeMesh.userData.originalIndices = dracoGeometry.indices;
+      threeMesh.userData.originalUv = dracoGeometry.uvs;
+      threeMesh.userData.originalUv2 = dracoGeometry.uv2s;
+      // matMeshManager.mapMatMeshIndex.set(matMeshID, dracoGeometry.indices);
+    }
+
     matMeshManager.matMeshMap.set(matMeshID, threeMesh);
 
     if (zrestVersion > 4) {

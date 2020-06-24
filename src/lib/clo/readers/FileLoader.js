@@ -7,7 +7,8 @@ import JSZip from "@/lib/jszip/dist/jszip";
 
 export default class FileLoader {
   constructor(loadManager, parse) {
-    this.manager = loadManager !== undefined ? manager : THREE.DefaultLoadingManager;
+    this.manager =
+      loadManager !== undefined ? manager : THREE.DefaultLoadingManager;
     // this.loader = new THREE.FileLoader(this.manager);
     // this.loader.setResponseType("arraybuffer");
     this.req = undefined;
@@ -51,4 +52,21 @@ export async function unZip(zippedData, filename) {
   }
 
   return unzipped;
+}
+
+export async function loadFile(url, onLoad, onProgress, onError) {
+  const loader = new THREE.FileLoader(THREE.DefaultLoadingManager);
+  loader.setResponseType("arraybuffer");
+  return new Promise((onLoad) => {
+    loader.load(url, onLoad, onProgress, onError);
+  });
+}
+
+// FIXME: Refactor this
+export async function loadJson(url, onLoad, onProgress, onError) {
+  const loader = new THREE.FileLoader(THREE.DefaultLoadingManager);
+  loader.setResponseType("json");
+  return new Promise((onLoad) => {
+    loader.load(url, onLoad, onProgress, onError);
+  });
 }

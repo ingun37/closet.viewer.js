@@ -1,5 +1,8 @@
 ﻿/* eslint-disable require-jsdoc */
-import ZRestLoader, { dataWorkerFunction, checkFileReaderSyncSupport } from "@/lib/clo/readers/ZrestLoader";
+import ZRestLoader, {
+  dataWorkerFunction,
+  checkFileReaderSyncSupport,
+} from "@/lib/clo/readers/ZrestLoader";
 import * as THREE from "@/lib/threejs/three";
 import "@/lib/threejs/OrbitControls";
 import "@/lib/draco/DRACOLoader";
@@ -15,6 +18,7 @@ import MobileDetect from "mobile-detect";
 import { MATMESH_TYPE } from "@/lib/clo/readers/Predefined";
 import { getTestData } from "./test.js";
 import "@/lib/threejs/BufferGeometryUtils";
+import Fitting from "./lib/fitting/Fitting.js";
 
 let windowHalfX = window.innerWidth / 2;
 let windowHalfY = window.innerHeight / 2;
@@ -81,7 +85,10 @@ export default class ClosetViewer {
     const w = (this.defaultWidth = width);
     const h = (this.defaultHeight = height);
 
-    this.setter = typeof element === "string" ? document.getElementById(element) || document.querySelector(element) : element;
+    this.setter =
+      typeof element === "string"
+        ? document.getElementById(element) || document.querySelector(element)
+        : element;
     this.id = element;
     this.cameraPosition = cameraPosition;
     this.stats = stats;
@@ -93,7 +100,7 @@ export default class ClosetViewer {
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
       preserveDrawingBuffer: true,
-      alpha: true
+      alpha: true,
     });
     this.renderer.setClearAlpha(0);
     this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -110,7 +117,10 @@ export default class ClosetViewer {
     this.camera.position.set(0, cameraHeight, cameraDistance);
 
     // create camera controller
-    this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+    this.controls = new THREE.OrbitControls(
+      this.camera,
+      this.renderer.domElement
+    );
     this.controls.target = new THREE.Vector3(0, cameraHeight, 0);
     this.controls.update();
     this.controls.addEventListener("change", () => {
@@ -118,7 +128,7 @@ export default class ClosetViewer {
         this.updateCamera({
           target: this.controls.target,
           position: this.camera.position,
-          id: this.id
+          id: this.id,
         });
       }
       this.render();
@@ -164,7 +174,9 @@ export default class ClosetViewer {
     this.scene.add(DirLight1);
 
     const textureLoader = new THREE.TextureLoader();
-    const texture = textureLoader.load(require("@/lib/clo/background/img_3dwindow_bg_Designer.png"));
+    const texture = textureLoader.load(
+      require("@/lib/clo/background/img_3dwindow_bg_Designer.png")
+    );
 
     this.annotation = new AnnotationManager({
       scene: this.scene,
@@ -172,7 +184,7 @@ export default class ClosetViewer {
       renderer: this.renderer,
       controls: this.controls,
       updateRenderer: this.updateRenderer,
-      setter: this.setter
+      setter: this.setter,
     });
 
     this.techPack = new TechPackManager({
@@ -181,10 +193,11 @@ export default class ClosetViewer {
       renderer: this.renderer,
       controls: this.controls,
       updateRenderer: this.updateRenderer,
-      setter: this.setter
+      setter: this.setter,
     });
 
     this.fittingMap = new FittingMap();
+    this.fitting = new Fitting(this.scene, this.zrest);
 
     // canvas event
     const canvas = this.setter;
@@ -223,6 +236,86 @@ export default class ClosetViewer {
     this.fittingMap.createVertice(mapMatMesh);
   }
 
+  // NOTE: avatar test
+  // fitting({ rootPath: rootPath, listAvatarPath: listAvatarPath }) {
+  async ft(race = 0) {
+    const rootPath = "https://files.clo-set.com/public/fitting";
+    const mapAvatarPath = new Map();
+    mapAvatarPath.set(0, [
+      "avatar/0/Henry.zrest",
+      "avatar/0/Nate.zrest",
+      "avatar/0/Thomas.zrest",
+    ]);
+    this.fittingInit({
+      rootPath: rootPath,
+      mapAvatarPath: mapAvatarPath,
+    });
+
+    await this.fittingGetAvatar({
+      id: 0,
+      race: race,
+    });
+
+    await this.fittingGetGarment({
+      styleId: "cf2b110b89074e5ead4293bdd29f1c52",
+      styleVersion: 1,
+      height: 180,
+      weight: 75,
+      gradingIndex: 0,
+    });
+  }
+
+  fittingInit({ rootPath: rootPath, mapAvatarPath: mapAvatarPath }) {
+    this.fitting.init({
+      rootPath: rootPath,
+      mapAvatarPath: mapAvatarPath,
+    });
+  }
+
+  async fittingGetAvatar({ id: id, race: race }) {
+    const url = this.fitting.getAvatarURL({
+      id: id,
+      race: race,
+    });
+    const onLoad = async () => {
+      const m = this.zrest.zProperty.rootMap.get("mapGeometry");
+      const l = this.fitting.loadGeometry({ mapGeometry: m });
+    };
+    this.loadZrestUrlWithParameters(url, null, onLoad);
+  }
+
+  async fittingGetGarment({
+    styleId: styleId,
+    styleVersion: styleVersion,
+    height: height,
+    weight: weight,
+    gradingIndex: gradingIndex,
+  }) {
+    const samplingData = await this.fitting.getSamplingJson(
+      styleId,
+      styleVersion
+    );
+    const garmentURL = this.fitting.getGarmentURL(
+      height,
+      weight,
+      samplingData,
+      gradingIndex
+    );
+    await this.fitting.loadGarment(garmentURL, this.zrest.zProperty.matMeshMap);
+  }
+
+  av(url) {
+    const test = () => {
+      const m = this.zrest.zProperty.rootMap.get("mapGeometry");
+      const l = this.fitting.loadGeometry({ mapGeometry: m });
+      this.setAllAvatarVisible(false);
+      this.setVisibleAllGarment(false);
+      // this.avatar.extractAvatarMeshes(this.zrest.matMeshMap);
+      this.fitting.test(l);
+    };
+    this.loadZrestUrlWithParameters(url, null, test);
+  }
+
   onMouseMove(e) {
     e.preventDefault();
     if (this.annotation && this.object3D) this.annotation.onMouseMove(e);
@@ -239,7 +332,12 @@ export default class ClosetViewer {
       const selectedMarker = this.techPack.onMouseDown(e);
       if (selectedMarker) {
         const selectedMarkerIdx = selectedMarker.message - 1;
-        this.techPack.onMarker([{ index: selectedMarkerIdx, id: selectedMarker.message }]);
+        this.techPack.onMarker([
+          {
+            index: selectedMarkerIdx,
+            id: selectedMarker.message,
+          },
+        ]);
         this.updateRenderer();
       }
     }
@@ -268,7 +366,6 @@ export default class ClosetViewer {
 
     this.zrest.matMeshMap.forEach((matMesh) => {
       if (isGarment(matMesh.userData.TYPE)) {
-        console.log(matMesh);
         matMesh.visible = visibility;
       }
     });
@@ -397,7 +494,7 @@ export default class ClosetViewer {
       height: screen.height,
       fullscreen: false,
       marketplace: false,
-      reponsive: false
+      reponsive: false,
     };
     // TODO: Is it necessary using jQuery? Why?
     $.extend(data, datas);
@@ -457,7 +554,13 @@ export default class ClosetViewer {
     this.loadZrestUrlWithParameters(data, null, onLoad, colorwayIndex);
   }
 
-  async loadZrestUrlWithParameters(url, onProgress, onLoad, colorwayIndex = -1, isAsync = false) {
+  async loadZrestUrlWithParameters(
+    url,
+    onProgress,
+    onLoad,
+    colorwayIndex = -1,
+    isAsync = false
+  ) {
     const progress = function (xhr) {
       if (xhr.lengthComputable) {
         const percentComplete = (xhr.loaded / xhr.total) * 100;
@@ -470,7 +573,7 @@ export default class ClosetViewer {
 
     const loaded = async (object, loadedCamera, data) => {
       this.annotation.init({
-        zrest: this.zrest
+        zrest: this.zrest,
       });
 
       // FIXME: This module does not work correctly
@@ -503,19 +606,19 @@ export default class ClosetViewer {
         scene: this.scene,
         camera: this.camera,
         controls: this.controls,
-        cameraPosition: this.cameraPosition
+        cameraPosition: this.cameraPosition,
       });
       this.zrest.parse(url, loaded);
       return;
     }
 
-    if(isAsync) {
+    if (isAsync) {
       if (url.constructor === String) {
         this.zrest = new ZRestLoader({
           scene: this.scene,
           camera: this.camera,
           controls: this.controls,
-          cameraPosition: this.cameraPosition
+          cameraPosition: this.cameraPosition,
         });
         await this.zrest.loadUrl(url, loaded, progress, error);
       }
@@ -527,7 +630,7 @@ export default class ClosetViewer {
         scene: this.scene,
         camera: this.camera,
         controls: this.controls,
-        cameraPosition: this.cameraPosition
+        cameraPosition: this.cameraPosition,
       });
       this.zrest.load(url, loaded, progress, error);
     }
@@ -536,7 +639,12 @@ export default class ClosetViewer {
   loadTechPack(fabricsWithPatternsFromAPI, trimsFromAPI) {
     const matShapeMap = this.zrest.meshFactory.matmeshManager.matShapeMap;
     const matMeshMap = this.zrest.matMeshMap;
-    this.techPack.load(matShapeMap, matMeshMap, fabricsWithPatternsFromAPI, trimsFromAPI);
+    this.techPack.load(
+      matShapeMap,
+      matMeshMap,
+      fabricsWithPatternsFromAPI,
+      trimsFromAPI
+    );
 
     this.loadStyleLine();
     this.loadMeasure();
@@ -592,12 +700,18 @@ export default class ClosetViewer {
       scene: this.scene,
       camera: this.camera,
       controls: this.controls,
-      cameraPosition: this.cameraPosition
+      cameraPosition: this.cameraPosition,
     });
 
-    const object = await this.zrest.loadZrestDisassembly(rest, dracos, imgs, this.updateRenderer, onProgress);
+    const object = await this.zrest.loadZrestDisassembly(
+      rest,
+      dracos,
+      imgs,
+      this.updateRenderer,
+      onProgress
+    );
     this.annotation.init({
-      zrest: this.zrest
+      zrest: this.zrest,
     });
 
     // FIXME: This module does not work correctly
@@ -613,7 +727,7 @@ export default class ClosetViewer {
     // }
     this.scene.add(object);
     this.object3D = object;
-    this.zrest.zoomToObjects(this.zrest.zProperty.loadedCamera, this.scene);
+    this.zrest.zoomToObject
 
     // if (onLoad) onLoad(this);
 
