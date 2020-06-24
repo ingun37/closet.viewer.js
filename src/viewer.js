@@ -245,7 +245,8 @@ export default class ClosetViewer {
     _styleVersion = 5,
     _gradingIndex = 0,
     _height = 183,
-    _weight = 81
+    _weight = 81,
+    onProgress
   ) {
     const rootPath = "https://files.clo-set.com/public/fitting";
     const mapAvatarPath = new Map();
@@ -261,58 +262,30 @@ export default class ClosetViewer {
       mapAvatarPath: mapAvatarPath,
     });
 
-    // const fg1 = async (_styleId, _styleVersion, _gradingIndex) => {
-    //   console.log("fg +");
-    //   console.log(_styleId, _styleVersion, _gradingIndex);
-    //   await this.fittingGetInitGarment({
-    //     styleId: _styleId,
-    //     styleVersion: _styleVersion,
-    //     gradingIndex: _gradingIndex,
-    //   });
-    //   console.log("fg -");
-    // };
-
-    // const fg = fg1(_styleId, _styleVersion, _gradingIndex);
-    // const onLoadFunc = async () => {
-    //   // await this.fittingGetInitGarment({
-    //   //   styleId: _styleId,
-    //   //   styleVersion: _styleVersion,
-    //   //   gradingIndex: _gradingIndex,
-    //   // });
-    //   console.log("onLoadFunc");
-    // };
-
-    console.log("fitting get avatar");
+    console.log("fitting get avatar +");
     await this.fittingGetAvatar({
       id: 0,
       skinType: skinType,
-      // onLoadFunc: onLoadFunc,
-      // afterFunc: fg,
     });
-    console.log("fitting get avatar +++");
-    console.log("sdlkfjsldkfjlksj");
+    console.log("fitting get avatar -");
 
     console.log("matMesh");
     console.log(this.zrest.zProperty.matMeshMap);
 
-    // console.log("fitting get init garment");
+    console.log("fitting get init garment +");
+    await this.loadZrestForFitting("f/garment.zrest", onProgress, null, false);
     // await this.fittingGetInitGarment({
     //   styleId: _styleId,
     //   styleVersion: _styleVersion,
     //   gradingIndex: _gradingIndex,
     // });
-    // console.log("fitting get init garment +++");
+    console.log("fitting get init garment -");
 
-    // console.log("fittingGetInitGarment ---------");
-    // await this.fittingGetInitGarment({
-    //   styleId: _styleId,
-    //   styleVersion: _styleVersion,
-    //   height: _height,
-    //   weight: _weight,
-    //   gradingIndex: 0,
-    // });
-    // console.log("fittingGetInitGarment +++++++++");
-
+    console.log("fittingGetInitGarment +");
+    await this.fitting.getDrapingData(
+      "f/P0_187_73.zcrp",
+      this.zrest.matMeshMap
+    );
     // await this.fittingGetDraping({
     //   styleId: _styleId,
     //   styleVersion: _styleVersion,
@@ -320,6 +293,7 @@ export default class ClosetViewer {
     //   weight: _weight,
     //   gradingIndex: 0,
     // });
+    console.log("fittingGetInitGarment -");
   }
 
   fittingInit({ rootPath: rootPath, mapAvatarPath: mapAvatarPath }) {
@@ -332,34 +306,16 @@ export default class ClosetViewer {
   async fittingGetAvatar({
     id: id,
     skinType: skinType,
+    funcOnProgress: onProgress,
+    funcOnLoad: onLoad,
     // url: url,
   }) {
     const url = this.fitting.getAvatarURL({
       id: id,
       skinType: skinType,
     });
-    // const onLoad = async () => {
-    //   const avatarGeometry = new Map(
-    //     this.zrest.zProperty.rootMap.get("mapGeometry")
-    //   );
-    //   // const m = this.zrest.zProperty.rootMap.get("mapGeometry");
-    //   // console.log(this.zrest.zProperty.rootMap.get("mapGeometry"));
-    //   // console.log(avatarGeometry);
-    //   const l = this.fitting.loadGeometry({
-    //     mapGeometry: avatarGeometry,
-    //   });
-    //   console.log("FINISH fittingGetAvatar");
 
-    //   // afterFunc;
-    // };
-
-    const onLoad = (result) => {
-      console.log(result);
-      console.log("=========== DONE ==============");
-
-      // if (onLoadFunc) onLoadFunc();
-    };
-    const s = await this.loadZrestForAvatar(url, null, onLoad);
+    const s = await this.loadZrestForFitting(url, onProgress, onLoad, true);
     const avatarGeometry = new Map(
       this.zrest.zProperty.rootMap.get("mapGeometry")
     );
@@ -388,7 +344,7 @@ export default class ClosetViewer {
       avatarId
     );
     console.log(initGarmentURL);
-    await this.loadZrestForAvatar(initGarmentURL);
+    await this.loadZrestForFitting(initGarmentURL);
     //this.loadZrestUrlWithParameters(initGarmentURL);
   }
 
@@ -740,8 +696,9 @@ export default class ClosetViewer {
   }
 
   // TODO: Refactoring here!
-  async loadZrestForAvatar(url, onProgress, onLoad) {
+  async loadZrestForFitting(url, onProgress, onLoad, isAvatar = false) {
     // const scene = new THREE.Scene();
+    if (isAvatar) console.warn("AVATAR!!!!!!!!");
     const scene = this.scene;
 
     const progress = function (xhr) {
@@ -755,9 +712,6 @@ export default class ClosetViewer {
     const error = function (xhr) {};
 
     const loaded = async (object, loadedCamera, data) => {
-      console.warn(
-        "sldkfjslkdjflksdjflksjdlfkjsdflkj2304982039840923840923840928309428================"
-      );
       // this.annotation.init({
       //   zrest: this.zrest,
       // });
@@ -765,14 +719,15 @@ export default class ClosetViewer {
       // if (colorwayIndex > -1) {
       //   await this.changeColorway(colorwayIndex);
       // }
-      for (let i = 0; i < this.scene.children.length; ++i) {
-        if (this.scene.children[i].name === "object3D") {
-          clearThree(this.scene.children[i]);
-        }
-      }
-      console.log("loaded");
+      // for (let i = 0; i < this.scene.children.length; ++i) {
+      //   if (this.scene.children[i].name === "object3D") {
+      //     clearThree(this.scene.children[i]);
+      //   }
+      // }
+      // console.log("loaded");
 
-      this.addToScene(object);
+      if (isAvatar) this.addToScene(object, "fittingAvatar");
+      else this.addToScene(object);
       // scene.add(object);
 
       // this.object3D = object;
@@ -961,13 +916,15 @@ export default class ClosetViewer {
     this.updateRenderer();
   }
 
-  addToScene(object) {
+  addToScene(object, _name = "object3D") {
     console.warn("addToScene");
-    if (object.name !== "object3D") return;
-
+    if (object.name !== _name) {
+      //return;
+      object.name = _name;
+    }
     let objIndex = -1;
     for (let i = 0; i < this.scene.children.length; ++i) {
-      if (this.scene.children[i].name === "object3D") {
+      if (this.scene.children[i].name === _name) {
         clearThree(this.scene.children[i]);
         this.scene.children[i].remove(...this.scene.children[i].children);
         objIndex = i;
