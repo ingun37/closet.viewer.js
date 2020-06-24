@@ -891,6 +891,24 @@ export default class ClosetViewer {
     }
   };
 
+  loadZrest = async (zrestData, onProgress, colorwayIndex) => {
+    const zrestItem = zrestData && zrestData.result;
+    if(!zrestItem) {
+      throw new Error('require zrest data');
+    }
+    if (typeof zrestItem === 'string') {
+      await this.loadZrestUrlWithParameters(
+          zrestItem,
+          onProgress,
+  () => {},
+          colorwayIndex,
+          true
+      );
+    } else {
+      await this.loadSeparatedZrest(zrestItem, onProgress, colorwayIndex);
+    }
+  }
+
   // NOTE: This is test only
   loadZrestTest = (testNo) => {
     const testData = getTestData(testNo);

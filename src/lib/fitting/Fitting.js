@@ -204,7 +204,6 @@ export default class Fitting {
       // console.log("threeMesh");
       // console.log(threeMesh);
       // this.container.add(threeMesh);
-
       // this.buildMesh(bufferGeometry, material);
     });
 
@@ -342,7 +341,6 @@ export default class Fitting {
 
     // Build Mesh
     const bufferGeometry = new THREE.BufferGeometry();
-
     bufferGeometry.addAttribute(
       "position",
       new THREE.Float32BufferAttribute(new Float32Array(calculatedPosition), 3)
@@ -496,40 +494,6 @@ export default class Fitting {
 
     return new THREE.Vector3(x, y, z);
   }
-
-  /*
-  computeNormal(triangleCount) {
-    const listTriNormal = new Array(triangleCount);
-
-    for (let i = 0; i < triangleCount; ++i) {
-      const i0 = this.bodyVertexIndex[i * 3];
-      const i1 = this.bodyVertexIndex[i * 3 + 1];
-      const i2 = this.bodyVertexIndex[i * 3 + 2];
-
-      // collapsed 된거는 스킵. vertexnormal은 업데이트안해야 한다. 업데이트하면 이상한 노말값이 vertexnormal에 더해져서 vertexnormal이 이상해진다.
-      if (i0 == i1 || i1 == i2 || i0 == i2) {
-        listTriNormal[i] = new THREE.Vector3(0, 0, 1); // 쓰레기값 들어가서 다른 코드에서 문제 될 수 있는것 방지하기 위해
-        continue;
-      }
-
-      const normal = this.triangleCross(
-        this.get3VerticeFromBody(i0),
-        this.get3VerticeFromBody(i1),
-        this.get3VerticeFromBody(i2)
-      );
-      // console.log(normal);
-      normal.normalize();
-      // console.log(normal);
-      listTriNormal[i] = normal;
-      // triNormal.triangleCross(m_Position[i0] , m_Position[i1], m_Position[i2]);
-      // triNormal.normalize();
-      // m_TriNormal[i] = triNormal;
-    }
-
-    console.log(listTriNormal);
-    return listTriNormal;
-  }
-  */
 
   get3VerticeFromBody = (triangleIndex) => {
     // const triIdxOnVertexIdx = triangleIndex * 3;

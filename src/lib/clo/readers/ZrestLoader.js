@@ -183,6 +183,7 @@ export default class ZRestLoader {
 
   loadUrl = (url, onLoad, onProgress, onError) => {
     zrestProperty.bDisassembled = false;
+
     const loader = new THREE.FileLoader(this.manager);
     loader.setResponseType("arraybuffer");
     return new Promise((resolve, reject) => {
@@ -454,6 +455,7 @@ export default class ZRestLoader {
       const newDracoArrayBuffer = await Promise.all(newDracoURLPromise);
       return new Map(newDracoArrayBuffer);
     };
+
 
     console.log("=======================");
     console.log("Set mesh material without texture");
