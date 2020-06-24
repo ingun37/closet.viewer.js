@@ -348,11 +348,11 @@ const splitMatSpaceToMatMesh = async (
         threeMesh.visible = true;
       } else {
         threeMesh.visible = bVisible;
-        // if (bVisible === 0) {
-        //   threeMesh.visible = false;
-        // } else if (bVisible === 1) {
-        //   threeMesh.visible = true;
-        // }
+        if (bVisible === 0) {
+          threeMesh.visible = false;
+        } else if (bVisible === 1) {
+          threeMesh.visible = true;
+        }
       }
     } else {
       threeMesh.visible = true;

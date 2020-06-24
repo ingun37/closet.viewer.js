@@ -303,23 +303,23 @@ export default class ClosetViewer {
     // });
     // console.log("fitting get init garment +++");
 
-    console.log("fittingGetInitGarment ---------");
-    await this.fittingGetInitGarment({
-      styleId: _styleId,
-      styleVersion: _styleVersion,
-      height: _height,
-      weight: _weight,
-      gradingIndex: 0,
-    });
-    console.log("fittingGetInitGarment +++++++++");
+    // console.log("fittingGetInitGarment ---------");
+    // await this.fittingGetInitGarment({
+    //   styleId: _styleId,
+    //   styleVersion: _styleVersion,
+    //   height: _height,
+    //   weight: _weight,
+    //   gradingIndex: 0,
+    // });
+    // console.log("fittingGetInitGarment +++++++++");
 
-    await this.fittingGetDraping({
-      styleId: _styleId,
-      styleVersion: _styleVersion,
-      height: _height,
-      weight: _weight,
-      gradingIndex: 0,
-    });
+    // await this.fittingGetDraping({
+    //   styleId: _styleId,
+    //   styleVersion: _styleVersion,
+    //   height: _height,
+    //   weight: _weight,
+    //   gradingIndex: 0,
+    // });
   }
 
   fittingInit({ rootPath: rootPath, mapAvatarPath: mapAvatarPath }) {
@@ -332,7 +332,7 @@ export default class ClosetViewer {
   async fittingGetAvatar({
     id: id,
     skinType: skinType,
-    // onLoadFunc: onLoadFunc,
+    // url: url,
   }) {
     const url = this.fitting.getAvatarURL({
       id: id,
@@ -359,10 +359,16 @@ export default class ClosetViewer {
 
       // if (onLoadFunc) onLoadFunc();
     };
-    console.log("00000000000000");
     const s = await this.loadZrestForAvatar(url, null, onLoad);
-    console.log("11111111111111");
-    console.log(s);
+    const avatarGeometry = new Map(
+      this.zrest.zProperty.rootMap.get("mapGeometry")
+    );
+    const lc = this.fitting.loadGeometry({
+      mapGeometry: avatarGeometry,
+    });
+    this.fitting.test(lc);
+    // console.log(this.zrest.zProperty.rootMap.get("mapGeometry"));
+    // console.log(avatarGeometry);
   }
 
   async fittingGetInitGarment({
@@ -682,8 +688,10 @@ export default class ClosetViewer {
       if (colorwayIndex > -1) {
         await this.changeColorway(colorwayIndex);
       }
-      this.scene.add(object);
-      this.object3D = object;
+
+      this.addToScene(object);
+      // this.scene.add(object);
+      // this.object3D = object;
       this.zrest.zoomToObjects(loadedCamera, this.scene);
 
       if (onLoad) onLoad(this);
@@ -747,6 +755,9 @@ export default class ClosetViewer {
     const error = function (xhr) {};
 
     const loaded = async (object, loadedCamera, data) => {
+      console.warn(
+        "sldkfjslkdjflksdjflksjdlfkjsdflkj2304982039840923840923840928309428================"
+      );
       // this.annotation.init({
       //   zrest: this.zrest,
       // });
@@ -754,9 +765,17 @@ export default class ClosetViewer {
       // if (colorwayIndex > -1) {
       //   await this.changeColorway(colorwayIndex);
       // }
+      for (let i = 0; i < this.scene.children.length; ++i) {
+        if (this.scene.children[i].name === "object3D") {
+          clearThree(this.scene.children[i]);
+        }
+      }
       console.log("loaded");
-      scene.add(object);
-      this.object3D = object;
+
+      this.addToScene(object);
+      // scene.add(object);
+
+      // this.object3D = object;
 
       if (onLoad) onLoad(this);
 
@@ -940,6 +959,29 @@ export default class ClosetViewer {
   async changeColorway(colorwayIdx) {
     await this.zrest.changeColorway(colorwayIdx);
     this.updateRenderer();
+  }
+
+  addToScene(object) {
+    console.warn("addToScene");
+    if (object.name !== "object3D") return;
+
+    let objIndex = -1;
+    for (let i = 0; i < this.scene.children.length; ++i) {
+      if (this.scene.children[i].name === "object3D") {
+        clearThree(this.scene.children[i]);
+        this.scene.children[i].remove(...this.scene.children[i].children);
+        objIndex = i;
+      }
+    }
+    console.log(this.scene.children);
+
+    if (objIndex >= 0) {
+      this.scene.children[objIndex] = object;
+    } else {
+      this.scene.add(object);
+    }
+
+    this.object3D = object;
   }
 
   // TEMP

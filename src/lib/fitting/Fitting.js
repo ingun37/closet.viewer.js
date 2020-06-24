@@ -142,52 +142,61 @@ export default class Fitting {
         return;
       }
 
-      const listUV = readByteArray("Float", garment.get("baTexCoord"));
+      // const listUV = readByteArray("Float", garment.get("baTexCoord"));
 
-      const matMeshId = listMatMeshID[0];
-      const matMesh = mapMatMesh.get(matMeshId);
+      //const matMeshId = listMatMeshID[0];
+      listMatMeshID.forEach((matMeshId) => {
+        const matMesh = mapMatMesh.get(matMeshId);
 
-      if (!matMesh) {
-        console.error(
-          "matMesh(" + matMeshId + ") is not exist on init garment"
+        if (!matMesh) {
+          console.error(
+            "matMesh(" + matMeshId + ") is not exist on init garment"
+          );
+          console.log(matMeshId);
+          console.log(mapMatMesh);
+
+          return;
+        }
+        console.log(matMesh);
+
+        const index = matMesh.userData.originalIndices;
+        const uv = matMesh.userData.originalUv;
+        const uv2 = matMesh.userData.originalUv2;
+
+        console.log(index);
+        console.log(uv);
+        console.log(uv2);
+
+        const calculatedCoord = this.computeBarycentric(
+          listABG,
+          listTriangleIndex
         );
-        console.log(matMeshId);
-        console.log(mapMatMesh);
+        // const calculatedCoord = matMesh.userData.originalPos;
+        const bufferGeometry = new THREE.BufferGeometry();
+        // const bufferGeometry = matMesh.geometry;
+        bufferGeometry.addAttribute(
+          "position",
+          new THREE.Float32BufferAttribute(new Float32Array(calculatedCoord), 3)
+        );
 
-        return;
-      }
+        bufferGeometry.setIndex(
+          new THREE.BufferAttribute(new Uint32Array(index), 1)
+        );
+        // bufferGeometry.computeBoundingBox();
+        bufferGeometry.computeFaceNormals();
+        bufferGeometry.computeVertexNormals();
 
-      const index = matMesh.userData.originalIndices;
-      const uv = matMesh.userData.originalUv;
-      const uv2 = matMesh.userData.originalUv2;
+        bufferGeometry.addAttribute(
+          "uv",
+          new THREE.Float32BufferAttribute(uv, 2)
+        );
+        bufferGeometry.addAttribute(
+          "uv2",
+          new THREE.Float32BufferAttribute(uv2, 2)
+        );
 
-      const calculatedCoord = this.computeBarycentric(
-        listABG,
-        listTriangleIndex
-      );
-      // const calculatedCoord = matMesh.userData.originalPos;
-      // const bufferGeometry = new THREE.BufferGeometry();
-      const bufferGeometry = matMesh.geometry;
-      bufferGeometry.addAttribute(
-        "position",
-        new THREE.Float32BufferAttribute(new Float32Array(calculatedCoord), 3)
-      );
-
-      bufferGeometry.setIndex(
-        new THREE.BufferAttribute(new Uint32Array(index), 1)
-      );
-      // bufferGeometry.computeBoundingBox();
-      bufferGeometry.computeFaceNormals();
-      bufferGeometry.computeVertexNormals();
-
-      bufferGeometry.addAttribute(
-        "uv",
-        new THREE.Float32BufferAttribute(uv, 2)
-      );
-      bufferGeometry.addAttribute(
-        "uv2",
-        new THREE.Float32BufferAttribute(uv2, 2)
-      );
+        matMesh.geometry = bufferGeometry;
+      });
 
       // bufferGeometry.attributes.uv2 = uv2;
 
@@ -552,7 +561,12 @@ export default class Fitting {
       triIdxOnVertexIdx < 0 ||
       triIdxOnVertexIdx >= this.bodyVertexIndex.length
     ) {
-      console.warn("Wrong meshIdx");
+      console.warn(
+        "Wrong meshIdx: " +
+          triIdxOnVertexIdx +
+          " of " +
+          this.bodyVertexIndex.length
+      );
     }
 
     // 3 vertice for 1 triangle

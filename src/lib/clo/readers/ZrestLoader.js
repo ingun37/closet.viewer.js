@@ -64,6 +64,9 @@ export default class ZRestLoader {
     this.manager =
       manager !== undefined ? manager : THREE.DefaultLoadingManager;
 
+    this.rootObject = new THREE.Object3D();
+    this.rootObject.name = "object3D";
+
     // ZREST property
     this.zProperty = zrestProperty;
     this.zProperty.drawMode = this.getParsedDrawMode(drawMode);
@@ -211,9 +214,10 @@ export default class ZRestLoader {
     const dataView = new DataView(data);
     const header = readHeader(dataView, headerOffset);
 
-    const object3D = new THREE.Object3D();
-    // const object3D = new THREE.LOD();
-    object3D.name = "object3D";
+    const object3D = this.rootObject;
+    // new THREE.Object3D();
+    // // const object3D = new THREE.LOD();
+    // object3D.name = "object3D";
 
     const reader = new FileReader();
     const contentBlob = blob.slice(
@@ -252,9 +256,11 @@ export default class ZRestLoader {
     const dataView = new DataView(data);
     const header = readHeader(dataView, headerOffset);
 
-    const object3D = new THREE.Object3D();
+    const object3D = this.rootObject;
+    // const object3D = new THREE.Object3D();
     // const object3D = new THREE.LOD();
-    object3D.name = "fittingAvatarContainer";
+    // object3D.name = "object3D";
+    // object3D.name = "fittingContainer";
 
     // const reader = new FileReader();
     const contentBlob = blob.slice(
@@ -520,8 +526,9 @@ export default class ZRestLoader {
 
     this.zProperty.bDisassembled = true;
 
-    const object3D = new THREE.Object3D();
-    object3D.name = "object3D";
+    const object3D = this.rootObject;
+    // const object3D = new THREE.Object3D();
+    // object3D.name = "object3D";
 
     await this.processRestFile(restURL[0]);
     onProgress(50);
