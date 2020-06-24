@@ -63,6 +63,7 @@ export async function loadFile(
 ) {
   const loader = new THREE.FileLoader(THREE.DefaultLoadingManager);
   loader.setResponseType(resType);
+
   return new Promise((onLoad) => {
     loader.load(url, onLoad, onProgress, onError);
   });

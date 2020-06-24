@@ -460,6 +460,7 @@ export const createMatMesh = async (
       dracoFilename,
       JSZipOrDracoData
     );
+    // console.log("dragoGeometry done");
 
     const bVisiable = matShape.get("bMatShapeVisible") || false;
 
