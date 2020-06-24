@@ -308,14 +308,13 @@ export default class ClosetViewer {
     skinType: skinType,
     funcOnProgress: onProgress,
     funcOnLoad: onLoad,
-    // url: url,
   }) {
     const url = this.fitting.getAvatarURL({
       id: id,
       skinType: skinType,
     });
 
-    const s = await this.loadZrestForFitting(url, onProgress, onLoad, true);
+    await this.loadZrestForFitting(url, onProgress, onLoad, true);
     const avatarGeometry = new Map(
       this.zrest.zProperty.rootMap.get("mapGeometry")
     );
@@ -323,8 +322,6 @@ export default class ClosetViewer {
       mapGeometry: avatarGeometry,
     });
     this.fitting.test(lc);
-    // console.log(this.zrest.zProperty.rootMap.get("mapGeometry"));
-    // console.log(avatarGeometry);
   }
 
   async fittingGetInitGarment({
@@ -733,6 +730,9 @@ export default class ClosetViewer {
       // this.object3D = object;
 
       if (onLoad) onLoad(this);
+
+      this.zrest.zoomToObjects(loadedCamera, this.scene);
+      if (!isAvatar) this.updateRenderer();
 
       return scene;
     };
