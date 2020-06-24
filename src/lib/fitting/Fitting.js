@@ -75,11 +75,29 @@ export default class Fitting {
     return jsonData;
   }
 
-  getGarmentURL(height, weight, samplingData, gradingIndex) {
-    console.log("getGarment");
-    console.log(samplingData);
+  getInitGarmentURL(styleId, styleVersion, gradingIndex, avatarId) {
+    // {styleId}/{version}/{avatarId}/{grading index}
+    if (avatarId) {
+      this.avatarId = avatarId;
+    }
+
+    const getInitGarmentURL =
+      this.avtRootPath +
+      "/" +
+      styleId +
+      "/" +
+      styleVersion +
+      "/" +
+      this.avatarId +
+      "/" +
+      gradingIndex +
+      "/garment.zrest";
+
+    return getInitGarmentURL;
+  }
+
+  getDrapingDataURL(height, weight, samplingData, gradingIndex) {
     const garmentFilename = getGarmentFileName(height, weight, samplingData);
-    console.log(garmentFilename);
     const garmentURL =
       this.avtRootPath +
       "/" +
@@ -88,7 +106,7 @@ export default class Fitting {
       this.styleVersion +
       "/" +
       this.avatarId +
-      "/G" +
+      "/" + //"/G" +
       gradingIndex +
       "/" +
       garmentFilename;
@@ -102,7 +120,7 @@ export default class Fitting {
     return this.listSkinController;
   }
 
-  loadGarment = async (zcrpURL, mapMatMesh) => {
+  getDrapingData = async (zcrpURL, mapMatMesh) => {
     console.log("loadGarment");
     const listBarycentricCoord = await this.garments.loadZcrp(zcrpURL);
     if (!listBarycentricCoord) {
@@ -128,8 +146,17 @@ export default class Fitting {
 
       const matMeshId = listMatMeshID[0];
       const matMesh = mapMatMesh.get(matMeshId);
-      const material = matMesh.material;
-      console.log(matMesh);
+
+      if (!matMesh) {
+        console.error(
+          "matMesh(" + matMeshId + ") is not exist on init garment"
+        );
+        console.log(matMeshId);
+        console.log(mapMatMesh);
+
+        return;
+      }
+
       const index = matMesh.userData.originalIndices;
       const uv = matMesh.userData.originalUv;
       const uv2 = matMesh.userData.originalUv2;

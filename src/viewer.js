@@ -239,7 +239,14 @@ export default class ClosetViewer {
   // NOTE: avatar test codes for example
   // Should be removed until live
   // fitting({ rootPath: rootPath, listAvatarPath: listAvatarPath }) {
-  async ft(skinType = 0) {
+  async ft(
+    skinType = 0,
+    _styleId = "c31a632e03fe44f2aa18b2aa8cc44435",
+    _styleVersion = 5,
+    _gradingIndex = 0,
+    _height = 183,
+    _weight = 81
+  ) {
     const rootPath = "https://files.clo-set.com/public/fitting";
     const mapAvatarPath = new Map();
     mapAvatarPath.set(0, [
@@ -247,21 +254,70 @@ export default class ClosetViewer {
       "avatar/0/Nate.zrest",
       "avatar/0/Thomas.zrest",
     ]);
+
+    console.log("fitting init");
     this.fittingInit({
       rootPath: rootPath,
       mapAvatarPath: mapAvatarPath,
     });
 
+    // const fg1 = async (_styleId, _styleVersion, _gradingIndex) => {
+    //   console.log("fg +");
+    //   console.log(_styleId, _styleVersion, _gradingIndex);
+    //   await this.fittingGetInitGarment({
+    //     styleId: _styleId,
+    //     styleVersion: _styleVersion,
+    //     gradingIndex: _gradingIndex,
+    //   });
+    //   console.log("fg -");
+    // };
+
+    // const fg = fg1(_styleId, _styleVersion, _gradingIndex);
+    // const onLoadFunc = async () => {
+    //   // await this.fittingGetInitGarment({
+    //   //   styleId: _styleId,
+    //   //   styleVersion: _styleVersion,
+    //   //   gradingIndex: _gradingIndex,
+    //   // });
+    //   console.log("onLoadFunc");
+    // };
+
+    console.log("fitting get avatar");
     await this.fittingGetAvatar({
       id: 0,
       skinType: skinType,
+      // onLoadFunc: onLoadFunc,
+      // afterFunc: fg,
     });
+    console.log("fitting get avatar +++");
+    console.log("sdlkfjsldkfjlksj");
 
-    await this.fittingGetGarment({
-      styleId: "cf2b110b89074e5ead4293bdd29f1c52",
-      styleVersion: 1,
-      height: 180,
-      weight: 75,
+    console.log("matMesh");
+    console.log(this.zrest.zProperty.matMeshMap);
+
+    // console.log("fitting get init garment");
+    // await this.fittingGetInitGarment({
+    //   styleId: _styleId,
+    //   styleVersion: _styleVersion,
+    //   gradingIndex: _gradingIndex,
+    // });
+    // console.log("fitting get init garment +++");
+
+    console.log("fittingGetInitGarment ---------");
+    await this.fittingGetInitGarment({
+      styleId: _styleId,
+      styleVersion: _styleVersion,
+      height: _height,
+      weight: _weight,
+      gradingIndex: 0,
+    });
+    console.log("fittingGetInitGarment +++++++++");
+
+    await this.fittingGetDraping({
+      styleId: _styleId,
+      styleVersion: _styleVersion,
+      height: _height,
+      weight: _weight,
       gradingIndex: 0,
     });
   }
@@ -273,19 +329,64 @@ export default class ClosetViewer {
     });
   }
 
-  async fittingGetAvatar({ id: id, skinType: skinType }) {
+  async fittingGetAvatar({
+    id: id,
+    skinType: skinType,
+    // onLoadFunc: onLoadFunc,
+  }) {
     const url = this.fitting.getAvatarURL({
       id: id,
       skinType: skinType,
     });
-    const onLoad = async () => {
-      const m = this.zrest.zProperty.rootMap.get("mapGeometry");
-      const l = this.fitting.loadGeometry({ mapGeometry: m });
+    // const onLoad = async () => {
+    //   const avatarGeometry = new Map(
+    //     this.zrest.zProperty.rootMap.get("mapGeometry")
+    //   );
+    //   // const m = this.zrest.zProperty.rootMap.get("mapGeometry");
+    //   // console.log(this.zrest.zProperty.rootMap.get("mapGeometry"));
+    //   // console.log(avatarGeometry);
+    //   const l = this.fitting.loadGeometry({
+    //     mapGeometry: avatarGeometry,
+    //   });
+    //   console.log("FINISH fittingGetAvatar");
+
+    //   // afterFunc;
+    // };
+
+    const onLoad = (result) => {
+      console.log(result);
+      console.log("=========== DONE ==============");
+
+      // if (onLoadFunc) onLoadFunc();
     };
-    this.loadZrestUrlWithParameters(url, null, onLoad);
+    console.log("00000000000000");
+    const s = await this.loadZrestForAvatar(url, null, onLoad);
+    console.log("11111111111111");
+    console.log(s);
   }
 
-  async fittingGetGarment({
+  async fittingGetInitGarment({
+    styleId: styleId,
+    styleVersion: styleVersion,
+    gradingIndex: gradingIndex,
+    avatarId: avatarId,
+  }) {
+    // const samplingData = await this.fitting.getSamplingJson(
+    //   styleId,
+    //   styleVersion
+    // );
+    const initGarmentURL = this.fitting.getInitGarmentURL(
+      styleId,
+      styleVersion,
+      gradingIndex,
+      avatarId
+    );
+    console.log(initGarmentURL);
+    await this.loadZrestForAvatar(initGarmentURL);
+    //this.loadZrestUrlWithParameters(initGarmentURL);
+  }
+
+  async fittingGetDraping({
     styleId: styleId,
     styleVersion: styleVersion,
     height: height,
@@ -296,25 +397,18 @@ export default class ClosetViewer {
       styleId,
       styleVersion
     );
-    const garmentURL = this.fitting.getGarmentURL(
+    const garmentURL = this.fitting.getDrapingDataURL(
       height,
       weight,
       samplingData,
       gradingIndex
     );
-    await this.fitting.loadGarment(garmentURL, this.zrest.zProperty.matMeshMap);
-  }
-
-  av(url) {
-    const test = () => {
-      const m = this.zrest.zProperty.rootMap.get("mapGeometry");
-      const l = this.fitting.loadGeometry({ mapGeometry: m });
-      // this.setAllAvatarVisible(false);
-      this.setVisibleAllGarment(false);
-      // this.avatar.extractAvatarMeshes(this.zrest.matMeshMap);
-      this.fitting.test(l);
-    };
-    this.loadZrestUrlWithParameters(url, null, test);
+    console.log("matMesh");
+    console.log(this.zrest.zProperty.matMeshMap);
+    await this.fitting.getDrapingData(
+      garmentURL,
+      this.zrest.zProperty.matMeshMap
+    );
   }
 
   onMouseMove(e) {
@@ -635,6 +729,75 @@ export default class ClosetViewer {
       });
       this.zrest.load(url, loaded, progress, error);
     }
+  }
+
+  // TODO: Refactoring here!
+  async loadZrestForAvatar(url, onProgress, onLoad) {
+    // const scene = new THREE.Scene();
+    const scene = this.scene;
+
+    const progress = function (xhr) {
+      if (xhr.lengthComputable) {
+        const percentComplete = (xhr.loaded / xhr.total) * 100;
+        const percent = Math.round(percentComplete, 2);
+        if (onProgress) onProgress(percent);
+      }
+    };
+
+    const error = function (xhr) {};
+
+    const loaded = async (object, loadedCamera, data) => {
+      // this.annotation.init({
+      //   zrest: this.zrest,
+      // });
+
+      // if (colorwayIndex > -1) {
+      //   await this.changeColorway(colorwayIndex);
+      // }
+      console.log("loaded");
+      scene.add(object);
+      this.object3D = object;
+
+      if (onLoad) onLoad(this);
+
+      return scene;
+    };
+
+    if (this.zrest !== undefined) {
+      this.zrest.clearMaps();
+      this.zrest = null;
+    }
+
+    if (url.constructor === String) {
+    }
+
+    this.zrest = new ZRestLoader({
+      scene: this.scene,
+      camera: this.camera,
+      controls: this.controls,
+      cameraPosition: this.cameraPosition,
+    });
+    console.log("loadurl ---------------------------------");
+    const r = await this.zrest.loadOnly(url, progress);
+    console.log(r);
+    const r2 = await this.zrest.parseAsync(r, loaded);
+    console.log(r2);
+
+    // const s = await this.zrest.loadUrl(url, loaded, progress, error);
+    console.log("loadurl ---------------------------------");
+    // return s;
+
+    return;
+
+    // if (url.constructor === String) {
+    //   this.zrest = new ZRestLoader({
+    //     scene: this.scene,
+    //     camera: this.camera,
+    //     controls: this.controls,
+    //     cameraPosition: this.cameraPosition,
+    //   });
+    //   this.zrest.load(url, loaded, progress, error);
+    // }
   }
 
   loadTechPack(fabricsWithPatternsFromAPI, trimsFromAPI) {

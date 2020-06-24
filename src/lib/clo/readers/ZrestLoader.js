@@ -153,6 +153,16 @@ export default class ZRestLoader {
     this.listPatternMeasure = [];
   };
 
+  loadOnly = (url, onProgress) => {
+    zrestProperty.bDisassembled = false;
+    const loader = new THREE.FileLoader(this.manager);
+    loader.setResponseType("arraybuffer");
+
+    return new Promise((resolve) => {
+      loader.load(url, resolve, onProgress);
+    });
+  };
+
   load = (url, onLoad, onProgress, onError) => {
     zrestProperty.bDisassembled = false;
     const loader = new THREE.FileLoader(this.manager);
@@ -211,56 +221,6 @@ export default class ZRestLoader {
       header.FileContentPos + header.FileContentSize
     );
 
-    const parseRestContents = async (restContent, zip) => {
-      // Parse Rest file data to RootMap
-      const rootMap = this.parseRest(restContent);
-      this.zProperty.rootMap = rootMap;
-
-      // seam puckering normal map 로드
-      this.zProperty.seamPuckeringNormalMap = await extractTexture(
-        zip,
-        "seam_puckering_2ol97pf293f2sdk98.png"
-      );
-      const loadedCamera = {
-        ltow: new THREE.Matrix4(),
-        bLoaded: false,
-      };
-      this.zProperty.loadedCamera = loadedCamera;
-
-      await this.meshFactory.build(
-        this,
-        rootMap,
-        zip,
-        object3D,
-        this.zProperty.loadedCamera
-      );
-
-      // Build list for pattern measurement
-      this.listPatternMeasure = rootMap.get("listPatternMeasure");
-
-      // 여기가 실질적으로 Zrest 로드 완료되는 시점
-      this.onLoad(object3D, this.zProperty.loadedCamera, this.data);
-      console.log("==========================");
-      console.log("zrest load complete");
-      console.log(this.cameraPosition);
-      console.log(this.zProperty.loadedCamera);
-      console.log("==========================");
-
-      // if (this.zProperty.loadedCamera) {
-      //   this.camera.position.copy(this.zProperty.loadedCamera);
-      // }
-
-      // add 할때 cameraPosition 이 있으면 설정해준다.
-      if (this.cameraPosition) {
-        this.camera.position.copy(this.cameraPosition);
-        this.zProperty.loadedCamera = this.cameraPosition;
-      }
-
-      // 임시 데이터 clear
-      // this.zProperty.nameToTextureMap.clear();
-      // };
-    };
-
     reader.onload = async (e) => {
       // this.extractRestFileName(e);
       this.jsZip = new JSZip();
@@ -276,10 +236,71 @@ export default class ZRestLoader {
 
       // Uncompress zip (restFile)
       const restContent = await zip.file(restFileName).async("arrayBuffer");
-      parseRestContents(restContent, zip);
+      this.parseRestContents(object3D, restContent, zip);
     };
 
     reader.readAsArrayBuffer(contentBlob);
+  };
+
+  // NOTE: For now, this function use for avatar only (for fitting service)
+  parseAsync = async (data, onLoad) => {
+    this.data = data;
+    this.onLoad = onLoad;
+
+    const headerOffset = { Offset: 0 };
+    const blob = new Blob([data]);
+    const dataView = new DataView(data);
+    const header = readHeader(dataView, headerOffset);
+
+    const object3D = new THREE.Object3D();
+    // const object3D = new THREE.LOD();
+    object3D.name = "fittingAvatarContainer";
+
+    // const reader = new FileReader();
+    const contentBlob = blob.slice(
+      header.FileContentPos,
+      header.FileContentPos + header.FileContentSize
+    );
+
+    const readFileAsync = (file) => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = () => {
+          resolve(reader.result);
+        };
+
+        reader.onerror = reject;
+
+        reader.readAsArrayBuffer(file);
+      });
+    };
+
+    const unzipRest = async (e) => {
+      this.jsZip = new JSZip();
+      const zip = await this.jsZip.loadAsync(e);
+      const keyList = Object.keys(zip.files);
+
+      const restFileName = keyList.find((value) => {
+        const list = value.split(".");
+        const extension = list[list.length - 1];
+
+        return extension === "rest";
+      });
+
+      // Uncompress zip (restFile)
+      const restContent = await zip.file(restFileName).async("arrayBuffer");
+      // return restContent;
+      return await this.parseRestContents(object3D, restContent, zip);
+    };
+
+    console.log("*** re1");
+    const contentsData = await readFileAsync(contentBlob);
+    // console.log(contentsData);
+    const rootMap = await unzipRest(contentsData);
+    // console.log(rootMap);
+    console.log("*** re2");
+    return rootMap;
   };
 
   getColorwaySize = () => this.meshFactory.getColorwaySize();
@@ -333,6 +354,60 @@ export default class ZRestLoader {
 
     // this.meshFactory.build.parseMapColorWay();
 
+    return rootMap;
+  };
+
+  parseRestContents = async (object3D, restContent, zip) => {
+    // Parse Rest file data to RootMap
+    const rootMap = this.parseRest(restContent);
+    this.zProperty.rootMap = rootMap;
+
+    // seam puckering normal map 로드
+    this.zProperty.seamPuckeringNormalMap = await extractTexture(
+      zip,
+      "seam_puckering_2ol97pf293f2sdk98.png"
+    );
+    const loadedCamera = {
+      ltow: new THREE.Matrix4(),
+      bLoaded: false,
+    };
+    this.zProperty.loadedCamera = loadedCamera;
+
+    await this.meshFactory.build(
+      this,
+      rootMap,
+      zip,
+      object3D,
+      this.zProperty.loadedCamera
+    );
+
+    // Build list for pattern measurement
+    this.listPatternMeasure = rootMap.get("listPatternMeasure");
+
+    console.log("==========================");
+    console.log("zrest load complete");
+    console.log(this.cameraPosition);
+    console.log(this.zProperty.loadedCamera);
+    console.log("==========================");
+
+    // if (this.zProperty.loadedCamera) {
+    //   this.camera.position.copy(this.zProperty.loadedCamera);
+    // }
+
+    // add 할때 cameraPosition 이 있으면 설정해준다.
+    if (this.cameraPosition) {
+      this.camera.position.copy(this.cameraPosition);
+      this.zProperty.loadedCamera = this.cameraPosition;
+    }
+
+    // 여기가 실질적으로 Zrest 로드 완료되는 시점
+    if (this.onLoad) {
+      this.onLoad(object3D, this.zProperty.loadedCamera, this.data);
+    }
+
+    // 임시 데이터 clear
+    // this.zProperty.nameToTextureMap.clear();
+    // };
     return rootMap;
   };
 
