@@ -80,8 +80,11 @@ const AVATAR_GENDER = {
     GENDER_SIZE: 6
 };
 
+// baseMeshMap은 MVMap
+// convertinMatData 는 float array
+// heightWeightTo5SizesMap MVMap
 export default class ResizableBody {
-    constructor(gender) {
+    constructor(gender, baseMeshMap, convertingMatData, heightWeightTo5SizesMap) {
 
         this.mCurrentGender = gender;
         this.mFeatureEnable = new Array(MEASUREMENT_LIST_NAME.SIZE_OF_MEASUREMENT_LIST).fill(false);
@@ -94,15 +97,19 @@ export default class ResizableBody {
         this.mFeatureEnable[MEASUREMENT_LIST_NAME.LENGTH_Arm] = true;
         this.mFeatureEnable[MEASUREMENT_LIST_NAME.HEIGHT_Crotch] = true;  
 
-        // todo mBaseVertex 읽어들이기
-
-        // todo mSymmetryIndex 읽어들이기
-
-        // todo baseToZrestVertexMapping
-
+        let vCount = baseMeshMap.get("uiVertexCount");
+        let baPosition = baseMeshMap.get("baPosition");
+        this.mBaseVertex = new Array(vCount);
+        for (let i = 0; i < vCount; i++)
+            this.mBaseVertex[i] = baPosition[i]; // todo array가 vec3 가 아니라 float 이거나 byte일 것 같아서 재작업 필요.
+        this.mStartIndexMap = baseMeshMap.get("mapStartIndex");
+        this.mSymmetryIndex = baseMeshMap.get("baSymmetryIndex");
+                
         // todo mConvertingMatData 읽어들이기
+        this.mConvertingMatData = convertingMatData;
 
         // todo mHeightWeightTo5SizesMap        
+        this.mHeightWeightTo5SizesMap = heightWeightTo5SizesMap;
     }
 
     dataSymmetrization = (returnVertex) => {
