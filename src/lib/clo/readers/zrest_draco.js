@@ -348,11 +348,15 @@ const splitMatSpaceToMatMesh = async (
         threeMesh.visible = true;
       } else {
         threeMesh.visible = bVisible;
-        // if (bVisible === 0) {
-        //   threeMesh.visible = false;
-        // } else if (bVisible === 1) {
-        //   threeMesh.visible = true;
-        // }
+
+        // NOTE:
+        // Type이 명시되지 않기 때문에 아래 부분이 필요함.
+        // Typescript를 적용하면 자연스럽게 해결할 수 있는 문제.
+        if (bVisible === 0) {
+          threeMesh.visible = false;
+        } else if (bVisible === 1) {
+          threeMesh.visible = true;
+        }
       }
     } else {
       threeMesh.visible = true;

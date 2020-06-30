@@ -14,7 +14,9 @@ module.exports = {
     sourceType: "module"
   },
   rules: {
-    "prettier/prettier": "error",
+    "prettier/prettier": ["error", {
+      "endOfLine": "auto"
+    }],
     "max-len": ["error", { code: 200 }],
     "linebreak-style": 0
   }
