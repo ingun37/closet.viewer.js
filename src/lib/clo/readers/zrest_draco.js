@@ -2,7 +2,7 @@ import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 import { unZip } from "@/lib/clo/readers/FileLoader";
 import * as THREE from "@/lib/threejs/three";
 import { makeMaterial } from "@/lib/clo/readers/zrest_material";
-import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
+import { MATMESH_TYPE } from "@/lib/clo/readers/Predefined";
 
 const getDracoGeometry = async (
   matMeshManager,
@@ -348,10 +348,6 @@ const splitMatSpaceToMatMesh = async (
         threeMesh.visible = true;
       } else {
         threeMesh.visible = bVisible;
-
-        // NOTE:
-        // Type이 명시되지 않기 때문에 아래 부분이 필요함.
-        // Typescript를 적용하면 자연스럽게 해결할 수 있는 문제.
         if (bVisible === 0) {
           threeMesh.visible = false;
         } else if (bVisible === 1) {
@@ -371,9 +367,11 @@ const splitMatSpaceToMatMesh = async (
     threeMesh.receiveShadow = b;
     tf.add(threeMesh);
 
-    // TEST for fitting
+    // Temporary codes for fitting
+    // Should be removed after live
     if (type === MATMESH_TYPE.PATTERN_MATMESH) {
       console.log(dracoGeometry);
+      threeMesh.userData.originalPos = dracoGeometry.vertices;
       threeMesh.userData.originalIndices = dracoGeometry.indices;
       threeMesh.userData.originalUv = dracoGeometry.uvs;
       threeMesh.userData.originalUv2 = dracoGeometry.uv2s;
@@ -456,8 +454,6 @@ export const createMatMesh = async (
 
     const dracoFilename =
       mapShape.get("qsDracoFileNameUTF8") || mapShape.get("qsDracoFileName");
-
-    // console.log(readByteArray("String", dracoFilename));
 
     const dracoGeometry = await getDracoGeometry(
       matMeshManager,

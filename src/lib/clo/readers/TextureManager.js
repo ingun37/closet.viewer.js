@@ -90,7 +90,7 @@ export async function setTexturePropertyDisassembly({
   const matMeshIdList = zProperty.listMapTextureMatMeshId[colorwayIndex].get(
     textureFilename
   );
-  console.log(textureFilename, colorwayIndex);
+  // console.log(textureFilename, colorwayIndex);
 
   if (textureFilename === "seam_puckering_2ol97pf293f2sdk98.png") return;
   if (!matMeshIdList) {
@@ -110,7 +110,7 @@ export async function setTexturePropertyDisassembly({
     }
     const threeJSMaterial = zProperty.matMeshMap.get(matMeshId).material;
 
-    listTextureInfo.map(async textureInfo => {
+    listTextureInfo.map(async (textureInfo) => {
       if (textureInfo.file.includes(textureFilename)) {
         await setTextureMaterial({
           textureInfo: textureInfo,
@@ -118,8 +118,8 @@ export async function setTexturePropertyDisassembly({
           threeJSMaterial: threeJSMaterial,
           zrestVersion: version,
           bUseSeamPuckeringNormalMap:
-              zProperty.seamPuckeringNormalMap !== undefined &&
-              zProperty.seamPuckeringNormalMap !== null,
+            zProperty.seamPuckeringNormalMap !== undefined &&
+            zProperty.seamPuckeringNormalMap !== null,
         });
 
         setTextureProperty({
@@ -128,7 +128,7 @@ export async function setTexturePropertyDisassembly({
           colorwayIndex: colorwayIndex,
         });
       }
-    })
+    });
   });
 }
 
@@ -147,13 +147,6 @@ const setTextureProperty = ({
   materialInfo: matProperty,
   colorwayIndex: colorwayIndex,
 }) => {
-  // console.log({
-  //   setTextureProperty: "->",
-  //   threeJSMaterial: threeJSMaterial,
-  //   materialInfo: matProperty,
-  //   colorwayIndex: colorwayIndex,
-  // });
-  // console.log(colorwayIndex, matProperty.colorwayObjectTextureTransformation);
   const transformed = matProperty.colorwayObjectTextureTransformation;
   if (transformed.length <= 0) {
     // console.error("transformed empty: " + transformed);
@@ -289,7 +282,7 @@ const setTextureMaterial = async ({
 };
 
 export async function extractTexture(zip, textureFileName) {
-  console.log(textureFileName);
+  // console.log(textureFileName);
   const file = zip.file(textureFileName);
   if (!file) {
     return null;

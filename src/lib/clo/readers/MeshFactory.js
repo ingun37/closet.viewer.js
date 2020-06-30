@@ -4,11 +4,19 @@ import * as THREE from "@/lib/threejs/three";
 
 import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 import { RENDER_FACE_TYPE } from "@/lib/clo/readers/Predefined";
+import { getFilename } from "@/lib/clo/readers/FileLoader";
 
 import MatMeshManager from "./zrest_matMesh";
 
 export default class MeshFactory {
-  constructor({ matMeshMap: matMeshMap, matShapeMap: matShapeMap, materialInformationMap: materialInformationMap, camera: loadedCamera, zrestProperty: zrestProperty, zrestElement: zrestElement }) {
+  constructor({
+    matMeshMap: matMeshMap,
+    matShapeMap: matShapeMap,
+    materialInformationMap: materialInformationMap,
+    camera: loadedCamera,
+    zrestProperty: zrestProperty,
+    zrestElement: zrestElement,
+  }) {
     this.matMeshMap = matMeshMap;
     this.materialList = [];
     this.matShapeMap = matShapeMap;
@@ -31,7 +39,7 @@ export default class MeshFactory {
       // matShapeMap: this.matShapeMap,
       materialInformationMap: this.materialInformationMap,
       camera: this.camera,
-      zrestProperty: this.zProperty
+      zrestProperty: this.zProperty,
       // zrestElement: this.zElement
       // drawMode: this.drawMode
     });
@@ -42,7 +50,9 @@ export default class MeshFactory {
       const mapColorways = rootMap.get("mapColorWay");
       if (mapColorways !== undefined) {
         // NOTE: CLO SW에서 선택한 기본 colorIndex(로 예상됨)
-        this.zProperty.colorwayIndex = mapColorways.get("uiCurrentCoordinationIndex");
+        this.zProperty.colorwayIndex = mapColorways.get(
+          "uiCurrentCoordinationIndex"
+        );
         this.colorwaySize = mapColorways.get("listColorway").length;
         this.zProperty.colorwaySize = this.colorwaySize;
       }
@@ -68,7 +78,8 @@ export default class MeshFactory {
     };
 
     const parseListMatMesh = () => {
-      const listMatMesh = rootMap.get("listMatMesh") || rootMap.get("listMaterials");
+      const listMatMesh =
+        rootMap.get("listMatMesh") || rootMap.get("listMaterials");
 
       if (listMatMesh === undefined) {
         console.error("ERROR: MatMesh missing");
@@ -87,14 +98,18 @@ export default class MeshFactory {
             for (let j = 0; j < listMaterialInfo.length; ++j) {
               // TODO: refactor here
               const mapMaterialInfo = {
-                index: -1
+                index: -1,
               };
               mapMaterialInfo.index = listMaterialInfo[j].get("iMaterialIndex");
               if (mapMaterialInfo.index < this.materialList.length) {
                 // 나중에 작성자의 의도를 파악해야 함. 미심쩍다...왜 Material이 renderFace 정보를 가지고 있는지 잘 모르겠음.
                 // by Jaden
-                this.materialList[mapMaterialInfo.index].renderFace = renderFace;
-                matMesh.colorwayMaterials.push(this.materialList[mapMaterialInfo.index]);
+                this.materialList[
+                  mapMaterialInfo.index
+                ].renderFace = renderFace;
+                matMesh.colorwayMaterials.push(
+                  this.materialList[mapMaterialInfo.index]
+                );
               }
             }
           }
@@ -114,7 +129,10 @@ export default class MeshFactory {
           }
         }
 
-        this.materialInformationMap.set(listMatMesh[i].get("uiMatMeshID"), matMesh);
+        this.materialInformationMap.set(
+          listMatMesh[i].get("uiMatMeshID"),
+          matMesh
+        );
       }
 
       // console.log(this.materialList);
@@ -124,15 +142,6 @@ export default class MeshFactory {
 
     // Colorway에 따른 texture map 생성 (by TKAY)
     const initListMapTextureMatMeshId = () => {
-      // TODO: 이 함수는 따로 묶을 것.
-      const getFilename = (textureURL) => {
-        const splitTextureURL = textureURL.split("/");
-        const filenameWithToken = splitTextureURL[splitTextureURL.length - 1];
-        const filenameWithoutToken = filenameWithToken.split("?")[0];
-
-        return filenameWithoutToken;
-      };
-
       // TODO: 이 부분 고치자
       this.zProperty.listMapTextureMatMeshId = [];
       // const listMTMMId = [];
@@ -212,11 +221,28 @@ export default class MeshFactory {
 
       const colorwayIndex = this.zProperty.colorwayIndex;
       // TODO: 투명 여부에 따른 mesh 순서 파악해야 함
-      let tf = await this.matmeshManager.getMatMeshs(zrestLoader, mapGeometry, dracosData, false, this.materialInformationMap, colorwayIndex, this.camera, true);
+      let tf = await this.matmeshManager.getMatMeshs(
+        zrestLoader,
+        mapGeometry,
+        dracosData,
+        false,
+        this.materialInformationMap,
+        colorwayIndex,
+        this.camera,
+        true
+      );
       retObject.add(tf);
       if (zrestLoader.aborted) return;
 
-      tf = await this.matmeshManager.getMatMeshs(zrestLoader, mapGeometry, dracosData, true, this.materialInformationMap, colorwayIndex, this.camera);
+      tf = await this.matmeshManager.getMatMeshs(
+        zrestLoader,
+        mapGeometry,
+        dracosData,
+        true,
+        this.materialInformationMap,
+        colorwayIndex,
+        this.camera
+      );
       retObject.add(tf);
 
       if (zrestLoader.aborted) return;
@@ -248,13 +274,29 @@ export default class MeshFactory {
       console.log(this.zProperty);
       console.log(colorwayIndex);
       // 불투명 부터 추가해서 불투명 object 부터 그리기
-      let tf = await this.matmeshManager.getMatMeshs(zrestLoader, mapGeometry, jsZip, false, this.materialInformationMap, colorwayIndex, this.camera);
+      let tf = await this.matmeshManager.getMatMeshs(
+        zrestLoader,
+        mapGeometry,
+        jsZip,
+        false,
+        this.materialInformationMap,
+        colorwayIndex,
+        this.camera
+      );
       if (zrestLoader.aborted) return;
       retObject.add(tf);
       console.log("first cycle");
 
       // 투명한것 추가
-      tf = await this.matmeshManager.getMatMeshs(zrestLoader, mapGeometry, jsZip, true, this.materialInformationMap, colorwayIndex, this.camera);
+      tf = await this.matmeshManager.getMatMeshs(
+        zrestLoader,
+        mapGeometry,
+        jsZip,
+        true,
+        this.materialInformationMap,
+        colorwayIndex,
+        this.camera
+      );
       if (zrestLoader.aborted) return;
       retObject.add(tf);
       console.log("second cycle");
@@ -343,7 +385,7 @@ export default class MeshFactory {
       frontColorMult: 1.0,
       sideColorMult: 1.0,
 
-      texture: []
+      texture: [],
     };
 
     // For high version only
@@ -357,10 +399,26 @@ export default class MeshFactory {
     material.bTransparent = source.get("bTransparent");
     material.bPerfectTransparent = source.get("bPerfectTransparent");
 
-    material.ambient = new THREE.Vector3(source.get("v4Ambient").x, source.get("v4Ambient").y, source.get("v4Ambient").z);
-    material.diffuse = new THREE.Vector3(source.get("v4Diffuse").x, source.get("v4Diffuse").y, source.get("v4Diffuse").z);
-    material.specular = new THREE.Vector3(source.get("v4Specular").x, source.get("v4Specular").y, source.get("v4Specular").z);
-    material.emission = new THREE.Vector3(source.get("v4Emission").x, source.get("v4Emission").y, source.get("v4Emission").z);
+    material.ambient = new THREE.Vector3(
+      source.get("v4Ambient").x,
+      source.get("v4Ambient").y,
+      source.get("v4Ambient").z
+    );
+    material.diffuse = new THREE.Vector3(
+      source.get("v4Diffuse").x,
+      source.get("v4Diffuse").y,
+      source.get("v4Diffuse").z
+    );
+    material.specular = new THREE.Vector3(
+      source.get("v4Specular").x,
+      source.get("v4Specular").y,
+      source.get("v4Specular").z
+    );
+    material.emission = new THREE.Vector3(
+      source.get("v4Emission").x,
+      source.get("v4Emission").y,
+      source.get("v4Emission").z
+    );
     material.shininess = source.get("fShininess");
     material.alpha = source.get("v4Diffuse").w;
 
@@ -373,14 +431,24 @@ export default class MeshFactory {
       // 기존에 최대 10인 intensity여서 10만 곱해서 최대 100% 로 맞춘다.
       material.normalMapIntensityInPercentage = normalIntensity * 10.0;
     } else {
-      material.normalMapIntensityInPercentage = source.get("iNormalIntensityInPercentage");
+      material.normalMapIntensityInPercentage = source.get(
+        "iNormalIntensityInPercentage"
+      );
     }
 
-    material.base = new THREE.Vector3(source.get("v3BaseColor").x, source.get("v3BaseColor").y, source.get("v3BaseColor").z);
+    material.base = new THREE.Vector3(
+      source.get("v3BaseColor").x,
+      source.get("v3BaseColor").y,
+      source.get("v3BaseColor").z
+    );
 
     material.blendFuncSrc = source.get("uiBlendFuncSrc");
     material.blendFuncDst = source.get("uiBlendFuncDst");
-    material.blendColor = new THREE.Vector3(source.get("v4BlendColor").x, source.get("v4BlendColor").y, source.get("v4BlendColor").z);
+    material.blendColor = new THREE.Vector3(
+      source.get("v4BlendColor").x,
+      source.get("v4BlendColor").y,
+      source.get("v4BlendColor").z
+    );
 
     material.opaqueMode = source.get("enOpaqueMode");
     material.ambientIntensity = source.get("fAmbientIntensity");
@@ -409,7 +477,9 @@ export default class MeshFactory {
       material.metalness = 0.0;
     }
 
-    material.environmentLightIntensity = source.get("fEnvironmentLightIntensity");
+    material.environmentLightIntensity = source.get(
+      "fEnvironmentLightIntensity"
+    );
     material.cameraLightIntensity = source.get("fCameraLightIntensity");
 
     // velvet
@@ -434,17 +504,27 @@ export default class MeshFactory {
     // 다음(v3ReflectionColor)은 사용되고 있지 않은 코드같다..
     const reflectionColor = source.get("v3ReflectionColor");
     if (reflectionColor !== undefined && reflectionColor !== null) {
-      material.reflectionColor = new THREE.Vector3(source.get("v3ReflectionColor").x, source.get("v3ReflectionColor").y, source.get("v3ReflectionColor").z);
+      material.reflectionColor = new THREE.Vector3(
+        source.get("v3ReflectionColor").x,
+        source.get("v3ReflectionColor").y,
+        source.get("v3ReflectionColor").z
+      );
     } else {
       material.reflectionColor = new THREE.Vector3(0.04, 0.04, 0.04);
     } // 실제로는 사용되지 않는 값이지만 초기화하자
 
     // silk satin 의 specular color(여기서는 reflection color) 적용하기. 여기 바뀌면 CLO에서도 바꿔 줘야 한다.
     // silk & satin
-    if (material.bUseMetalnessRoughnessPBR == false && material.materialType == 5) {
-      material.reflectionColor.x = material.reflectionIntensity * (material.base.x + 0.1); // 하얀색 하이라이트가 약하니 0.1 더해준다.
-      material.reflectionColor.y = material.reflectionIntensity * (material.base.y + 0.1);
-      material.reflectionColor.z = material.reflectionIntensity * (material.base.z + 0.1);
+    if (
+      material.bUseMetalnessRoughnessPBR == false &&
+      material.materialType == 5
+    ) {
+      material.reflectionColor.x =
+        material.reflectionIntensity * (material.base.x + 0.1); // 하얀색 하이라이트가 약하니 0.1 더해준다.
+      material.reflectionColor.y =
+        material.reflectionIntensity * (material.base.y + 0.1);
+      material.reflectionColor.z =
+        material.reflectionIntensity * (material.base.z + 0.1);
 
       material.base.x = 0.8 * material.base.x; // CLO쪽과 동일한 코드로 만들기 위해 0.8 곱해준다.
       material.base.y = 0.8 * material.base.y;
@@ -475,7 +555,7 @@ export default class MeshFactory {
         translate: { x: 0.0, y: 0.0 },
         scale: { x: 0.0, y: 0.0 },
         colorInverted: false,
-        intensity: 1.0
+        intensity: 1.0,
       };
 
       textureProperty.file = readByteArray("String", tex[k].get("qsFileName"));
@@ -501,7 +581,7 @@ export default class MeshFactory {
       bPolygonOffset: false,
       zOffset: 0.0,
       colorwayMaterials: [],
-      colorwayObjectTextureTransformation: []
+      colorwayObjectTextureTransformation: [],
     };
 
     material.id = matMesh.get("uiMatMeshID");
@@ -525,7 +605,7 @@ export default class MeshFactory {
       for (let j = 0; j < listTexInfo.length; ++j) {
         const info = {
           angle: 0.0,
-          translate: { x: 0.0, y: 0.0 }
+          translate: { x: 0.0, y: 0.0 },
         };
 
         info.angle = listTexInfo[j].get("fAngle");

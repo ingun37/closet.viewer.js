@@ -22,6 +22,7 @@ import { makeMaterial } from "./zrest_material";
 import Colorway, { changeColorway } from "./Colorway";
 import { safeDeallocation } from "@/lib/clo/readers/MemoryUtils";
 import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
+import { getFilename } from "@/lib/clo/readers/FileLoader";
 
 const zrestProperty = {
   version: -1,
@@ -63,6 +64,9 @@ export default class ZRestLoader {
     this.manager =
       manager !== undefined ? manager : THREE.DefaultLoadingManager;
 
+    this.rootObject = new THREE.Object3D();
+    this.rootObject.name = "object3D";
+
     // ZREST property
     this.zProperty = zrestProperty;
     this.zProperty.drawMode = this.getParsedDrawMode(drawMode);
@@ -103,13 +107,13 @@ export default class ZRestLoader {
     this.isDisassembled = () => {
       return this.zProperty.bDisassembled;
     };
+
     this.safeDeallocation = safeDeallocation;
-    this.changeColorway = (colorwayIndex) => {
-      this.colorway.changeColorway({
+    this.changeColorway = async (colorwayIndex) => {
+      await this.colorway.changeColorway({
         colorwayIndex: colorwayIndex,
         jsZip: this.jsZip,
       });
-      // changeColorway({ colorwayIndex: colorwayIndex, zProperty: this.zProperty, jsZip: this.jsZip });
     };
   }
 
@@ -152,6 +156,16 @@ export default class ZRestLoader {
     this.listPatternMeasure = [];
   };
 
+  loadOnly = (url, onProgress) => {
+    zrestProperty.bDisassembled = false;
+    const loader = new THREE.FileLoader(this.manager);
+    loader.setResponseType("arraybuffer");
+
+    return new Promise((resolve) => {
+      loader.load(url, resolve, onProgress);
+    });
+  };
+
   load = (url, onLoad, onProgress, onError) => {
     zrestProperty.bDisassembled = false;
     const loader = new THREE.FileLoader(this.manager);
@@ -169,22 +183,7 @@ export default class ZRestLoader {
 
   loadUrl = (url, onLoad, onProgress, onError) => {
     zrestProperty.bDisassembled = false;
-    const loader = new THREE.FileLoader(this.manager);
-    loader.setResponseType("arraybuffer");
-    return new Promise((resolve, reject) => {
-      this.req = loader.load(
-          url,
-          (data) => {
-            this.parse(data, onLoad);
-            resolve()
-          },
-          onProgress,
-          reject
-      );
-    });
-  };
 
-  loadFile = async (url, onLoad, onProgress, onError) => {
     const loader = new THREE.FileLoader(this.manager);
     loader.setResponseType("arraybuffer");
     return new Promise((resolve, reject) => {
@@ -216,65 +215,16 @@ export default class ZRestLoader {
     const dataView = new DataView(data);
     const header = readHeader(dataView, headerOffset);
 
-    const object3D = new THREE.Object3D();
-    // const object3D = new THREE.LOD();
-    object3D.name = "object3D";
+    const object3D = this.rootObject;
+    // new THREE.Object3D();
+    // // const object3D = new THREE.LOD();
+    // object3D.name = "object3D";
 
     const reader = new FileReader();
     const contentBlob = blob.slice(
       header.FileContentPos,
       header.FileContentPos + header.FileContentSize
     );
-
-    const parseRestContents = async (restContent, zip) => {
-      // Parse Rest file data to RootMap
-      const rootMap = this.parseRest(restContent);
-      this.zProperty.rootMap = rootMap;
-
-      // seam puckering normal map 로드
-      this.zProperty.seamPuckeringNormalMap = await extractTexture(
-        zip,
-        "seam_puckering_2ol97pf293f2sdk98.png"
-      );
-      const loadedCamera = {
-        ltow: new THREE.Matrix4(),
-        bLoaded: false,
-      };
-      this.zProperty.loadedCamera = loadedCamera;
-
-      await this.meshFactory.build(
-        this,
-        rootMap,
-        zip,
-        object3D,
-        this.zProperty.loadedCamera
-      );
-
-      // Build list for pattern measurement
-      this.listPatternMeasure = rootMap.get("listPatternMeasure");
-
-      // 여기가 실질적으로 Zrest 로드 완료되는 시점
-      this.onLoad(object3D, this.zProperty.loadedCamera, this.data);
-      console.log("==========================");
-      console.log("zrest load complete");
-      console.log(this.cameraPosition);
-      console.log(this.zProperty.loadedCamera);
-      console.log("==========================");
-
-      // if (this.zProperty.loadedCamera) {
-      //   this.camera.position.copy(this.zProperty.loadedCamera);
-      // }
-
-      // add 할때 cameraPosition 이 있으면 설정해준다.
-      if (this.cameraPosition) {
-        this.camera.position.copy(this.cameraPosition);
-        this.zProperty.loadedCamera = this.cameraPosition;
-      }
-
-      // 임시 데이터 clear
-      // this.zProperty.nameToTextureMap.clear();
-      // };
-    };
 
     reader.onload = async (e) => {
       // this.extractRestFileName(e);
@@ -291,10 +241,73 @@ export default class ZRestLoader {
 
       // Uncompress zip (restFile)
       const restContent = await zip.file(restFileName).async("arrayBuffer");
-      parseRestContents(restContent, zip);
+      this.parseRestContents(object3D, restContent, zip);
     };
 
     reader.readAsArrayBuffer(contentBlob);
+  };
+
+  // NOTE: For now, this function use for avatar only (for fitting service)
+  parseAsync = async (data, onLoad) => {
+    this.data = data;
+    this.onLoad = onLoad;
+
+    const headerOffset = { Offset: 0 };
+    const blob = new Blob([data]);
+    const dataView = new DataView(data);
+    const header = readHeader(dataView, headerOffset);
+
+    const object3D = this.rootObject;
+    // const object3D = new THREE.Object3D();
+    // const object3D = new THREE.LOD();
+    // object3D.name = "object3D";
+    // object3D.name = "fittingContainer";
+
+    // const reader = new FileReader();
+    const contentBlob = blob.slice(
+      header.FileContentPos,
+      header.FileContentPos + header.FileContentSize
+    );
+
+    const readFileAsync = (file) => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = () => {
+          resolve(reader.result);
+        };
+
+        reader.onerror = reject;
+
+        reader.readAsArrayBuffer(file);
+      });
+    };
+
+    const unzipRest = async (e) => {
+      this.jsZip = new JSZip();
+      const zip = await this.jsZip.loadAsync(e);
+      const keyList = Object.keys(zip.files);
+
+      const restFileName = keyList.find((value) => {
+        const list = value.split(".");
+        const extension = list[list.length - 1];
+
+        return extension === "rest";
+      });
+
+      // Uncompress zip (restFile)
+      const restContent = await zip.file(restFileName).async("arrayBuffer");
+      // return restContent;
+      return await this.parseRestContents(object3D, restContent, zip);
+    };
+
+    console.log("*** re1");
+    const contentsData = await readFileAsync(contentBlob);
+    // console.log(contentsData);
+    const rootMap = await unzipRest(contentsData);
+    // console.log(rootMap);
+    console.log("*** re2");
+    return rootMap;
   };
 
   getColorwaySize = () => this.meshFactory.getColorwaySize();
@@ -351,9 +364,63 @@ export default class ZRestLoader {
     return rootMap;
   };
 
+  parseRestContents = async (object3D, restContent, zip) => {
+    // Parse Rest file data to RootMap
+    const rootMap = this.parseRest(restContent);
+    this.zProperty.rootMap = rootMap;
+
+    // seam puckering normal map 로드
+    this.zProperty.seamPuckeringNormalMap = await extractTexture(
+      zip,
+      "seam_puckering_2ol97pf293f2sdk98.png"
+    );
+    const loadedCamera = {
+      ltow: new THREE.Matrix4(),
+      bLoaded: false,
+    };
+    this.zProperty.loadedCamera = loadedCamera;
+
+    await this.meshFactory.build(
+      this,
+      rootMap,
+      zip,
+      object3D,
+      this.zProperty.loadedCamera
+    );
+
+    // Build list for pattern measurement
+    this.listPatternMeasure = rootMap.get("listPatternMeasure");
+
+    console.log("==========================");
+    console.log("zrest load complete");
+    console.log(this.cameraPosition);
+    console.log(this.zProperty.loadedCamera);
+    console.log("==========================");
+
+    // if (this.zProperty.loadedCamera) {
+    //   this.camera.position.copy(this.zProperty.loadedCamera);
+    // }
+
+    // add 할때 cameraPosition 이 있으면 설정해준다.
+    if (this.cameraPosition) {
+      this.camera.position.copy(this.cameraPosition);
+      this.zProperty.loadedCamera = this.cameraPosition;
+    }
+
+    // 여기가 실질적으로 Zrest 로드 완료되는 시점
+    if (this.onLoad) {
+      this.onLoad(object3D, this.zProperty.loadedCamera, this.data);
+    }
+
+    // 임시 데이터 clear
+    // this.zProperty.nameToTextureMap.clear();
+    // };
+    return rootMap;
+  };
+
   processRestFile = async (restURL) => {
     // Load Rest file
-    const loadedData = await this.loadFile(restURL);
+    const loadedData = await loadFile(restURL);
 
     // Unzip Rest data
     const restFileName = "viewer.rest";
@@ -364,63 +431,50 @@ export default class ZRestLoader {
     this.zProperty.rootMap = rootMap;
   };
 
-  getFilename = (textureURL) => {
-    const splitTextureURL = textureURL.split("/");
-    const filenameWithToken = splitTextureURL[splitTextureURL.length - 1];
-    const filenameWithoutToken = filenameWithToken.split("?")[0];
-
-    return filenameWithoutToken;
-  };
-
   processDracoFiles = async (dracoURLList, object3D, onProgress) => {
     const loadDracoFiles = async () => {
       // NOTE: forEach not working correctly with await/async
 
       const newDracoURLPromise = dracoURLList.map(async (dracoURL) => {
-        const loadedData = await this.loadFile(dracoURL);
-        const dracoFilenameWithoutZip = this.getFilename(dracoURL).replace(".zip", "");
-        return [
-          dracoFilenameWithoutZip,
-          loadedData,
-        ]
-      })
+        const loadedData = await loadFile(dracoURL);
+        const dracoFilenameWithoutZip = getFilename(dracoURL).replace(
+          ".zip",
+          ""
+        );
+        return [dracoFilenameWithoutZip, loadedData];
+      });
       return await Promise.all(newDracoURLPromise);
     };
 
     const unzipDracoFiles = async (mapDracoUrls) => {
-
-      const newDracoURLPromise = mapDracoUrls.map(async(data) => {
-        const [ dracoFilenameWithoutZip, loadedData] = data;
+      const newDracoURLPromise = mapDracoUrls.map(async (data) => {
+        const [dracoFilenameWithoutZip, loadedData] = data;
         const drcArrayBuffer = await unZip(loadedData, dracoFilenameWithoutZip);
-        return [
-          dracoFilenameWithoutZip,
-          drcArrayBuffer,
-        ]
-      })
+        return [dracoFilenameWithoutZip, drcArrayBuffer];
+      });
       const newDracoArrayBuffer = await Promise.all(newDracoURLPromise);
       return new Map(newDracoArrayBuffer);
-
-    }
+    };
 
     console.log("=======================");
     console.log("Set mesh material without texture");
     console.log("=======================");
 
     const mapDracoUrls = await loadDracoFiles();
-    onProgress(80)
+    onProgress(80);
     const mapDracoData = await unzipDracoFiles(mapDracoUrls);
-    onProgress(90)
+    onProgress(90);
     await this.meshFactory.buildDracos(this, mapDracoData, object3D); //, reObject, loadedCamera);
     mapDracoData.clear();
     console.log("processDracoFiles done.");
   };
 
   loadTextureFromURL = async (url) => {
-    const textureArrayBuffer = await this.loadFile(url);
+    const textureArrayBuffer = await loadFile(url);
     const threeJSTexture = await getTexture(textureArrayBuffer);
 
     // TODO: 개발 마무리 할 것
-    this.zProperty.nameToTextureMap.set(this.getFilename(url), threeJSTexture);
+    this.zProperty.nameToTextureMap.set(getFilename(url), threeJSTexture);
 
     return threeJSTexture;
   };
@@ -431,7 +485,7 @@ export default class ZRestLoader {
     // NOTE: 만약 texture list가 중요도 순으로 sort가 되어 있다면 참 좋을텐데
     textureURLList.map(async (textureURL) => {
       const threeJSTexture = await this.loadTextureFromURL(textureURL);
-      const textureFilename = this.getFilename(textureURL);
+      const textureFilename = getFilename(textureURL);
 
       // if (this.zProperty.listMapTextureMatMeshId[colorwayIndex].has(textureFilename)) {
       // NOTE: colorway와 상관 없이 모든 texture의 정보를 취득한다
@@ -473,17 +527,18 @@ export default class ZRestLoader {
 
     this.zProperty.bDisassembled = true;
 
-    const object3D = new THREE.Object3D();
-    object3D.name = "object3D";
+    const object3D = this.rootObject;
+    // const object3D = new THREE.Object3D();
+    // object3D.name = "object3D";
 
     await this.processRestFile(restURL[0]);
-    onProgress(50)
+    onProgress(50);
     this.zProperty.seamPuckeringNormalMap = await loadSeamPuckeringMap();
     await this.processDracoFiles(dracoURLList, object3D, onProgress);
     await this.processTextureFiles(textureURLList, object3D, updateRenderer);
-    onProgress(100)
+    onProgress(100);
     console.log("=== after RestFile ===");
-    return object3D
+    return object3D;
   };
 }
 

@@ -54,19 +54,29 @@ export async function unZip(zippedData, filename) {
   return unzipped;
 }
 
-export async function loadFile(url, onLoad, onProgress, onError) {
+export async function loadFile(
+  url,
+  onLoad,
+  onProgress,
+  onError,
+  resType = "arraybuffer"
+) {
   const loader = new THREE.FileLoader(THREE.DefaultLoadingManager);
-  loader.setResponseType("arraybuffer");
+  loader.setResponseType(resType);
+
   return new Promise((onLoad) => {
     loader.load(url, onLoad, onProgress, onError);
   });
 }
 
-// FIXME: Refactor this
 export async function loadJson(url, onLoad, onProgress, onError) {
-  const loader = new THREE.FileLoader(THREE.DefaultLoadingManager);
-  loader.setResponseType("json");
-  return new Promise((onLoad) => {
-    loader.load(url, onLoad, onProgress, onError);
-  });
+  return loadFile(url, onLoad, onProgress, onError, "json");
+}
+
+export function getFilename(URL) {
+  const splitURL = URL.split("/");
+  const filenameWithToken = splitURL[splitURL.length - 1];
+  const filenameWithoutToken = filenameWithToken.split("?")[0];
+
+  return filenameWithoutToken;
 }

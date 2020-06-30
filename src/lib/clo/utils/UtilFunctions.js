@@ -184,7 +184,6 @@ function getClosestValue(inputValue, avgValue, stepSize, minValue, maxValue) {
 // - heightStepSize : Integer
 // - weightStepSize : Integer
 function getClosestSize(inputHeight, inputWeight, samplingConfiguration) {
-
   var returnValue = new Object();
   returnValue.height = getClosestValue(
     inputHeight,
@@ -225,4 +224,3 @@ export function getGarmentFileName(height, weight, samplingConfiguration) {
     ".zcrp"
   );
 }
-
