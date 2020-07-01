@@ -1,6 +1,6 @@
 {
   "name": "web-3d-viewer",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -30,7 +30,7 @@
     "raw-loader": "^0.5.1",
     "screenfull": "^4.2.1",
     "url-loader": "^0.6.2",
-    "webpack": "^4.42.0",
+    "webpack": "^4.42.1",
     "webpack-cli": "^3.3.11"
   },
   "devDependencies": {
@@ -38,7 +38,11 @@
     "babel-preset-es2017": "^6.24.1",
     "eslint": "^6.8.0",
     "eslint-config-google": "^0.14.0",
+    "eslint-config-prettier": "^6.10.1",
+    "eslint-plugin-prettier": "^3.1.2",
     "mixin-deep": "^2.0.1",
+    "prettier": "^2.0.2",
+    "prettier-eslint": "^9.0.1",
     "s3": "^4.4.0",
     "serialize-javascript": "^2.1.2",
     "set-value": "^3.0.1",
