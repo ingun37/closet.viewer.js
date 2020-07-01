@@ -2,6 +2,7 @@
 import * as THREE from "@/lib/threejs/three";
 import { TweenMax } from "gsap/TweenMax";
 import { Marker, makeTextSprite } from "@/lib/marker/Marker";
+import FlashAnnotation from "./FlashAnnotation";
 
 const pointerScaleVector = new THREE.Vector3();
 const pointerScaleFactor = 65;
@@ -29,6 +30,15 @@ class AnnotationManager {
     this.annotationContainer.name = "annotationContainer";
     this.scene.add(this.annotationContainer);
 
+    this.flash = new FlashAnnotation(
+      this.annotationContainer,
+      this.updateRenderer
+    );
+
+    this.clear = () => {
+      this.flash.clear();
+    };
+
     this.mousePosition = {};
 
     // raycaster for picking
@@ -54,6 +64,9 @@ class AnnotationManager {
 
     this.onCompleteAnnotationMove = () => {};
     this.onCompleteAnimation = () => {};
+
+    console.log("this.camera");
+    console.log(this.camera);
   }
 
   init({ zrest }) {
@@ -215,6 +228,8 @@ class AnnotationManager {
     }
 
     if (this.pickedAnnotation) {
+      console.log("pickedAnnotation!");
+      console.log(this.pickedAnnotation);
       if (
         Math.abs(e.clientX - this.mousePosition.x) > 5 ||
         Math.abs(e.clientY - this.mousePosition.y) > 5
@@ -274,34 +289,23 @@ class AnnotationManager {
     });
 
     this.raycaster.setFromCamera(mouse, this.camera);
-    const intersects = this.raycaster.intersectObjects(
-      this.annotationPointerList
-    );
 
-    if (intersects.length > 0) {
-      return {
-        pointerPos: intersects[0].point,
-        faceNormal: intersects[0].face.normal,
-        cameraPos: this.camera.position,
-        cameraTarget: this.controls.target,
-        cameraQuaternion: this.camera.quaternion,
-      };
-    } else {
-      // 여기서 평면에다 다시 쏴야 함.
-      const pointerPos = new THREE.Vector3();
-      pointerPos.copy(this.computePointerPosition(mouse));
+    // 여기서 평면에다 다시 쏴야 함.
+    const pointerPos = new THREE.Vector3();
+    pointerPos.copy(this.computePointerPosition(mouse));
 
-      const cameraDirection = new THREE.Vector3();
-      cameraDirection.copy(this.getCameraDirection());
+    const cameraDirection = new THREE.Vector3();
+    cameraDirection.copy(this.getCameraDirection());
+    console.log("cameraDirection");
+    console.log(cameraDirection);
 
-      return {
-        pointerPos: pointerPos,
-        faceNormal: cameraDirection.negate(),
-        cameraPos: this.camera.position,
-        cameraTarget: this.controls.target,
-        cameraQuaternion: this.camera.quaternion,
-      };
-    }
+    return {
+      pointerPos: pointerPos,
+      faceNormal: cameraDirection.negate(),
+      cameraPos: this.camera.position,
+      cameraTarget: this.controls.target,
+      cameraQuaternion: this.camera.quaternion,
+    };
   }
 
   checkIntersectObject({ clientX, clientY }) {
@@ -356,7 +360,6 @@ class AnnotationManager {
       this.controls.enabled = true;
     };
 
-    // TODO: remove vars on follows
     // 여기서 interpolation 해야할게, camera position, camera upVector
     if (
       this.camera.position.x !== dest.x ||
