@@ -40,7 +40,7 @@ export default class FileLoader {
 }
 
 export async function unZip(zippedData, filename) {
-  console.log(zippedData, filename);
+  // console.log(zippedData, filename);
   const jsZip = new JSZip();
   await jsZip.loadAsync(zippedData);
 

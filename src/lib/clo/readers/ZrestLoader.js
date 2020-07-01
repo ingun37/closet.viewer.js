@@ -346,8 +346,6 @@ export default class ZRestLoader {
 
     // console.log("pac file size = " + dataView.byteLength);
     const rootMap = readMap(dataView, fileOffset);
-    console.log(rootMap);
-
     const zVersion = this.meshFactory.parseVersion(rootMap);
     this.zProperty.version = zVersion;
 
@@ -496,7 +494,7 @@ export default class ZRestLoader {
         materialInformationMap: this.getMaterialInformationMap(), // NOTE: 이거 property에 넣을까?
         zProperty: this.zProperty,
       });
-      console.log(textureURL + " loaded");
+      // console.log(textureURL + " loaded");
       updateRenderer();
       // } else {
       // console.log("TEXTURE: " + textureFilename + " has passed.");

@@ -234,8 +234,8 @@ export default class ClosetViewer {
     });
     console.log("fitting get avatar -");
 
-    console.log("matMesh");
-    console.log(this.zrest.zProperty.matMeshMap);
+    // console.log("matMesh");
+    // console.log(this.zrest.zProperty.matMeshMap);
 
     console.log("fitting get init garment +");
     await this.loadZrestForFitting({
@@ -922,7 +922,6 @@ export default class ClosetViewer {
         objIndex = i;
       }
     }
-    console.log(this.scene.children);
 
     if (objIndex >= 0) {
       this.scene.children[objIndex] = object;

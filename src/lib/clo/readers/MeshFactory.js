@@ -73,7 +73,6 @@ export default class MeshFactory {
         this.materialList.push(material);
       }
 
-      console.log(this.materialList);
       console.log("parseListMaterial done");
     };
 
@@ -135,9 +134,7 @@ export default class MeshFactory {
         );
       }
 
-      // console.log(this.materialList);
-      // console.log(this.materialInformationMap);
-      // console.log("parseListMatMesh done");
+      console.log("parseListMatMesh done");
     };
 
     // Colorway에 따른 texture map 생성 (by TKAY)
@@ -164,9 +161,6 @@ export default class MeshFactory {
               const filenameWithPath = texture.file;
               const filename = getFilename(filenameWithPath);
               const currMap = listMTMMId[colorway];
-              // console.log(filename);
-              // console.log(colorway);
-              //console.log(listMTMMId);
 
               // NOTE: element 중복 방지
               if (currMap.has(filename)) {
@@ -215,7 +209,7 @@ export default class MeshFactory {
         console.error("mapGeometry missing");
         // NOTE: Return input object that nothing changed
         return retObject;
-      } else console.log(mapGeometry);
+      }
 
       if (zrestLoader.aborted) return;
 
@@ -269,10 +263,10 @@ export default class MeshFactory {
 
       if (zrestLoader.aborted) return;
 
-      console.warn("Assembled ZRest build @ MeshFactory");
+      // console.warn("Assembled ZRest build @ MeshFactory");
       const colorwayIndex = this.zProperty.colorwayIndex;
-      console.log(this.zProperty);
-      console.log(colorwayIndex);
+      // console.log(this.zProperty);
+      // console.log(colorwayIndex);
       // 불투명 부터 추가해서 불투명 object 부터 그리기
       let tf = await this.matmeshManager.getMatMeshs(
         zrestLoader,
@@ -285,7 +279,6 @@ export default class MeshFactory {
       );
       if (zrestLoader.aborted) return;
       retObject.add(tf);
-      console.log("first cycle");
 
       // 투명한것 추가
       tf = await this.matmeshManager.getMatMeshs(
@@ -299,7 +292,6 @@ export default class MeshFactory {
       );
       if (zrestLoader.aborted) return;
       retObject.add(tf);
-      console.log("second cycle");
     };
 
     this.buildRest(rootMap, loadedCamera);
