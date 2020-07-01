@@ -79,7 +79,7 @@ export default class ClosetViewer {
     const w = (this.defaultWidth = width);
     const h = (this.defaultHeight = height);
 
-    this.setter = document.getElementById(element) || document.querySelector(element);
+    this.setter = typeof element === 'string' ? (document.getElementById(element) || document.querySelector(element)) : element;
     this.id = element;
     this.cameraPosition = cameraPosition;
     this.stats = stats;
@@ -216,14 +216,13 @@ export default class ClosetViewer {
   }
 
   onMouseDown(e) {
-    // NOTE: This module works to test only
     e.preventDefault();
 
     if (this.annotation && this.object3D) {
       this.annotation.onMouseDown(e);
     }
 
-    if (this.techPack) {
+    if (this.techPack && this.techPack.matMeshMap.size > 0) {
       const selectedMarker = this.techPack.onMouseDown(e);
       if (selectedMarker) {
         const selectedMarkerIdx = selectedMarker.message - 1;
@@ -235,12 +234,16 @@ export default class ClosetViewer {
 
   onMouseUp(e) {
     e.preventDefault();
-    if (this.annotation && this.object3D) this.annotation.onMouseUp(e);
+    if (this.annotation && this.object3D) {
+      this.annotation.onMouseUp(e);
+    }
   }
 
   onMouseClick(e) {
     e.preventDefault();
-    if (this.annotation && this.object3D) this.annotation.onMouseClick(e);
+    if (this.annotation && this.object3D) {
+      this.annotation.onMouseClick(e);
+    }
   }
 
   setVisibleAllGarment(visibility) {
@@ -507,11 +510,19 @@ export default class ClosetViewer {
     const matShapeMap = this.zrest.meshFactory.matmeshManager.matShapeMap;
     const matMeshMap = this.zrest.matMeshMap;
     this.techPack.load(matShapeMap, matMeshMap, fabricsWithPatternsFromAPI, trimsFromAPI);
+
+    this.loadStyleLine();
+    this.loadMeasure();
   }
 
   loadStyleLine() {
     const styleLineMap = this.zrest.getStyleLineMap();
     this.techPack.loadStyleLine(styleLineMap);
+  }
+
+  loadMeasure() {
+    const measureData = this.zrest.getListPatternMeasure();
+    this.techPack.loadMeasure(measureData);
   }
 
   onUpdateCamera(callback) {
@@ -572,7 +583,6 @@ export default class ClosetViewer {
 
       // TODO: hide this function!
       matMesh.material = await this.zrest.makeMaterialForZrest(
-        // matMesh.material = this.zrest.makeMaterialForZrest(
         this.zrest.jsZip,
         this.zrest.getMaterialInformationMap().get(id),
         colorwayIdx,
@@ -623,8 +633,8 @@ export default class ClosetViewer {
   }
 
   dispose() {
-    if (this.zrest && this.zrest.req) {
-      this.zrest.abort()
+    if (this.zrest.req) {
+      this.zrest.abort();
     }
   }
 }

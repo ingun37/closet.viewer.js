@@ -12,11 +12,21 @@ import pbrVertexShader from "raw-loader!@/lib/clo/shader/pbrVertexShader.vert";
 
 import { TEXTURE_TYPE, RENDER_FACE_TYPE } from "@/lib/clo/readers/predefined";
 
-export async function makeMaterial(zip, property, colorwayIndex, bUseSeamPuckeringNormalMap, loadedCamera, drawMode, seamPuckeringNormalMap, nameToTextureMap, version) {
+export async function makeMaterial({
+  jsZip: zip,
+  matProperty: property,
+  colorwayIndex: colorwayIndex,
+  bUseSeamPuckeringNormalMap: bUseSeamPuckeringNormalMap,
+  camera: loadedCamera,
+  drawMode: drawMode,
+  seamPuckeringNormalMap: seamPuckeringNormalMap,
+  nameToTextureMap: nameToTextureMap,
+  zrestVersion: version
+}) {
   const zRestColorwayMaterialArray = property.colorwayMaterials;
-  if(!zRestColorwayMaterialArray) return;
+  if (!zRestColorwayMaterialArray) return;
   const material = zRestColorwayMaterialArray[colorwayIndex];
-  if(!material) return;
+  if (!material) return;
   const rFace = getRenderFaceType(material.renderFace);
   const uniforms = getUniforms(version, loadedCamera, colorwayIndex);
 

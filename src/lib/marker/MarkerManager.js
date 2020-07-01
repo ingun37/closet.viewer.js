@@ -1,6 +1,6 @@
 /* eslint-disable require-jsdoc */
-import * as THREE from '@/lib/threejs/three';
-import { Marker, makeTextSprite } from '@/lib/marker/Marker';
+import * as THREE from "@/lib/threejs/three";
+import { Marker, makeTextSprite } from "@/lib/marker/Marker";
 
 const pointerScaleVector = new THREE.Vector3();
 const pointerScaleFactor = 100;
@@ -39,17 +39,14 @@ class MarkerManager {
 
   init() {
     this.container = new THREE.Object3D();
-    this.container.name = this.markerName + 'Container';
+    this.container.name = this.markerName + "Container";
 
     this.activate();
   }
 
   updatePointerSize() {
-    this.markerMap.forEach((marker) => {
-      const scale =
-        pointerScaleVector
-          .subVectors(marker.sprite.position, this.camera.position)
-          .length() / pointerScaleFactor;
+    this.markerMap.forEach(marker => {
+      const scale = pointerScaleVector.subVectors(marker.sprite.position, this.camera.position).length() / pointerScaleFactor;
       marker.sprite.scale.set(scale / 2, scale / 2, 1);
     });
   }
@@ -70,8 +67,8 @@ class MarkerManager {
       fontsize: 48,
       borderColor: { r: 255, g: 255, b: 255, a: 0.5 },
       backgroundColor: { r: 255, g: 245, b: 0, a: 1 },
-      fillStyle: 'rgba(25, 25, 26, 1.0)',
-      name: this.markerName,
+      fillStyle: "rgba(25, 25, 26, 1.0)",
+      name: this.markerName
     };
 
     const sprite = makeTextSprite(message, params);
@@ -89,17 +86,7 @@ class MarkerManager {
     return sprite.id;
   }
 
-  push(
-    {
-      pointerPos,
-      faceNormal,
-      cameraPos,
-      cameraTarget,
-      cameraQuaternion,
-      message,
-    },
-    isVisible = true,
-  ) {
+  push({ pointerPos, faceNormal, cameraPos, cameraTarget, cameraQuaternion, message }, isVisible = true) {
     this.add(
       this.markerMap.size + 1,
       {
@@ -108,9 +95,9 @@ class MarkerManager {
         cameraPos,
         cameraTarget,
         cameraQuaternion,
-        message,
+        message
       },
-      isVisible,
+      isVisible
     );
   }
 
@@ -122,15 +109,17 @@ class MarkerManager {
   }
 
   setVisibleByMessage(message, bVisible) {
-    this.markerMap.forEach((marker) => {
+    this.markerMap.forEach(marker => {
       if (marker.message == message) {
+        console.log("marker.massage: " + message);
+        console.log(marker.sprite);
         marker.sprite.visible = bVisible;
       }
     });
   }
 
   setVisibleForAll(bVisible) {
-    this.markerMap.forEach((marker) => {
+    this.markerMap.forEach(marker => {
       if (!marker.sprite) {
         return;
       }
@@ -140,15 +129,15 @@ class MarkerManager {
 
   removeAll() {
     this.markerMap.clear();
-    const names = this.container.children.map((item) => item.name);
-    names.map((name) => {
+    const names = this.container.children.map(item => item.name);
+    names.map(name => {
       const sprite = this.container.getObjectByName(name);
       this.container.remove(sprite);
     });
   }
 
   checkIntersect(mousePosition, raycaster) {
-    if (this.markerMap.length <= 0) {
+    if (this.markerMap.size <= 0) {
       return;
     }
 

@@ -4,12 +4,15 @@ import * as THREE from "@/lib/threejs/three";
 import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
 import { StyleLine } from "@/lib/techPack/StyleLine";
 import MarkerManager from "@/lib/marker/MarkerManager";
+import { Measurement } from "./Measurement";
 
 const config = {
   unselectedMarkerOpacity: 0.1,
   defaultMarkerOpacity: 1.0,
   meshTransparentOpacity: 0.1,
   meshDefaultOpacity: 1.0,
+  meshHighlightColor: new THREE.Vector3(1, 1, 0),
+  meshDefaultColor: new THREE.Vector3(1, 1, 1),
   boundingBoxThreshold: 15.0,
   INF: 999999
 };
@@ -28,8 +31,10 @@ class TechPackManager {
     this.trimMapList = [];
     this.fabricsWithPatterns = [];
     this.stitchMeshMap = new Map(); // NOTE: This is temporary
-    this.opacityValueMap = new Map();
     this.uncategorizedMeshMap = new Map();
+
+    this.opacityValueMap = new Map();
+    this.baseColorMap = new Map();
 
     this.raycaster = new THREE.Raycaster(); // FIXME: Is this necessary?
 
@@ -44,7 +49,12 @@ class TechPackManager {
     this.loadStyleLine = styleLineMap => {
       this.styleLine.load(styleLineMap, this.styleLineContainer);
     };
-    this.setStyleLineVisibleByPatternNo = this.setStyleLineVisibleByPatternNo;
+    this.setStyleLineVisibleByPatternNo = this.setStyleLineVisibleByPatternNo.bind(this);
+
+    this.measure = new Measurement(this.measureContainer);
+    this.loadMeasure = listPatternMeasure => {
+      this.measure.load(this.matMeshMap, listPatternMeasure);
+    };
 
     this.deleteAllMarker = this.deleteAllMarker.bind(this);
     this.onMouseDown = this.onMouseDown.bind(this);
@@ -71,6 +81,10 @@ class TechPackManager {
     this.styleLineContainer = new THREE.Object3D();
     this.styleLineContainer.name = "styleLineContainer";
     this.scene.add(this.styleLineContainer);
+
+    this.measureContainer = new THREE.Object3D();
+    this.measureContainer.name = "measureContainer";
+    this.scene.add(this.measureContainer);
   }
 
   load(matShapeMap, matMeshMap, fabricsWithPatterns, trims, defaultMarker = "pattern") {
@@ -116,6 +130,7 @@ class TechPackManager {
     this.fabricsWithPatterns = [];
     this.stitchMeshMap = new Map(); // NOTE: This is temporary
     this.opacityValueMap = new Map();
+    this.baseColorMap = new Map();
     this.uncategorizedMeshMap = new Map();
 
     this.markerManagers.forEach(manager => {
@@ -152,16 +167,18 @@ class TechPackManager {
     // NOTE: This filter is temperal.
     // The filter should be removed when updating API with the right information about topstitch.
     const buildTrimMapList = trims => {
-      if (!trims) return;
+      if (!trims || isEmpty(trims)) return;
 
-      const trimsWithoutTopstitch = trims.filter(group => group.GroupName != "Topstitch");
-
-      if (isEmpty(trimsWithoutTopstitch)) return;
-
-      trimsWithoutTopstitch.forEach(group => {
+      let numberForNull = 0;  // NOTE: Temporary code. There is a bug on API.
+      trims.forEach(group => {
         // Remove spaces on string
         const groupName = group.GroupName.replace(/\s/g, "");
         group.Trims.forEach(trim => {
+          if (trim.Number) {
+            numberForNull = trim.Number;
+          } else {
+            trim.Number = ++numberForNull;
+          }
           this.trimMapList[groupName].set(trim.Number, trim);
         });
       });
@@ -275,10 +292,25 @@ class TechPackManager {
   buildTrimMarkers(trims) {
     if (!trims) return;
 
+    const addColorToMap = matMeshIdList => {
+      matMeshIdList.forEach(matMeshId => {
+        const mesh = this.matMeshMap.get(matMeshId);
+        if (mesh) {
+          const baseColor = mesh.material.uniforms.materialBaseColor.value;
+          if (baseColor) {
+            this.baseColorMap.set(matMeshId, baseColor);
+          }
+        }
+      });
+    };    
+
     // NOTE: This is a temporary code to filter zipper.
     //       Because zipper needs only 1 marker, unlike other type trims.
     const isZipper = groupName => {
       return groupName === "Zipper";
+    };
+    const isTopstitch = groupName => {
+      return groupName === "Topstitch";
     };
 
     let labelCounter = 1;
@@ -289,7 +321,9 @@ class TechPackManager {
 
       trimGroup.Trims.forEach(trim => {
         if (trim.MatMeshIdList) {
-          labelCounter = this.buildMarkersFromList(this.trimMarker, trim.MatMeshIdList, this.matShapeMap, labelCounter, labelIncrement);
+          addColorToMap(trim.MatMeshIdList);
+          const matMeshIdList = isTopstitch(trimGroup.GroupName) ? [trim.MatMeshIdList[0]] : trim.MatMeshIdList;  // NOTE: Topstitch has only one marker
+          labelCounter = this.buildMarkersFromList(this.trimMarker, matMeshIdList, this.matShapeMap, labelCounter, labelIncrement);
         }
       });
     });
@@ -314,8 +348,24 @@ class TechPackManager {
     let amountOfBuiltMarkers = 0;
 
     const shouldTranslate = this.isSmallerThanMarker(matMeshIdList[0]);
+    const isZero = center => {
+      return center.x === 0 && center.y === 0 && center.z === 0;
+    };
+
     matMeshIdList.forEach(matMeshId => {
       const matShape = matShapeMap.get(Number(matMeshId));
+      const matShapeCenter = matShape.get("v3Center");
+
+      // check and update marker position
+      if (isZero(matShapeCenter)) {
+        const matMesh = this.matMeshMap.get(matMeshId);
+        if (matMesh) {
+          matMesh.geometry.computeBoundingSphere();
+          const center = matMesh.geometry.boundingSphere.center;
+          matShape.set("v3Center", center);
+        }
+      }
+
       const isSucceedToBuild = this.buildMarker(labelCounter, markerManager, matShape, -1, shouldTranslate);
       if (isSucceedToBuild) {
         amountOfBuiltMarkers++;
@@ -404,10 +454,23 @@ class TechPackManager {
   setTrimVisible(trimNo, bVisible) {
     Object.values(this.trimMapList).forEach(trimMap => {
       if (trimMap.has(trimNo)) {
-        const matMeshList = trimMap.get(trimNo).MatMeshIdList;
-        if (matMeshList) {
-          matMeshList.forEach(matMesh => {
-            this.setMatMeshVisible(matMesh, bVisible);
+        const matMeshIdList = trimMap.get(trimNo).MatMeshIdList;
+        if (matMeshIdList) {
+          matMeshIdList.forEach(matMeshId => {
+            this.setMatMeshVisible(matMeshId, bVisible);
+          });
+        }
+      }
+    });
+  }
+
+  setTrimHighlight(trimNo, bHighlight) {
+    Object.values(this.trimMapList).forEach(trimMap => {
+      if (trimMap.has(trimNo)) {
+        const matMeshIdList = trimMap.get(trimNo).MatMeshIdList;
+        if (matMeshIdList) {
+          matMeshIdList.forEach(matMeshId => {
+            this.setMatMeshHighlight(matMeshId, bHighlight);
           });
         }
       }
@@ -445,6 +508,23 @@ class TechPackManager {
     }
   }
 
+  setMatMeshHighlight(matMeshId, bHighlight) {
+    const set = () => {
+      this.setMatMeshColor(matMeshId, config.meshHighlightColor);
+    };
+
+    const reset = () => {
+      const baseColor = this.baseColorMap.has(matMeshId) ? this.baseColorMap.get(matMeshId) : config.meshDefaultColor;
+      this.setMatMeshColor(matMeshId, baseColor);
+    };
+
+    const mesh = this.matMeshMap.get(matMeshId);
+    if (mesh) {
+      if (bHighlight) set();
+      else reset(mesh);
+    }    
+  }
+
   setMatMeshTransparencyByValue(matMeshId, opacity) {
     const mesh = this.matMeshMap.get(matMeshId);
     if (mesh) {
@@ -462,6 +542,13 @@ class TechPackManager {
     }
   }
 
+  setMatMeshColor(matMeshId, v3Color) {
+    const mesh = this.matMeshMap.get(matMeshId);
+    if (mesh) {
+      mesh.material.uniforms.materialBaseColor.value = v3Color;
+    }
+  }
+
   setAllTrimVisible(bVisible) {
     Object.values(this.trimMapList).forEach(groupMap => {
       if (groupMap.size > 0) {
@@ -469,6 +556,20 @@ class TechPackManager {
           if (trim.MatMeshIdList) {
             trim.MatMeshIdList.forEach(matMeshId => {
               this.setMatMeshVisible(matMeshId, bVisible);
+            });
+          }
+        });
+      }
+    });
+  }
+
+  setAllTrimHighlight(bHighlight) {
+    Object.values(this.trimMapList).forEach(groupMap => {
+      if (groupMap.size > 0) {
+        groupMap.forEach(trim => {
+          if (trim.MatMeshIdList) {
+            trim.MatMeshIdList.forEach(matMeshId => {
+              this.setMatMeshHighlight(matMeshId, bHighlight);
             });
           }
         });
@@ -529,8 +630,11 @@ class TechPackManager {
     };
 
     const actionsForTrim = trimIdx => {
+      //this.setTrimHighlightOff();
+
       const trimNo = trimIdx + 1;
       this.setTrimVisible(trimNo, true);
+      this.setTrimHighlight(trimNo, true);
       this.trimMarker.setVisibleByMessage(trimNo, true);
     };
 
@@ -543,13 +647,20 @@ class TechPackManager {
     const hasSelectedMarker = onMarkerItems.length > 0;
     if (hasSelectedMarker) {
       this.setAllPatternTransparent(true);
-      this.setAllStitchTransparent(true);
+      // this.setAllStitchTransparent(true);
       this.setAllTrimVisible(false);
       uncategorizedMeshVisible(false);
     } else {
+      if (this.selectedTrimNo !== null) {
+        this.setTrimHighlight(this.selectedTrimNo, false);
+        this.selectedTrimNo = null;
+      }
+
       // Return to default setting
       this.setAllPatternTransparent(false);
       this.setAllStitchTransparent(false);
+      this.setAllTrimHighlight(false);
+
       this.setAllPatternVisible(true);
       this.setAllStitchVisible(true);
       this.setAllTrimVisible(true);
@@ -566,8 +677,6 @@ class TechPackManager {
     });
   }
 
-  //removeMatMeshesremainMeshMap
-
   updatePointerSize() {
     this.markerManagers.forEach(manager => {
       if (manager.isActivated()) {
@@ -581,9 +690,9 @@ class TechPackManager {
   getMousePosition({ clientX, clientY }) {
     const canvasBounds = this.renderer.context.canvas.getBoundingClientRect();
     const x =
-      ((clientX - canvasBounds.left) / (canvasBounds.right - canvasBounds.left)) * (2 - 1);
+      ((clientX - canvasBounds.left) / (canvasBounds.right - canvasBounds.left)) * 2 - 1;
     const y =
-      -((clientY - canvasBounds.top) / (canvasBounds.bottom - canvasBounds.top)) * (2 + 1);
+      -((clientY - canvasBounds.top) / (canvasBounds.bottom - canvasBounds.top)) * 2 + 1;
 
     return { x, y };
   }
@@ -607,7 +716,7 @@ class TechPackManager {
     const mousePos = this.getMousePosition({ clientX, clientY });
     this.markerManagers.forEach(markerManager => {
       if (markerManager.isActivated()) {
-        return markerManager.checkIntersect(mousePos, this.raycaster);
+        return  markerManager.checkIntersect(mousePos, this.raycaster);
       }
     });
   }

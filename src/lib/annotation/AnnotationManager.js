@@ -1,7 +1,7 @@
 /* eslint-disable require-jsdoc */
-import * as THREE from '@/lib/threejs/three';
-import {TweenMax} from 'gsap/TweenMax';
-import {Marker, makeTextSprite} from '@/lib/marker/Marker';
+import * as THREE from "@/lib/threejs/three";
+import { TweenMax } from "gsap/TweenMax";
+import { Marker, makeTextSprite } from "@/lib/marker/Marker";
 
 const pointerScaleVector = new THREE.Vector3();
 const pointerScaleFactor = 65;
@@ -12,7 +12,7 @@ const startQuaternion = new THREE.Quaternion();
 const endQuaternion = new THREE.Quaternion();
 
 class AnnotationManager {
-  constructor({scene, camera, renderer, controls, updateRenderer, setter}) {
+  constructor({ scene, camera, renderer, controls, updateRenderer, setter }) {
     this.scene = scene;
     this.camera = camera;
     this.renderer = renderer;
@@ -26,7 +26,7 @@ class AnnotationManager {
     this.isCreateAnnotation = false;
 
     this.annotationContainer = new THREE.Object3D();
-    this.annotationContainer.name = 'annotationContainer';
+    this.annotationContainer.name = "annotationContainer";
     this.scene.add(this.annotationContainer);
 
     this.mousePosition = {};
@@ -52,30 +52,28 @@ class AnnotationManager {
     this.mouseButtonDown = false;
     this.isMouseMoved = false;
 
-    this.onCompleteAnnotationMove = () => {
-    };
-    this.onCompleteAnimation = () => {
-    };
+    this.onCompleteAnnotationMove = () => {};
+    this.onCompleteAnimation = () => {};
   }
 
-  init({zrest}) {
+  init({ zrest }) {
     this.zrest = zrest;
   }
 
-  bindEventListener({onCompleteAnnotationMove, onCompleteAnimation}) {
+  bindEventListener({ onCompleteAnnotationMove, onCompleteAnimation }) {
     this.onCompleteAnnotationMove = onCompleteAnnotationMove;
     this.onCompleteAnimation = onCompleteAnimation;
   }
 
   getAnnotationList() {
-    return this.annotationList.map((item) => {
-      const {message, sprite, ...data} = item;
+    return this.annotationList.map(item => {
+      const { message, sprite, ...data } = item;
       return data;
     });
   }
 
   setAnnotationList(listArray) {
-    listArray.map((item) => {
+    listArray.map(item => {
       this.createAnnotation(item);
     });
   }
@@ -87,45 +85,36 @@ class AnnotationManager {
     }
   }
 
-  createAnnotation({pointerPos, faceNormal, cameraPos, cameraTarget, cameraQuaternion, message}, isVisible = true) {
-    // 여기서 이미 있으면 안만들기. 검사하자.
-    const bDuplicatePos = false;
-    // for (var i = 0; i < this.annotationList.length; i++) {
-    //   var pointerPosition = this.annotationList[i].pointerPos
-    //   if (pointerPosition.equals(pointerPos)) {
-    //     bDuplicatePos = true
-    //   }
-    // }
-
+  createAnnotation({ pointerPos, faceNormal, cameraPos, cameraTarget, cameraQuaternion, message }, isVisible = true) {
     let id = undefined;
-    if (!bDuplicatePos) {
-      // pointer 좌표만 들고있다가 render 할때마다 만드는건 개 비효율이겠지? 그냥 그때 그때 계속 추가하자.
-      const params = {
-        fontsize: 48,
-        borderColor: {r: 255, g: 255, b: 255, a: 0.5},
-        backgroundColor: {r: 0, g: 0, b: 0, a: 0.5},
-        fillStyle: 'rgba(255, 255, 255, 1.0)',
-        name: 'annotation'
-      }
 
-      const sprite = makeTextSprite(message,params);
-      sprite.position.set(pointerPos.x, pointerPos.y, pointerPos.z);
-      sprite.visible = isVisible;
-      this.annotationContainer.add(sprite);
-      this.annotationPointerList.push(sprite);
-      id = sprite.id;
+    // pointer 좌표만 들고있다가 render 할때마다 만드는건 개 비효율이겠지? 그냥 그때 그때 계속 추가하자.
+    const params = {
+      fontsize: 48,
+      borderColor: { r: 255, g: 255, b: 255, a: 0.5 },
+      backgroundColor: { r: 0, g: 0, b: 0, a: 0.5 },
+      fillStyle: "rgba(255, 255, 255, 1.0)",
+      name: "annotation"
+    };
 
-      const annotation = new Marker(pointerPos, faceNormal, cameraPos, this.controls.target, this.camera.quaternion, message, sprite);
-      this.annotationList.push(annotation);
-      this.updateRenderer();
-    }
+    const sprite = makeTextSprite(message, params);
+    sprite.position.set(pointerPos.x, pointerPos.y, pointerPos.z);
+    sprite.visible = isVisible;
+    this.annotationContainer.add(sprite);
+    this.annotationPointerList.push(sprite);
+    id = sprite.id;
+
+    const annotation = new Marker(pointerPos, faceNormal, cameraPos, this.controls.target, this.camera.quaternion, message, sprite);
+    this.annotationList.push(annotation);
+    this.updateRenderer();
+
     return id;
   }
 
   deleteAnnotation(name) {
-    this.annotationPointerList = this.annotationPointerList.filter((item) => item.name !== 'annotation_' + name);
-    this.annotationList = this.annotationList.filter((item) => {
-      const sprite = this.annotationContainer.getObjectByName('annotation_' + name);
+    this.annotationPointerList = this.annotationPointerList.filter(item => item.name !== "annotation_" + name);
+    this.annotationList = this.annotationList.filter(item => {
+      const sprite = this.annotationContainer.getObjectByName("annotation_" + name);
       if (sprite) this.annotationContainer.remove(sprite);
       return item.message !== name;
     });
@@ -134,8 +123,8 @@ class AnnotationManager {
   }
 
   deleteAllAnnotation() {
-    const names = this.annotationContainer.children.map((item) => item.name);
-    names.map((name) => {
+    const names = this.annotationContainer.children.map(item => item.name);
+    names.map(name => {
       const sprite = this.annotationContainer.getObjectByName(name);
       this.annotationContainer.remove(sprite);
     });
@@ -149,10 +138,10 @@ class AnnotationManager {
       arr = [];
     }
 
-    this.annotationContainer.children.map((item) => {
-      const name = arr.find((o) => 'annotation_' + o === item.name);
+    this.annotationContainer.children.map(item => {
+      const name = arr.find(o => "annotation_" + o === item.name);
       if (name) {
-        this.annotationContainer.getObjectByName('annotation_' + name).visible = true;
+        this.annotationContainer.getObjectByName("annotation_" + name).visible = true;
       } else {
         this.annotationContainer.getObjectByName(item.name).visible = false;
       }
@@ -161,7 +150,7 @@ class AnnotationManager {
   }
 
   showAllAnnotation() {
-    this.annotationPointerList.map((item) => {
+    this.annotationPointerList.map(item => {
       const sprite = this.annotationContainer.getObjectByName(item.name);
       sprite.visible = true;
     });
@@ -170,7 +159,7 @@ class AnnotationManager {
 
   // viewer에서 canvas 클릭시 실행
   onMouseDown(e) {
-    this.mousePosition = {x: e.clientX, y: e.clientY};
+    this.mousePosition = { x: e.clientX, y: e.clientY };
     this.pickedAnnotation = this.checkIntersectObject(e);
     if (this.pickedAnnotation) {
       this.controls.enabled = false;
@@ -180,14 +169,14 @@ class AnnotationManager {
   onMouseMove(e) {
     const annotationItem = this.checkIntersectObject(e);
     if (annotationItem) {
-      this.setter.style.cursor = 'pointer';
+      this.setter.style.cursor = "pointer";
       if (!this.hoverAnnotation) {
         annotationItem.sprite.material.color.r = 0.5;
         this.hoverAnnotation = annotationItem;
         this.updateRenderer();
       }
-    } else if (!annotationItem && this.setter.style.cursor === 'pointer') {
-      this.setter.style.cursor = 'default';
+    } else if (!annotationItem && this.setter.style.cursor === "pointer") {
+      this.setter.style.cursor = "default";
       if (this.hoverAnnotation) {
         this.hoverAnnotation.sprite.material.color.r = 1;
         this.updateRenderer();
@@ -218,7 +207,7 @@ class AnnotationManager {
       return;
     }
 
-    const annotationItem = this.checkIntersectObject(e);
+    const annotationItem = this.checkIntersectObject(e); // FIXME: This line makes warning message
     if (annotationItem) {
       if (!this.isMouseMoved) {
         // animation
@@ -228,56 +217,61 @@ class AnnotationManager {
       // create annotation
       if (Math.abs(e.clientX - this.mousePosition.x) < 5 && Math.abs(e.clientY - this.mousePosition.y) < 5) {
         const position = this.createIntersectPosition(e);
-        if (this.isCreateAnnotation) this.createAnnotation({...position, message: '12'});
+        if (this.isCreateAnnotation) {
+          this.createAnnotation({ ...position, message: "12" });
+        }
       }
     }
     this.isMouseMoved = false;
     this.pickedAnnotation = undefined;
   }
 
-  createIntersectPosition({clientX, clientY}) {
-    if (this.zrest.matMeshMap !== undefined) {
-      const mouse = this.getMousePosition({clientX: clientX, clientY: clientY - 10});
+  createIntersectPosition({ clientX, clientY }) {
+    if (this.zrest.matMeshMap === undefined) {
+      console.log("matMeshMap is missing");
+      return;
+    }
 
-      this.raycaster.setFromCamera(mouse, this.camera);
-      const intersects = this.raycaster.intersectObjects(this.zrest.matMeshMap);
+    const mouse = this.getMousePosition({ clientX: clientX, clientY: clientY - 10 });
 
-      if (intersects.length > 0) {
-        return {
-          pointerPos: intersects[0].point,
-          faceNormal: intersects[0].face.normal,
-          cameraPos: this.camera.position,
-          cameraTarget: this.controls.target,
-          cameraQuaternion: this.camera.quaternion,
-        };
-      } else {
-        // 여기서 평면에다 다시 쏴야 함.
-        const pointerPos = new THREE.Vector3();
-        pointerPos.copy(this.computePointerPosition(mouse));
+    this.raycaster.setFromCamera(mouse, this.camera);
+    const intersects = this.raycaster.intersectObjects(this.annotationPointerList);
 
-        const cameraDirection = new THREE.Vector3();
-        cameraDirection.copy(this.getCameraDirection());
+    if (intersects.length > 0) {
+      return {
+        pointerPos: intersects[0].point,
+        faceNormal: intersects[0].face.normal,
+        cameraPos: this.camera.position,
+        cameraTarget: this.controls.target,
+        cameraQuaternion: this.camera.quaternion
+      };
+    } else {
+      // 여기서 평면에다 다시 쏴야 함.
+      const pointerPos = new THREE.Vector3();
+      pointerPos.copy(this.computePointerPosition(mouse));
 
-        return {
-          pointerPos: pointerPos,
-          faceNormal: cameraDirection.negate(),
-          cameraPos: this.camera.position,
-          cameraTarget: this.controls.target,
-          cameraQuaternion: this.camera.quaternion,
-        };
-      }
+      const cameraDirection = new THREE.Vector3();
+      cameraDirection.copy(this.getCameraDirection());
+
+      return {
+        pointerPos: pointerPos,
+        faceNormal: cameraDirection.negate(),
+        cameraPos: this.camera.position,
+        cameraTarget: this.controls.target,
+        cameraQuaternion: this.camera.quaternion
+      };
     }
   }
 
-  checkIntersectObject({clientX, clientY}) {
-    // test code : annotation pointer부터 검사하자.
+  checkIntersectObject({ clientX, clientY }) {
+    // annotation pointer부터 검사하자.
     if (this.annotationPointerList.length) {
-      const mouse = this.getMousePosition({clientX, clientY});
+      const mouse = this.getMousePosition({ clientX, clientY });
 
       this.raycaster.setFromCamera(mouse, this.camera);
       let intersects = this.raycaster.intersectObjects(this.annotationPointerList, true);
 
-      intersects = intersects.filter((item) => item.distance > 0);
+      intersects = intersects.filter(item => item.distance > 0);
 
       if (intersects.length > 0) {
         // 처리할거 하고 return;
@@ -296,7 +290,7 @@ class AnnotationManager {
     const dest = {
       x: annotationItem.cameraPos.x,
       y: annotationItem.cameraPos.y,
-      z: annotationItem.cameraPos.z,
+      z: annotationItem.cameraPos.z
     };
 
     const onUpdate = () => {
@@ -336,7 +330,7 @@ class AnnotationManager {
         z: dest.z,
         ease: Power1.easeInOut,
         onUpdate: onUpdate,
-        onComplete: onComplete,
+        onComplete: onComplete
       });
     } else {
       onComplete();
@@ -348,11 +342,11 @@ class AnnotationManager {
     this.updateRenderer();
   }
 
-  getMousePosition({clientX, clientY}) {
+  getMousePosition({ clientX, clientY }) {
     const canvasBounds = this.renderer.context.canvas.getBoundingClientRect();
     const x = ((clientX - canvasBounds.left) / (canvasBounds.right - canvasBounds.left)) * 2 - 1;
     const y = -((clientY - canvasBounds.top) / (canvasBounds.bottom - canvasBounds.top)) * 2 + 1;
-    return {x, y};
+    return { x, y };
     // return this.createIntersectPosition({x, y})
   }
 
@@ -395,7 +389,7 @@ class AnnotationManager {
 
     // 1. camera와 평면까지의 distance 구하기
     // 2. distance plane의 width, hight 계산
-    const rad = this.camera.fov * 0.5 * Math.PI / 180;
+    const rad = (this.camera.fov * 0.5 * Math.PI) / 180;
     const height = distance * Math.tan(rad) * 2;
     const width = this.camera.aspect * height;
 
