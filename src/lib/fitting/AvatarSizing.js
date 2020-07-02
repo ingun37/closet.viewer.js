@@ -1,4 +1,7 @@
-﻿const MEASUREMENT_LIST_NAME = {
+﻿import * as THREE from "@/lib/threejs/three";
+import { readMap, readByteArray } from "@/lib/clo/file/KeyValueMapReader";
+
+const MEASUREMENT_LIST_NAME = {
   // Base
   HEIGHT_Total: 0,
   WEIGHT_Total: 1,
@@ -97,18 +100,35 @@ export default class ResizableBody {
     this.mFeatureEnable[MEASUREMENT_LIST_NAME.LENGTH_Arm] = true;
     this.mFeatureEnable[MEASUREMENT_LIST_NAME.HEIGHT_Crotch] = true;
 
-    let vCount = baseMeshMap.get("uiVertexCount");
-    let baPosition = baseMeshMap.get("baPosition");
+    const vCount = baseMeshMap.get("uiVertexCount");
+    const baPosition = readByteArray("Float", baseMeshMap.get("baPosition"));
     this.mBaseVertex = new Array(vCount);
-    for (let i = 0; i < vCount; i++) this.mBaseVertex[i] = baPosition[i]; // todo array가 vec3 가 아니라 float 이거나 byte일 것 같아서 재작업 필요.
+    for (let i = 0; i < vCount; i++) {
+      this.mBaseVertex[i] = new THREE.Vector3(
+        baPosition[i * 3],
+        baPosition[i * 3 + 1],
+        baPosition[i * 3 + 2]
+      );
+    } // todo array가 vec3 가 아니라 float 이거나 byte일 것 같아서 재작업 필요.
     this.mStartIndexMap = baseMeshMap.get("mapStartIndex");
-    this.mSymmetryIndex = baseMeshMap.get("baSymmetryIndex");
+    this.mSymmetryIndex = readByteArray(
+      "Float",
+      baseMeshMap.get("baSymmetryIndex")
+    );
 
     // todo mConvertingMatData 읽어들이기
     this.mConvertingMatData = convertingMatData;
 
     // todo mHeightWeightTo5SizesMap
     this.mHeightWeightTo5SizesMap = heightWeightTo5SizesMap;
+
+    console.log(vCount);
+    console.log(baPosition);
+    console.log(this.mBaseVertex);
+    console.log(this.mStartIndexMap);
+    console.log(this.mSymmetryIndex);
+    console.log(this.mConvertingMatData);
+    console.log(this.mHeightWeightTo5SizesMap);
   }
 
   dataSymmetrization = (returnVertex) => {
