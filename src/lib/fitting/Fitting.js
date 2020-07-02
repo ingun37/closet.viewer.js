@@ -29,7 +29,7 @@ export default class Fitting {
 
     this.processAvatarSizingFile = processAvatarSizingFile;
 
-    this.resizableAvatar = null;
+    this.resizableBody = null;
     this.avatarId = 0;
     this.avatarSkinType = 0;
   }
@@ -52,6 +52,13 @@ export default class Fitting {
   async initResizableAvatar({ url }) {
     const retObj = await processAvatarSizingFile({ url });
     console.log(retObj);
+
+    this.resizableBody = new ResizableBody(
+      0,
+      retObj.mapBaseMesh,
+      retObj.convertingMatData,
+      retObj.mapHeightWeightTo5Sizes
+    );
   }
 
   getAvatarURL({ id: avatarId, skinType: avatarSkinType }) {
