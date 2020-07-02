@@ -3,7 +3,8 @@ import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 import FitGarment from "./FittingGarment";
 import { loadJson } from "@/lib/clo/readers/FileLoader";
 import { getGarmentFileName } from "@/lib/clo/utils/UtilFunctions";
-
+import ResizableBody from "./AvatarSizing";
+import { processAvatarSizingFile } from "./FittingIO";
 // import ZrestLoader from "@/lib/clo/readers/ZrestLoader";
 
 export default class Fitting {
@@ -13,7 +14,9 @@ export default class Fitting {
     this.container = new THREE.Object3D();
     this.container.name = "fittingContainer";
     this.scene.add(this.container);
+
     this.mapTriangleIdx = new Map();
+
     this.listPositions = [];
     this.listAvatarMesh = [];
     this.listAvatarMeshIdx = [];
@@ -24,6 +27,9 @@ export default class Fitting {
     this.garments = new FitGarment();
     this.loadZcrp = this.garments.loadZcrp;
 
+    this.processAvatarSizingFile = processAvatarSizingFile;
+
+    this.resizableAvatar = null;
     this.avatarId = 0;
     this.avatarSkinType = 0;
   }
@@ -41,6 +47,11 @@ export default class Fitting {
         console.log(rootPath + "/" + avatarPath);
       });
     });
+  }
+
+  async initResizableAvatar({ url }) {
+    const retObj = await processAvatarSizingFile({ url });
+    console.log(retObj);
   }
 
   getAvatarURL({ id: avatarId, skinType: avatarSkinType }) {
@@ -74,6 +85,8 @@ export default class Fitting {
     console.log(jsonData);
     return jsonData;
   }
+
+  async loadAvatarSizeFile(url) {}
 
   getInitGarmentURL(styleId, styleVersion, gradingIndex, avatarId) {
     // {styleId}/{version}/{avatarId}/{grading index}

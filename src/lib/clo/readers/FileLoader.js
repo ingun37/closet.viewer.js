@@ -5,8 +5,9 @@
 import * as THREE from "@/lib/threejs/three";
 import JSZip from "@/lib/jszip/dist/jszip";
 
+// NOTE: FileLoader doesn't seem to be used anywhere.
 export default class FileLoader {
-  constructor(loadManager, parse) {
+  constructor({ loadManager, parse }) {
     this.manager =
       loadManager !== undefined ? manager : THREE.DefaultLoadingManager;
     // this.loader = new THREE.FileLoader(this.manager);
@@ -39,14 +40,13 @@ export default class FileLoader {
   };
 }
 
-export async function unZip(zippedData, filename) {
-  // console.log(zippedData, filename);
+export async function unZip(zippedData, filename, resType = "arrayBuffer") {
   const jsZip = new JSZip();
   await jsZip.loadAsync(zippedData);
 
   let unzipped = null;
   try {
-    unzipped = await jsZip.file(filename).async("arrayBuffer");
+    unzipped = await jsZip.file(filename).async(resType);
   } catch (e) {
     console.error("ERROR: " + filename + " not found.");
   }
