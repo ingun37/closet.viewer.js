@@ -291,15 +291,19 @@ export default class ResizableBody {
   };
 
   getTableSize = (height, weight) => {
-    const size = mHeightWeightTo5SizesMap
+    const arrSize = this.mHeightWeightTo5SizesMap
       .get(String(height))
       .get(String(weight));
-    var returnValue;
-    returnValue.chest = size.get("chest");
-    returnValue.waist = size.get("waist");
-    returnValue.hip = size.get("hip");
-    returnValue.armLength = size.get("arm");
-    returnValue.legLength = size.get("leg");
+
+    // TODO: Check if this order is correct
+    const returnValue = {};
+    returnValue["chest"] = arrSize[0];
+    returnValue["waist"] = arrSize[1];
+    returnValue["hip"] = arrSize[2];
+    returnValue["armLength"] = arrSize[3];
+    returnValue["legLength"] = arrSize[4];
+
+    return returnValue;
   };
 
   computeResizing = (
