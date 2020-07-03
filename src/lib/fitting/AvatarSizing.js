@@ -112,7 +112,7 @@ export default class ResizableBody {
     } // todo array가 vec3 가 아니라 float 이거나 byte일 것 같아서 재작업 필요.
     this.mStartIndexMap = baseMeshMap.get("mapStartIndex");
     this.mSymmetryIndex = readByteArray(
-      "Float",
+      "Uint",
       baseMeshMap.get("baSymmetryIndex")
     );
 
