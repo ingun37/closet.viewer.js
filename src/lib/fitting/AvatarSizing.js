@@ -122,189 +122,14 @@ export default class ResizableBody {
     // todo mHeightWeightTo5SizesMap
     this.mHeightWeightTo5SizesMap = heightWeightTo5SizesMap;
 
-    console.log(vCount);
-    console.log(baPosition);
-    console.log(this.mBaseVertex);
-    console.log(this.mStartIndexMap);
-    console.log(this.mSymmetryIndex);
-    console.log(this.mConvertingMatData);
-    console.log(this.mHeightWeightTo5SizesMap);
+    // console.log(vCount);
+    // console.log(baPosition);
+    // console.log(this.mBaseVertex);
+    // console.log(this.mStartIndexMap);
+    // console.log(this.mSymmetryIndex);
+    // console.log(this.mConvertingMatData);
+    // console.log(this.mHeightWeightTo5SizesMap);
   }
-
-  dataSymmetrization = (returnVertex) => {
-    let newTempP;
-
-    let newVertex = new Array(returnVertex.length());
-
-    for (let i = 0; i < returnVertex.length(); i++) {
-      newVertex[i] = new THREE.Vector3();
-      newVertex[i].copy(returnVertex[i]);
-    }
-
-    for (let i = 0; i < returnVertex.length(); i++) {
-      if (i == mSymmetryIndex[i]) {
-        newVertex[i].x = 0.0;
-      } else {
-        newTempP.copy(returnVertex[mSymmetryIndex[i]]);
-        newTempP.x *= -1.0;
-
-        newVertex[i].add(newTempP);
-        newVertex[i].divideScalar(2.0);
-      }
-    }
-
-    for (let i = 0; i < returnVertex.length(); i++)
-      returnVertex[i].copy(newVertex[i]);
-  };
-
-  dataNormalization = (returnVertex) => {
-    let meanPosition = THREE.Vector3(0, 0, 0);
-
-    let yMin = 100000.0;
-
-    for (let i = 0; i < returnVertex.length(); i++) {
-      meanPosition.add(returnVertex[i]);
-
-      if (returnVertex[i].y < yMin) {
-        yMin = returnVertex[i].y;
-      }
-    }
-
-    meanPosition.divideScalar(returnVertex.length());
-    meanPosition.y = yMin;
-
-    for (let i = 0; i < returnVertex.length(); i++)
-      returnVertex[i].sub(meanPosition);
-  };
-
-  computeResizing = (featureValues) => {
-    var returnVertex = new Array[mBaseVertex.length()]();
-    for (let i = 0; i < mBaseVertex.length(); i++)
-      returnVertex[i] = new THREE.Vector3();
-
-    for (let i = 0; i < mBaseVertex.length(); i++) {
-      returnVertex[i].copy(mBaseVertex[i]);
-
-      for (let j = 0; j < 3; j++) {
-        let index = i * 3 + j;
-        let featureIdx = 0;
-
-        for (
-          let k = 0;
-          k < MEASUREMENT_LIST_NAME.SIZE_OF_MEASUREMENT_LIST;
-          k++
-        ) {
-          if (mFeatureEnable[k]) {
-            if (j == 0)
-              returnVertex[i].x +=
-                mConvertingMatData[featureIdx][index] * featureValues[k];
-            else if (j == 1)
-              returnVertex[i].y +=
-                mConvertingMatData[featureIdx][index] * featureValues[k];
-            else
-              returnVertex[i].z +=
-                mConvertingMatData[featureIdx][index] * featureValues[k];
-
-            featureIdx++;
-          }
-        }
-
-        if (j == 0) returnVertex[i].x += mConvertingMatData[featureIdx][index];
-        else if (j == 1)
-          returnVertex[i].y += mConvertingMatData[featureIdx][index];
-        else if (j == 2)
-          returnVertex[i].z += mConvertingMatData[featureIdx][index];
-      }
-    }
-
-    dataSymmetrization(returnVertex);
-    dataNormalization(returnVertex);
-
-    // todo : vertex 순서를 실제 avt/zrest vertex order 로 변경해주기
-
-    return returnVertex;
-  };
-
-  applyBodyShape = (_bodyShape, _chest, _waist, _hip) => {
-    if (mCurrentGender == AVATAR_GENDER.GENDER_FEMALE) {
-      switch (_bodyShape) {
-        case 0: // default
-          break;
-        case 1: // hourglass
-          _chest += 3;
-          _waist += -2;
-          _hip += 3;
-          break;
-        case 2: //inverted triangle
-          _chest += 5;
-          _waist += -2;
-          _hip += -5;
-          break;
-        case 3: //round(apple)
-          _chest += -2;
-          _waist += 5;
-          _hip += -2;
-          break;
-        case 4: // triangle(pear)
-          _chest += -5;
-          _waist += 0;
-          _hip += 5;
-          break;
-        default:
-          break;
-      }
-    } else if (mCurrentGender == AVATAR_GENDER.GENDER_MALE) {
-      switch (_bodyShape) {
-        case 0: // default
-          break;
-        case 1: // rhomboid
-          _chest += 3;
-          _waist += 0;
-          _hip += -3;
-          break;
-        case 2: // inverted triangle
-          _chest += 7;
-          _waist += -1;
-          _hip += -4;
-          break;
-        case 3: // oval
-          _chest += -2;
-          _waist += 7;
-          _hip += -2;
-          break;
-        case 4: // triangle(pear)
-          _chest += -4;
-          _waist += 0;
-          _hip += 5;
-          break;
-        default:
-          break;
-      }
-    }
-
-    var returnValue;
-    returnValue.chest = _chest;
-    returnValue.waist = _waist;
-    returnValue.hip = _hip;
-
-    return returnValue;
-  };
-
-  getTableSize = (height, weight) => {
-    const arrSize = this.mHeightWeightTo5SizesMap
-      .get(String(height))
-      .get(String(weight));
-
-    // TODO: Check if this order is correct
-    const returnValue = {};
-    returnValue["chest"] = arrSize[0];
-    returnValue["waist"] = arrSize[1];
-    returnValue["hip"] = arrSize[2];
-    returnValue["armLength"] = arrSize[3];
-    returnValue["legLength"] = arrSize[4];
-
-    return returnValue;
-  };
 
   computeResizing = (
     height,
@@ -319,9 +144,10 @@ export default class ResizableBody {
     let featureValues = new Array(
       MEASUREMENT_LIST_NAME.SIZE_OF_MEASUREMENT_LIST
     );
+    console.log(featureValues);
 
-    var tableSize = getTableSize(height, weight);
-    var changedSize = applyBodyShape(
+    var tableSize = this.getTableSize(height, weight);
+    var changedSize = this.applyBodyShape(
       bodyShape,
       tableSize.chest,
       tableSize.waist,
@@ -360,6 +186,180 @@ export default class ResizableBody {
       100
     );
 
-    return computeResizing(featureValues);
+    return this.computeResizingWithFeatureValues(featureValues);
+  };
+
+  computeResizingWithFeatureValues = (featureValues) => {
+    var returnVertex = new Array(this.mBaseVertex.length);
+    for (let i = 0; i < this.mBaseVertex.length; i++)
+      returnVertex[i] = new THREE.Vector3();
+
+    for (let i = 0; i < this.mBaseVertex.length; i++) {
+      returnVertex[i].copy(this.mBaseVertex[i]);
+
+      for (let j = 0; j < 3; j++) {
+        let index = i * 3 + j;
+        let featureIdx = 0;
+
+        for (
+          let k = 0;
+          k < MEASUREMENT_LIST_NAME.SIZE_OF_MEASUREMENT_LIST;
+          k++
+        ) {
+          if (this.mFeatureEnable[k]) {
+            if (j == 0)
+              returnVertex[i].x +=
+                this.mConvertingMatData[featureIdx][index] * featureValues[k];
+            else if (j == 1)
+              returnVertex[i].y +=
+                this.mConvertingMatData[featureIdx][index] * featureValues[k];
+            else
+              returnVertex[i].z +=
+                this.mConvertingMatData[featureIdx][index] * featureValues[k];
+
+            featureIdx++;
+          }
+        }
+
+        if (j == 0)
+          returnVertex[i].x += this.mConvertingMatData[featureIdx][index];
+        else if (j == 1)
+          returnVertex[i].y += this.mConvertingMatData[featureIdx][index];
+        else if (j == 2)
+          returnVertex[i].z += this.mConvertingMatData[featureIdx][index];
+      }
+    }
+
+    this.dataSymmetrization(returnVertex);
+    this.dataNormalization(returnVertex);
+
+    console.log(returnVertex);
+
+    // todo : vertex 순서를 실제 avt/zrest vertex order 로 변경해주기
+
+    return returnVertex;
+  };
+
+  applyBodyShape = (_bodyShape, _chest, _waist, _hip) => {
+    if (this.mCurrentGender == AVATAR_GENDER.GENDER_FEMALE) {
+      switch (_bodyShape) {
+        case 0: // default
+          break;
+        case 1: // hourglass
+          _chest += 3;
+          _waist += -2;
+          _hip += 3;
+          break;
+        case 2: //inverted triangle
+          _chest += 5;
+          _waist += -2;
+          _hip += -5;
+          break;
+        case 3: //round(apple)
+          _chest += -2;
+          _waist += 5;
+          _hip += -2;
+          break;
+        case 4: // triangle(pear)
+          _chest += -5;
+          _waist += 0;
+          _hip += 5;
+          break;
+        default:
+          break;
+      }
+    } else if (this.mCurrentGender == AVATAR_GENDER.GENDER_MALE) {
+      switch (_bodyShape) {
+        case 0: // default
+          break;
+        case 1: // rhomboid
+          _chest += 3;
+          _waist += 0;
+          _hip += -3;
+          break;
+        case 2: // inverted triangle
+          _chest += 7;
+          _waist += -1;
+          _hip += -4;
+          break;
+        case 3: // oval
+          _chest += -2;
+          _waist += 7;
+          _hip += -2;
+          break;
+        case 4: // triangle(pear)
+          _chest += -4;
+          _waist += 0;
+          _hip += 5;
+          break;
+        default:
+          break;
+      }
+    }
+
+    var returnValue = {};
+    returnValue.chest = _chest;
+    returnValue.waist = _waist;
+    returnValue.hip = _hip;
+
+    return returnValue;
+  };
+
+  getTableSize = (height, weight) => {
+    const arrSize = this.mHeightWeightTo5SizesMap
+      .get(String(height))
+      .get(String(weight));
+
+    // TODO: Check if this order is correct
+    const returnValue = {};
+    returnValue["chest"] = arrSize[0];
+    returnValue["waist"] = arrSize[1];
+    returnValue["hip"] = arrSize[2];
+    returnValue["armLength"] = arrSize[3];
+    returnValue["legLength"] = arrSize[4];
+
+    return returnValue;
+  };
+
+  dataSymmetrization = (returnVertex) => {
+    let newTempP;
+    let newVertex = new Array(returnVertex.length);
+
+    for (let i = 0; i < returnVertex.length; i++) {
+      newVertex[i] = returnVertex[i].clone();
+    }
+
+    for (let i = 0; i < returnVertex.length; i++) {
+      if (i == this.mSymmetryIndex[i]) {
+        newVertex[i].x = 0.0;
+      } else {
+        newTempP = returnVertex[this.mSymmetryIndex[i]].clone();
+        newTempP.x *= -1.0;
+        newVertex[i].add(newTempP);
+        newVertex[i].divideScalar(2.0);
+      }
+    }
+
+    for (let i = 0; i < returnVertex.length; i++)
+      returnVertex[i].copy(newVertex[i]);
+  };
+
+  dataNormalization = (returnVertex) => {
+    const meanPosition = new THREE.Vector3(0, 0, 0);
+    let yMin = 100000.0;
+
+    for (let i = 0; i < returnVertex.length; i++) {
+      meanPosition.add(returnVertex[i]);
+
+      if (returnVertex[i].y < yMin) {
+        yMin = returnVertex[i].y;
+      }
+    }
+
+    meanPosition.divideScalar(returnVertex.length);
+    meanPosition.y = yMin;
+
+    for (let i = 0; i < returnVertex.length; i++)
+      returnVertex[i].sub(meanPosition);
   };
 }
