@@ -20,8 +20,9 @@ export async function processAvatarSizingFile({ url: url }) {
     loadedData,
     "ConvertingMat_DETAIL_Simple_Weight_TotalHeight.bd"
   );
-  const convertingMatData = new Float32Array(unzippedConvertingMatData, {
-    Offset: 0,
+
+  const convertingMatData = readConvertingMatData({
+    unzippedConvertingMatData,
   });
 
   const mapHeightWeightTo5Sizes = await getParsedData(
@@ -29,6 +30,26 @@ export async function processAvatarSizingFile({ url: url }) {
   );
 
   return { mapBaseMesh, convertingMatData, mapHeightWeightTo5Sizes };
+}
+
+function readConvertingMatData({ unzippedConvertingMatData }) {
+  const matrixSizes = new Int32Array(unzippedConvertingMatData, 0, 2);
+  const matWidth = matrixSizes[0]; // Features
+  const matHeight = matrixSizes[1]; // Indices
+  const offsetByMatrixSizes = matrixSizes.BYTES_PER_ELEMENT * 2;
+  const convertingMatData = new Float32Array(
+    unzippedConvertingMatData,
+    offsetByMatrixSizes
+  );
+
+  const mat = new Array(matWidth);
+  for (let i = 0; i < matWidth; ++i) {
+    const begin = matHeight * i;
+    const end = matHeight * (i + 1) - 1;
+    mat[i] = convertingMatData.slice(begin, end);
+  }
+
+  return mat;
 }
 
 async function unzipParse({ loadedData, filename }) {
