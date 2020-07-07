@@ -294,8 +294,6 @@ class AnnotationManager {
 
     const cameraDirection = new THREE.Vector3();
     cameraDirection.copy(this.getCameraDirection());
-    console.log("cameraDirection");
-    console.log(cameraDirection);
 
     return {
       pointerPos: pointerPos,
