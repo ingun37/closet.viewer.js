@@ -51,8 +51,6 @@ export default class Fitting {
 
   async initResizableAvatar({ url }) {
     const retObj = await processAvatarSizingFile({ url });
-    console.log(retObj);
-
     this.resizableBody = new ResizableBody(
       0,
       retObj.mapBaseMesh,
@@ -427,17 +425,15 @@ export default class Fitting {
   }
 
   buildMesh(bufferGeometry, material = null) {
-    const defaultMaterial = new THREE.MeshPhongMaterial({});
-    defaultMaterial.color = THREE.Vector3(1, 1, 1);
+    // const defaultMaterial = new THREE.MeshPhongMaterial({});
+    // defaultMaterial.color = THREE.Vector3(1, 1, 1);
 
-    // const defaultMaterial = new THREE.PointsMaterial({
-    //   color: 0x880000,
-    // });
-    // const threeMesh = new THREE.Points(bufferGeometry, threeMaterial);
+    const defaultMaterial = new THREE.PointsMaterial({
+      color: 0x880000,
+    });
     const threeMaterial = material ? material : defaultMaterial;
-    console.log(threeMaterial);
-    const threeMesh = new THREE.Mesh(bufferGeometry, threeMaterial);
-    console.log(threeMesh);
+    const threeMesh = new THREE.Points(bufferGeometry, threeMaterial);
+    // const threeMesh = new THREE.Mesh(bufferGeometry, threeMaterial);
     this.container.add(threeMesh);
   }
 
@@ -540,5 +536,57 @@ export default class Fitting {
     );
 
     return v;
+  };
+
+  // NOTE: Test code for avatar resizing
+  r = async (testNo = 0) => {
+    await this.initResizableAvatar({
+      url:
+        "https://files.clo-set.com/public/fitting/avatar/" +
+        testNo +
+        "/Sizing.zip",
+    });
+
+    const sizes = this.resizableBody.getTableSize(175, 75);
+    console.log(sizes);
+
+    const bodyShape = this.resizableBody.mBaseVertex;
+    const computed = this.resizableBody.computeResizing(
+      175,
+      75,
+      0,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1
+      // sizes.chest,
+      // sizes.waist,
+      // sizes.hip,
+      // sizes.armLength,
+      // sizes.legLength
+    );
+
+    console.log("mBaseVertex: ");
+    console.log(bodyShape);
+
+    console.log("after computeResizing: ");
+    console.log(computed);
+
+    // Render for test only
+    const v = this.resizableBody.mBaseVertex;
+    const bv = [];
+
+    // const bufferGeometry = new THREE.BufferGeometry();
+    this.resizableBufferGeometry = new THREE.BufferGeometry();
+    v.forEach((vertex) => {
+      bv.push(vertex.x, vertex.y, vertex.z);
+    });
+    // const bufferGeometry = matMesh.geometry;
+    this.resizableBufferGeometry.addAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(new Float32Array(bv), 3)
+    );
+    this.buildMesh(this.resizableBufferGeometry);
   };
 }

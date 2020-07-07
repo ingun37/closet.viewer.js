@@ -100,10 +100,10 @@ export default class ResizableBody {
     this.mFeatureEnable[MEASUREMENT_LIST_NAME.LENGTH_Arm] = true;
     this.mFeatureEnable[MEASUREMENT_LIST_NAME.HEIGHT_Crotch] = true;
 
-    const vCount = baseMeshMap.get("uiVertexCount");
+    this.mVertexSize = baseMeshMap.get("uiVertexCount");
     const baPosition = readByteArray("Float", baseMeshMap.get("baPosition"));
-    this.mBaseVertex = new Array(vCount);
-    for (let i = 0; i < vCount; i++) {
+    this.mBaseVertex = new Array(this.mVertexSize);
+    for (let i = 0; i < this.mVertexSize; i++) {
       this.mBaseVertex[i] = new THREE.Vector3(
         baPosition[i * 3],
         baPosition[i * 3 + 1],
@@ -144,7 +144,6 @@ export default class ResizableBody {
     let featureValues = new Array(
       MEASUREMENT_LIST_NAME.SIZE_OF_MEASUREMENT_LIST
     );
-    console.log(featureValues);
 
     var tableSize = this.getTableSize(height, weight);
     var changedSize = this.applyBodyShape(
@@ -233,7 +232,8 @@ export default class ResizableBody {
     this.dataSymmetrization(returnVertex);
     this.dataNormalization(returnVertex);
 
-    console.log(returnVertex);
+    // console.log("after computeResizingWithFeatureValues: ");
+    // console.log(returnVertex);
 
     // todo : vertex 순서를 실제 avt/zrest vertex order 로 변경해주기
 
