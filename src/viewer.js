@@ -591,7 +591,6 @@ export default class ClosetViewer {
     this.zrest.currentColorwayIndex = colorwayIdx;
     console.log("selected colorway index: " + colorwayIdx);
 
-    this.clear();
     const matMeshMap = this.zrest.matMeshMap;
     for (const matMesh of matMeshMap.values()) {
       const prevMaterial = matMesh.material;
