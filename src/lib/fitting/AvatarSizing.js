@@ -85,8 +85,9 @@ const AVATAR_GENDER = {
 // baseMeshMap은 MVMap
 // convertinMatData 는 float array
 // heightWeightTo5SizesMap MVMap
+// zrestSkinControllerArray 아바타 zrest의 1) skincontroller name(or matshape name), 2) 해당 메쉬의 vertexCount 3) three.js vertex3d 의 pointer 세개를 가지고 있는 triple의 array
 export default class ResizableBody {
-  constructor(gender, baseMeshMap, convertingMatData, heightWeightTo5SizesMap) {
+  constructor(gender, baseMeshMap, convertingMatData, heightWeightTo5SizesMap, zrestSkinControllerArray) {
     this.mCurrentGender = gender;
     this.mFeatureEnable = new Array(
       MEASUREMENT_LIST_NAME.SIZE_OF_MEASUREMENT_LIST
@@ -109,18 +110,20 @@ export default class ResizableBody {
         baPosition[i * 3 + 1],
         baPosition[i * 3 + 2]
       );
-    } // todo array가 vec3 가 아니라 float 이거나 byte일 것 같아서 재작업 필요.
+    } 
     this.mStartIndexMap = baseMeshMap.get("mapStartIndex");
     this.mSymmetryIndex = readByteArray(
       "Uint",
       baseMeshMap.get("baSymmetryIndex")
     );
 
-    // todo mConvertingMatData 읽어들이기
+    // mConvertingMatData 읽어들이기
     this.mConvertingMatData = convertingMatData;
 
-    // todo mHeightWeightTo5SizesMap
+    // mHeightWeightTo5SizesMap
     this.mHeightWeightTo5SizesMap = heightWeightTo5SizesMap;
+
+    this.mZrestSkinControllerArray = zrestSkinControllerArray;
 
     // console.log(vCount);
     // console.log(baPosition);
@@ -235,9 +238,18 @@ export default class ResizableBody {
     // console.log("after computeResizingWithFeatureValues: ");
     // console.log(returnVertex);
 
-    // todo : vertex 순서를 실제 avt/zrest vertex order 로 변경해주기
+    // returnVertex 순서를 실제 avt/zrest vertex order 로 변경해서 avatar의 해당 vertex에 position 값 업데이트하기
+    for(let i=0;i<this.mZrestSkinControllerArray.length;i++)
+    {
+      const matShapeName = this.mZrestSkinControllerArray[i][0];
+      const vCount = this.mZrestSkinControllerArray[i][1];
+      var position = this.mZrestSkinControllerArray[i][2];
 
-    return returnVertex;
+      const startIndex = this.mStartIndexMap.get(matShapeName);
+
+      for(let j=0;j<vCount;j++)
+        position[j].copy(returnVertex[startIndex + j]);
+    }
   };
 
   applyBodyShape = (_bodyShape, _chest, _waist, _hip) => {
