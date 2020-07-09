@@ -557,10 +557,6 @@ export default class ClosetViewer {
     return this.zrest.getColorwaySize();
   }
 
-  getCurrentColorwayIndex() {
-    return this.zrest.meshFactory.currentColorwayIndex;
-  }
-
   isExistMatMeshType(type) {
     if (typeof this.zrest === "undefined") return false;
 
@@ -588,7 +584,6 @@ export default class ClosetViewer {
       return;
     }
 
-    this.zrest.currentColorwayIndex = colorwayIdx;
     console.log("selected colorway index: " + colorwayIdx);
 
     const matMeshMap = this.zrest.matMeshMap;
