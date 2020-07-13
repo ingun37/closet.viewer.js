@@ -160,8 +160,15 @@ export default class ClosetViewer {
       setter: this.setter,
     });
 
+    this.zrest = new ZRestLoader({
+      scene: this.scene,
+      camera: this.camera,
+      controls: this.controls,
+      cameraPosition: this.cameraPosition,
+    });
+
     this.fittingMap = new FittingMap();
-    this.fitting = new Fitting(this.scene, this.zrest);
+    // this.fitting = new Fitting(this.scene, this.zrest);
 
     // canvas event
     const canvas = this.setter;
@@ -678,6 +685,8 @@ export default class ClosetViewer {
     colorwayIndex = -1,
     isAsync = false
   ) {
+    console.log(this.zrest);
+
     const progress = function (xhr) {
       if (xhr.lengthComputable) {
         const percentComplete = (xhr.loaded / xhr.total) * 100;
@@ -717,40 +726,29 @@ export default class ClosetViewer {
 
     if (this.zrest !== undefined) {
       this.zrest.clearMaps();
+      this.zrest.clear();
       this.zrest = null;
-    }
-
-    if (url.constructor === ArrayBuffer) {
       this.zrest = new ZRestLoader({
         scene: this.scene,
         camera: this.camera,
         controls: this.controls,
         cameraPosition: this.cameraPosition,
       });
+    }
+
+    if (url.constructor === ArrayBuffer) {
       this.zrest.parse(url, loaded);
       return;
     }
 
     if (isAsync) {
       if (url.constructor === String) {
-        this.zrest = new ZRestLoader({
-          scene: this.scene,
-          camera: this.camera,
-          controls: this.controls,
-          cameraPosition: this.cameraPosition,
-        });
         await this.zrest.loadUrl(url, loaded, progress, error);
       }
       return;
     }
 
     if (url.constructor === String) {
-      this.zrest = new ZRestLoader({
-        scene: this.scene,
-        camera: this.camera,
-        controls: this.controls,
-        cameraPosition: this.cameraPosition,
-      });
       this.zrest.load(url, loaded, progress, error);
     }
   }
