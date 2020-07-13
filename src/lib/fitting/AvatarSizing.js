@@ -87,7 +87,13 @@ const AVATAR_GENDER = {
 // heightWeightTo5SizesMap MVMap
 // zrestSkinControllerArray 아바타 zrest의 1) skincontroller name(or matshape name), 2) 해당 메쉬의 vertexCount 3) three.js vertex3d 의 pointer 세개를 가지고 있는 triple의 array
 export default class ResizableBody {
-  constructor(gender, baseMeshMap, convertingMatData, heightWeightTo5SizesMap, zrestSkinControllerArray) {
+  constructor(
+    gender,
+    baseMeshMap,
+    convertingMatData,
+    heightWeightTo5SizesMap,
+    zrestSkinControllerArray
+  ) {
     this.mCurrentGender = gender;
     this.mFeatureEnable = new Array(
       MEASUREMENT_LIST_NAME.SIZE_OF_MEASUREMENT_LIST
@@ -103,6 +109,7 @@ export default class ResizableBody {
 
     this.mVertexSize = baseMeshMap.get("uiVertexCount");
     const baPosition = readByteArray("Float", baseMeshMap.get("baPosition"));
+
     this.mBaseVertex = new Array(this.mVertexSize);
     for (let i = 0; i < this.mVertexSize; i++) {
       this.mBaseVertex[i] = new THREE.Vector3(
@@ -110,7 +117,7 @@ export default class ResizableBody {
         baPosition[i * 3 + 1],
         baPosition[i * 3 + 2]
       );
-    } 
+    }
     this.mStartIndexMap = baseMeshMap.get("mapStartIndex");
     this.mSymmetryIndex = readByteArray(
       "Uint",
@@ -127,12 +134,28 @@ export default class ResizableBody {
 
     // console.log(vCount);
     // console.log(baPosition);
-    // console.log(this.mBaseVertex);
-    // console.log(this.mStartIndexMap);
+    console.log(baseMeshMap);
+    console.log(this.mStartIndexMap);
     // console.log(this.mSymmetryIndex);
     // console.log(this.mConvertingMatData);
     // console.log(this.mHeightWeightTo5SizesMap);
   }
+
+  inputBaseVertex = (baseVertex) => {
+    console.log("inputBaseVertex");
+    // console.log(this.mBaseVertex);
+    // console.log(baseVertex);
+    for (let i = 0; i < baseVertex; ++i) {
+      this.mBaseVertex[i] = baseVertex[i];
+    }
+    // this.mBaseVertex = baseVertex;
+    // test
+    // if (baseVertex) {
+    //   if (baseVertex.length / 3 === this.mVertexSize) {
+    //     console.log("BASE VERTEX CORRECT");
+    //   }
+    // }
+  };
 
   computeResizing = (
     height,
@@ -192,7 +215,7 @@ export default class ResizableBody {
   };
 
   computeResizingWithFeatureValues = (featureValues) => {
-    var returnVertex = new Array(this.mBaseVertex.length);
+    const returnVertex = new Array(this.mBaseVertex.length);
     for (let i = 0; i < this.mBaseVertex.length; i++)
       returnVertex[i] = new THREE.Vector3();
 
@@ -235,21 +258,26 @@ export default class ResizableBody {
     this.dataSymmetrization(returnVertex);
     this.dataNormalization(returnVertex);
 
-    // console.log("after computeResizingWithFeatureValues: ");
-    // console.log(returnVertex);
+    console.log("after computeResizingWithFeatureValues: ");
+    console.log(returnVertex);
+
+    const bodyStartIndex = this.mStartIndexMap.get("body");
+    console.log("bodyStartIndex: " + bodyStartIndex);
+    console.log(this.mStartIndexMap);
+
+    return returnVertex;
 
     // returnVertex 순서를 실제 avt/zrest vertex order 로 변경해서 avatar의 해당 vertex에 position 값 업데이트하기
-    for(let i=0;i<this.mZrestSkinControllerArray.length;i++)
-    {
-      const matShapeName = this.mZrestSkinControllerArray[i][0];
-      const vCount = this.mZrestSkinControllerArray[i][1];
-      var position = this.mZrestSkinControllerArray[i][2];
+    // for (let i = 0; i < this.mZrestSkinControllerArray.length; ++i) {
+    //   const matShapeName = this.mZrestSkinControllerArray[i][0];
+    //   const vCount = this.mZrestSkinControllerArray[i][1];
+    //   var position = this.mZrestSkinControllerArray[i][2];
 
-      const startIndex = this.mStartIndexMap.get(matShapeName);
+    //   const startIndex = this.mStartIndexMap.get(matShapeName);
 
-      for(let j=0;j<vCount;j++)
-        position[j].copy(returnVertex[startIndex + j]);
-    }
+    //   for (let j = 0; j < vCount; j++)
+    //     position[j].copy(returnVertex[startIndex + j]);
+    // }
   };
 
   applyBodyShape = (_bodyShape, _chest, _waist, _hip) => {
@@ -334,26 +362,37 @@ export default class ResizableBody {
   };
 
   dataSymmetrization = (returnVertex) => {
+    // console.warn(returnVertex);
+    // console.warn(this.mSymmetryIndex);
+    // const bodyLength = 35739;
+    const bodyLength = returnVertex.length;
     let newTempP;
     let newVertex = new Array(returnVertex.length);
 
-    for (let i = 0; i < returnVertex.length; i++) {
+    // for (let i = 0; i < returnVertex.length; i++) {
+    for (let i = 0; i < bodyLength; i++) {
       newVertex[i] = returnVertex[i].clone();
     }
 
-    for (let i = 0; i < returnVertex.length; i++) {
+    for (let i = 0; i < bodyLength; i++) {
+      // for (let i = 0; i < returnVertex.length; i++) {
       if (i == this.mSymmetryIndex[i]) {
         newVertex[i].x = 0.0;
       } else {
-        newTempP = returnVertex[this.mSymmetryIndex[i]].clone();
-        newTempP.x *= -1.0;
-        newVertex[i].add(newTempP);
-        newVertex[i].divideScalar(2.0);
+        const symmetry = returnVertex[this.mSymmetryIndex[i]];
+        if (symmetry) {
+          newTempP = returnVertex[this.mSymmetryIndex[i]].clone();
+          newTempP.x *= -1.0;
+          newVertex[i].add(newTempP);
+          newVertex[i].divideScalar(2.0);
+        } else {
+          console.warn("symmetry index missing: " + i);
+        }
       }
     }
 
-    for (let i = 0; i < returnVertex.length; i++)
-      returnVertex[i].copy(newVertex[i]);
+    // for (let i = 0; i < returnVertex.length; i++)
+    for (let i = 0; i < bodyLength; i++) returnVertex[i].copy(newVertex[i]);
   };
 
   dataNormalization = (returnVertex) => {

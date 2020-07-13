@@ -192,19 +192,19 @@ export default class ClosetViewer {
   }
 
   // NOTE: Fitting map loader to test
-  f(mapMatMesh) {
-    // this.loadZrestData("f1.zrest");
-    const m = this.zrest.zProperty.rootMap.get("mapGeometry");
-    const c = this.zrest.zProperty.mapChangedIndex;
-    this.fittingMap.load({ mapGeometry: m, mapChangedIndex: c });
-    this.fittingMap.createVertice(mapMatMesh);
-  }
+  // f(mapMatMesh) {
+  //   // this.loadZrestData("f1.zrest");
+  //   const m = this.zrest.zProperty.rootMap.get("mapGeometry");
+  //   const c = this.zrest.zProperty.mapChangedIndex;
+  //   this.fittingMap.load({ mapGeometry: m, mapChangedIndex: c });
+  //   this.fittingMap.createVertice(mapMatMesh);
+  // }
 
   // NOTE: avatar test codes for example
   // Should be removed until live
   // fitting({ rootPath: rootPath, listAvatarPath: listAvatarPath }) {
   async ft(
-    _skinType = 0,
+    _skinType = 1,
     _styleId = "c31a632e03fe44f2aa18b2aa8cc44435",
     _styleVersion = 5,
     _avatarId = 0,
@@ -220,6 +220,11 @@ export default class ClosetViewer {
       "avatar/0/Nate.zrest",
       "avatar/0/Thomas.zrest",
     ]);
+    mapAvatarPath.set(1, [
+      "avatar/1/Mara.zrest",
+      "avatar/1/Feifei.zrest",
+      "avatar/1/Grace.zrest",
+    ]);
 
     console.log("fitting init");
     this.fittingInit({
@@ -234,8 +239,12 @@ export default class ClosetViewer {
     });
     console.log("fitting get avatar -");
 
-    // console.log("matMesh");
-    // console.log(this.zrest.zProperty.matMeshMap);
+    console.log("rootMap of avatar");
+    console.log(this.zrest.zProperty.rootMap);
+
+    // this.fitting.r(0);
+    // console.log(this.fitting.bodyVertexPos);
+    // this.fitting.resizableBody.inputBaseVertex(this.fitting.bodyVertexPos);
 
     console.log("fitting get init garment +");
     await this.loadZrestForFitting({
@@ -244,14 +253,6 @@ export default class ClosetViewer {
       funcOnLoad: null,
       isAvatar: false,
     });
-    // await this.fittingGetInitGarment({
-    //   styleId: _styleId,
-    //   styleVersion: _styleVersion,
-    //   gradingIndex: _gradingIndex,
-    //   avatarId: _avatarId,
-    //   funcOnProgress: null,
-    //   funcOnLoad: null,
-    // });
     console.log("fitting get init garment -");
 
     console.log("fittingGetInitGarment +");
@@ -259,15 +260,70 @@ export default class ClosetViewer {
       "f/P0_187_73.zcrp",
       this.zrest.matMeshMap
     );
-    // await this.fittingGetDraping({
-    //   styleId: _styleId,
-    //   styleVersion: _styleVersion,
-    //   height: _height,
-    //   weight: _weight,
-    //   gradingIndex: _gradingIndex,
-    // });
+
     this.updateRenderer();
     console.log("fittingGetInitGarment -");
+  }
+
+  async rz() {
+    await this.loadZrestForFitting({
+      url: "https://files.clo-set.com/public/fitting/avatar/0/Thomas.zrest",
+      funcOnProgress: null,
+      funcOnLoad: null,
+      isAvatar: true,
+    });
+    const avatarGeometry = new Map(
+      this.zrest.zProperty.rootMap.get("mapGeometry")
+    );
+    const listSkinController = this.fitting.loadGeometry({
+      mapGeometry: avatarGeometry,
+    });
+    this.fitting.setAvatarInfo(listSkinController);
+    await this.fitting.r(0);
+    const bvp = [];
+    const pos = this.fitting.bodyVertexPos;
+    for (let i = 0; i < this.fitting.bodyVertexPos.length; i += 3) {
+      bvp.push(new THREE.Vector3(pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2]));
+    }
+    console.warn("bvp:");
+    console.warn(bvp);
+    this.fitting.resizableBody.inputBaseVertex(bvp);
+    const computed = this.fitting.resizableBody.computeResizing(
+      170,
+      95,
+      0,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1
+      // sizes.chest,
+      // sizes.waist,
+      // sizes.hip,
+      // sizes.armLength,
+      // sizes.legLength
+    );
+
+    console.log("=========");
+    console.log(this.fitting.bodyVertexPos);
+    console.log(computed);
+
+    const geometry = this.fitting.container.children[0].geometry;
+    const geoPos = [];
+
+    const m = 10.0;
+    computed.forEach((pos) => {
+      geoPos.push(pos.x * m, pos.y * m, pos.z * m);
+    });
+
+    console.warn(geometry.attributes.position);
+
+    geometry.addAttribute(
+      "position",
+      new THREE.BufferAttribute(new Float32Array(geoPos), 3)
+    );
+
+    console.warn(geometry.attributes.position);
   }
 
   dt(height, weight) {
@@ -312,10 +368,10 @@ export default class ClosetViewer {
     const avatarGeometry = new Map(
       this.zrest.zProperty.rootMap.get("mapGeometry")
     );
-    const lc = this.fitting.loadGeometry({
+    const listSkinController = this.fitting.loadGeometry({
       mapGeometry: avatarGeometry,
     });
-    this.fitting.setAvatarInfo(lc);
+    this.fitting.setAvatarInfo(listSkinController);
   }
 
   async fittingGetInitGarment({
@@ -699,55 +755,6 @@ export default class ClosetViewer {
     }
   }
 
-  // TODO: Refactoring here!
-  async loadZrestForFitting({
-    url: url,
-    funcOnProgress: onProgress,
-    funcOnLoad: onLoad,
-    isAvatar: isAvatar = false,
-  }) {
-    const scene = this.scene;
-
-    const progress = function (xhr) {
-      if (xhr.lengthComputable) {
-        const percentComplete = (xhr.loaded / xhr.total) * 100;
-        const percent = Math.round(percentComplete, 2);
-        if (onProgress) onProgress(percent);
-      }
-    };
-
-    const error = function (xhr) {};
-
-    const loaded = async (object, loadedCamera, data) => {
-      if (isAvatar) this.addToScene(object, "fittingAvatar");
-      else this.addToScene(object);
-
-      if (onLoad) onLoad(this);
-
-      this.zrest.zoomToObjects(loadedCamera, this.scene);
-      if (!isAvatar) this.updateRenderer();
-
-      return scene;
-    };
-
-    if (this.zrest !== undefined) {
-      this.zrest.clearMaps();
-      this.zrest = null;
-    }
-
-    this.zrest = new ZRestLoader({
-      scene: this.scene,
-      camera: this.camera,
-      controls: this.controls,
-      cameraPosition: this.cameraPosition,
-    });
-
-    const dataArr = await this.zrest.loadOnly(url, progress);
-    await this.zrest.parseAsync(dataArr, loaded);
-
-    return;
-  }
-
   loadTechPack(fabricsWithPatternsFromAPI, trimsFromAPI) {
     const matShapeMap = this.zrest.meshFactory.matmeshManager.matShapeMap;
     const matMeshMap = this.zrest.matMeshMap;
@@ -801,6 +808,57 @@ export default class ClosetViewer {
       }
     }
     return false;
+  }
+
+  async loadZrestForFitting({
+    url: url,
+    funcOnProgress: onProgress,
+    funcOnLoad: onLoad,
+    isAvatar: isAvatar = false,
+  }) {
+    const scene = this.scene;
+
+    const progress = function (xhr) {
+      if (xhr.lengthComputable) {
+        const percentComplete = (xhr.loaded / xhr.total) * 100;
+        const percent = Math.round(percentComplete, 2);
+        if (onProgress) onProgress(percent);
+      }
+    };
+
+    const error = function (xhr) {};
+
+    // const loaded = () => {};
+    const loaded = async (object, loadedCamera, data) => {
+      if (isAvatar) this.addToScene(object, "fittingAvatar");
+      else this.addToScene(object);
+      // this.addToScene(object);
+
+      if (onLoad) onLoad(this);
+
+      this.zrest.zoomToObjects(loadedCamera, this.scene);
+      if (!isAvatar) this.updateRenderer();
+      // this.updateRenderer();
+
+      return scene;
+    };
+
+    if (this.zrest !== undefined) {
+      this.zrest.clearMaps();
+      this.zrest = null;
+    }
+
+    this.zrest = new ZRestLoader({
+      scene: this.scene,
+      camera: this.camera,
+      controls: this.controls,
+      cameraPosition: this.cameraPosition,
+    });
+
+    const dataArr = await this.zrest.loadOnly(url, progress);
+    await this.zrest.parseAsync(dataArr, loaded);
+
+    return;
   }
 
   loadSeparatedZrest = async (zrestJSON, onProgress, colorwayIndex) => {
