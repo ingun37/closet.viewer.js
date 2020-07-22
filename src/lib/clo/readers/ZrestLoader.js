@@ -115,6 +115,8 @@ export default class ZRestLoader {
         jsZip: this.jsZip,
       });
     };
+
+    console.log("ZRestLoader initialized.");
   }
 
   // TODO: This wrapper function placed very temporarily.
@@ -205,6 +207,30 @@ export default class ZRestLoader {
       this.req.abort();
     }
   };
+
+  addToScene(object, _name = "object3D") {
+    console.warn("addToScene");
+    if (object.name !== _name) {
+      //return;
+      object.name = _name;
+    }
+    let objIndex = -1;
+    for (let i = 0; i < this.scene.children.length; ++i) {
+      if (this.scene.children[i].name === _name) {
+        clearThree(this.scene.children[i]);
+        this.scene.children[i].remove(...this.scene.children[i].children);
+        objIndex = i;
+      }
+    }
+
+    if (objIndex >= 0) {
+      this.scene.children[objIndex] = object;
+    } else {
+      this.scene.add(object);
+    }
+
+    this.object3D = object;
+  }
 
   parse = (data, onLoad) => {
     this.data = data;

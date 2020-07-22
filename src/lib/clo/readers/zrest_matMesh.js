@@ -25,6 +25,9 @@ export default function MatMeshManager({
   this.styleLineMap = new Map();
   this.matShapeMap = new Map();
 
+  // For fitting
+  this.mapSCMatmeshID = new Map();
+
   this.matMeshManager = zProperty.matMeshManager;
 
   // TODO: 피팅맵 임시

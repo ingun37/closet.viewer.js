@@ -4,7 +4,7 @@ import * as THREE from "@/lib/threejs/three";
 import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
 import { readMap } from "@/lib/clo/file/KeyValueMapReader";
 
-export default class FitGarment {
+export default class FittingGarment {
   // listBarycentric = [];
   constructor() {
     this.listBarycentricCoord = [];

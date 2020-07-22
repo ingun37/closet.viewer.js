@@ -168,7 +168,7 @@ export default class ClosetViewer {
     });
 
     this.fittingMap = new FittingMap();
-    // this.fitting = new Fitting(this.scene, this.zrest);
+    this.fitting = new Fitting({ scene: this.scene, zrest: this.zrest });
 
     // canvas event
     const canvas = this.setter;
@@ -198,18 +198,6 @@ export default class ClosetViewer {
     this.updateRenderer(1);
   }
 
-  // NOTE: Fitting map loader to test
-  // f(mapMatMesh) {
-  //   // this.loadZrestData("f1.zrest");
-  //   const m = this.zrest.zProperty.rootMap.get("mapGeometry");
-  //   const c = this.zrest.zProperty.mapChangedIndex;
-  //   this.fittingMap.load({ mapGeometry: m, mapChangedIndex: c });
-  //   this.fittingMap.createVertice(mapMatMesh);
-  // }
-
-  // NOTE: avatar test codes for example
-  // Should be removed until live
-  // fitting({ rootPath: rootPath, listAvatarPath: listAvatarPath }) {
   async ft(
     _skinType = 1,
     _styleId = "c31a632e03fe44f2aa18b2aa8cc44435",
@@ -249,6 +237,10 @@ export default class ClosetViewer {
     console.log("rootMap of avatar");
     console.log(this.zrest.zProperty.rootMap);
 
+    await this.fitting.r(0);
+    console.warn(this.fitting.mapSkinController);
+    this.fitting.buildAvatarUsingSC(this.fitting.mapSkinController);
+
     // this.fitting.r(0);
     // console.log(this.fitting.bodyVertexPos);
     // this.fitting.resizableBody.inputBaseVertex(this.fitting.bodyVertexPos);
@@ -270,67 +262,6 @@ export default class ClosetViewer {
 
     this.updateRenderer();
     console.log("fittingGetInitGarment -");
-  }
-
-  async rz() {
-    await this.loadZrestForFitting({
-      url: "https://files.clo-set.com/public/fitting/avatar/0/Thomas.zrest",
-      funcOnProgress: null,
-      funcOnLoad: null,
-      isAvatar: true,
-    });
-    const avatarGeometry = new Map(
-      this.zrest.zProperty.rootMap.get("mapGeometry")
-    );
-    const listSkinController = this.fitting.loadGeometry({
-      mapGeometry: avatarGeometry,
-    });
-    this.fitting.setAvatarInfo(listSkinController);
-    await this.fitting.r(0);
-    const bvp = [];
-    const pos = this.fitting.bodyVertexPos;
-    for (let i = 0; i < this.fitting.bodyVertexPos.length; i += 3) {
-      bvp.push(new THREE.Vector3(pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2]));
-    }
-    console.warn("bvp:");
-    console.warn(bvp);
-    this.fitting.resizableBody.inputBaseVertex(bvp);
-    const computed = this.fitting.resizableBody.computeResizing(
-      170,
-      95,
-      0,
-      -1,
-      -1,
-      -1,
-      -1,
-      -1
-      // sizes.chest,
-      // sizes.waist,
-      // sizes.hip,
-      // sizes.armLength,
-      // sizes.legLength
-    );
-
-    console.log("=========");
-    console.log(this.fitting.bodyVertexPos);
-    console.log(computed);
-
-    const geometry = this.fitting.container.children[0].geometry;
-    const geoPos = [];
-
-    const m = 10.0;
-    computed.forEach((pos) => {
-      geoPos.push(pos.x * m, pos.y * m, pos.z * m);
-    });
-
-    console.warn(geometry.attributes.position);
-
-    geometry.addAttribute(
-      "position",
-      new THREE.BufferAttribute(new Float32Array(geoPos), 3)
-    );
-
-    console.warn(geometry.attributes.position);
   }
 
   dt(height, weight) {
@@ -379,6 +310,9 @@ export default class ClosetViewer {
       mapGeometry: avatarGeometry,
     });
     this.fitting.setAvatarInfo(listSkinController);
+    const mapSkinController = this.fitting.convertListSCtoMap(
+      listSkinController
+    );
   }
 
   async fittingGetInitGarment({
@@ -714,7 +648,7 @@ export default class ClosetViewer {
         await this.changeColorway(colorwayIndex);
       }
 
-      this.addToScene(object);
+      this.zrest.addToScene(object);
       // this.scene.add(object);
       // this.object3D = object;
       this.zrest.zoomToObjects(loadedCamera, this.scene);
@@ -828,14 +762,15 @@ export default class ClosetViewer {
 
     // const loaded = () => {};
     const loaded = async (object, loadedCamera, data) => {
-      if (isAvatar) this.addToScene(object, "fittingAvatar");
-      else this.addToScene(object);
+      if (isAvatar) this.zrest.addToScene(object, "fittingAvatar");
+      else this.zrest.addToScene(object);
       // this.addToScene(object);
 
       if (onLoad) onLoad(this);
 
       this.zrest.zoomToObjects(loadedCamera, this.scene);
       if (!isAvatar) this.updateRenderer();
+      else this.setAllAvatarVisible(false);
       // this.updateRenderer();
 
       return scene;
@@ -944,30 +879,6 @@ export default class ClosetViewer {
   async changeColorway(colorwayIdx) {
     await this.zrest.changeColorway(colorwayIdx);
     this.updateRenderer();
-  }
-
-  addToScene(object, _name = "object3D") {
-    console.warn("addToScene");
-    if (object.name !== _name) {
-      //return;
-      object.name = _name;
-    }
-    let objIndex = -1;
-    for (let i = 0; i < this.scene.children.length; ++i) {
-      if (this.scene.children[i].name === _name) {
-        clearThree(this.scene.children[i]);
-        this.scene.children[i].remove(...this.scene.children[i].children);
-        objIndex = i;
-      }
-    }
-
-    if (objIndex >= 0) {
-      this.scene.children[objIndex] = object;
-    } else {
-      this.scene.add(object);
-    }
-
-    this.object3D = object;
   }
 
   // TEMP

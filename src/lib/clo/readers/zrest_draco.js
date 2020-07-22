@@ -370,10 +370,10 @@ const splitMatSpaceToMatMesh = async (
     // Temporary codes for fitting
     // Should be removed after live
     if (type === MATMESH_TYPE.PATTERN_MATMESH) {
+      // threeMesh.userData.originalPos = dracoGeometry.vertices;
       threeMesh.userData.originalIndices = dracoGeometry.indices;
       threeMesh.userData.originalUv = dracoGeometry.uvs;
-      threeMesh.userData.originalUv2 = dracoGeometry.uv2s;
-      // matMeshManager.mapMatMeshIndex.set(matMeshID, dracoGeometry.indices);
+      // threeMesh.userData.originalUv2 = dracoGeometry.uv2s;
     }
 
     matMeshManager.matMeshMap.set(matMeshID, threeMesh);
@@ -448,6 +448,24 @@ export const createMatMesh = async (
     let totalIndexCount = 0;
     for (let m = 0; m < listIndexCount.length; ++m) {
       totalIndexCount += listIndexCount[m];
+    }
+
+    // TODO: Remove here after test
+    const mapElement = matShape.get("mapElement");
+    if (mapElement) {
+      const nameUTF8 = mapElement.get("qsNameUTF8");
+      const skinControllerName = readByteArray("String", nameUTF8);
+      console.warn(skinControllerName);
+      // console.log(matMeshManager);
+      console.log(listMatMeshIDOnIndexedMesh);
+
+      const listMatMeshID = [];
+      listMatMeshIDOnIndexedMesh.forEach((matShape) => {
+        const matMeshID = matShape.get("uiMatMeshID");
+        if (matMeshID) listMatMeshID.push(matMeshID);
+      });
+
+      matMeshManager.mapSCMatmeshID.set(skinControllerName, listMatMeshID);
     }
 
     const dracoFilename =

@@ -75,7 +75,7 @@ export default class Fitting {
 
   loadGeometry({ mapGeometry: mapGeometry }) {
     this.extractController(mapGeometry);
-    this.convertListSCtoMap(this.listSkinController);
+    // this.convertListSCtoMap(this.listSkinController);
     return this.listSkinController;
   }
 
@@ -258,15 +258,10 @@ export default class Fitting {
   }
 
   convertListSCtoMap(listSkinController) {
-    console.log("====================");
     listSkinController.forEach((sc) => {
-      // for (let i = 0; i < listSkinController.length; ++i) {
       const mapElement = sc.get("mapElement");
       const qsNameUTF8 = mapElement.get("qsNameUTF8");
       const scName = readByteArray("String", qsNameUTF8);
-
-      // console.log(sc);
-      // console.log(scName);
 
       this.mapSkinController.set(scName, sc);
     });
@@ -303,6 +298,8 @@ export default class Fitting {
 
     this.container.add(threeMesh);
 
+    return threeMesh;
+
     // console.log(threeMesh);
   }
   parseSkinControllerUsingABG(skinController) {
@@ -325,6 +322,8 @@ export default class Fitting {
     const vertexCount = mapMesh.get("uiVertexCount");
 
     if (ABGList.length <= 0) {
+      console.warn("ABGList is empty");
+      console.warn(ABGList);
       return;
     }
     console.log(skinController);
@@ -349,7 +348,7 @@ export default class Fitting {
     bufferGeometry.computeVertexNormals();
     bufferGeometry.computeFaceNormals();
 
-    this.buildMesh(bufferGeometry);
+    return this.buildMesh(bufferGeometry);
   }
 
   computeBarycentric(listAGB, listTriangleIndex, demarcationLine) {
@@ -405,16 +404,20 @@ export default class Fitting {
   }
 
   buildMesh(bufferGeometry, material = null) {
-    // const defaultMaterial = new THREE.MeshPhongMaterial({});
-    // defaultMaterial.color = THREE.Vector3(1, 1, 1);
+    // console.warn("buildMesh");
+    const defaultMaterial = new THREE.MeshPhongMaterial({});
+    defaultMaterial.color = THREE.Vector3(1, 1, 1);
 
-    const defaultMaterial = new THREE.PointsMaterial({
-      color: 0x880000,
-    });
+    // const defaultMaterial = new THREE.PointsMaterial({
+    //   color: 0x880000,
+    // });
     const threeMaterial = material ? material : defaultMaterial;
-    const threeMesh = new THREE.Points(bufferGeometry, threeMaterial);
-    // const threeMesh = new THREE.Mesh(bufferGeometry, threeMaterial);
+    // const threeMesh = new THREE.Points(bufferGeometry, threeMaterial);
+    const threeMesh = new THREE.Mesh(bufferGeometry, threeMaterial);
+    // console.log(threeMesh);
     this.container.add(threeMesh);
+
+    return threeMesh;
   }
 
   readBA({ sc: skinController, type: type, field: field }) {
@@ -458,11 +461,25 @@ export default class Fitting {
     // this.buildMeshUsingMapMesh(mapMesh);
   }
 
-  buildAvatarUsingSC(listSkinController) {
-    listSkinController.forEach((sc) => {
-      const mapMesh = sc.get("mapMesh");
-      this.buildMeshUsingMapMesh(mapMesh);
-    });
+  buildAvatarUsingSC(mapSkinController) {
+    this.mapSkinMesh = new Map();
+    for (const entries of mapSkinController) {
+      const id = entries[0];
+      const sc = entries[1];
+      // const mapMesh = entries[1].get("mapMesh");
+      // const mesh = this.buildMeshUsingMapMesh(mapMesh);
+      // this.mapSkinMesh.set(id, mesh);
+      // this.mapSkinMesh.set(id, mapMesh);
+      // console.log(this.buildMeshUsingMapMesh(mapMesh));
+
+      if (id !== "body" && id !== "body_Shape") {
+        console.log(id);
+        const mesh = this.parseSkinControllerUsingABG(sc);
+        this.mapSkinMesh.set(id, mesh);
+      }
+      // else console.warn(id);
+    }
+    // console.log(this.mapSkinMesh);
   }
 
   findBodySkinController(listSkinController) {
@@ -554,42 +571,54 @@ export default class Fitting {
       // sizes.legLength
     );
 
-    console.log("mBaseVertex: ");
-    console.log(bodyShape);
+    // console.log("mBaseVertex: ");
+    // console.log(bodyShape);
 
-    console.log("after computeResizing: ");
-    console.log(computed);
+    // console.log("after computeResizing: ");
+    // console.log(computed);
 
-    // // Render for test only
-    // const v = this.resizableBody.mBaseVertex;
-    // const bv = [];
+    // Render for test only
+    const v = this.resizableBody.mBaseVertex;
+    const bv = [];
 
-    // // const bufferGeometry = new THREE.BufferGeometry();
-    // this.resizableBufferGeometry = new THREE.BufferGeometry();
-    // // v.forEach((vertex) => {
+    // const bufferGeometry = new THREE.BufferGeometry();
+    this.resizableBufferGeometry = new THREE.BufferGeometry();
+    // v.forEach((vertex) => {
     // bodyShape.forEach((vertex) => {
     //   bv.push(vertex.x, vertex.y, vertex.z);
     // });
-    // //computed
-    // computed.forEach((vertex) => {
-    //   bv.push(vertex.x, vertex.y, vertex.z);
-    // });
-    // // const bufferGeometry = matMesh.geometry;
-    // this.resizableBufferGeometry.addAttribute(
-    //   "position",
-    //   new THREE.Float32BufferAttribute(new Float32Array(bv), 3)
-    // );
-    // this.buildMesh(this.resizableBufferGeometry);
+    //computed
+    const m = 10.0;
+    computed.forEach((vertex) => {
+      bv.push(vertex.x * m, vertex.y * m, vertex.z * m);
+    });
+    // const bufferGeometry = matMesh.geometry;
+
+    // TEST ONLY
+    this.bodyVertexPos = bv.slice(0, this.bodyVertexPos.length);
+
+    this.resizableBufferGeometry.addAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(new Float32Array(bv), 3)
+    );
+    this.resizableBufferGeometry.setIndex(
+      new THREE.BufferAttribute(new Uint32Array(this.bodyVertexIndex), 1)
+    );
+    this.resizableBufferGeometry.computeFaceNormals();
+    this.resizableBufferGeometry.computeVertexNormals();
+
+    this.buildMesh(this.resizableBufferGeometry);
   };
 
   async rz() {
     await loadZrestForFitting({
-      url: "https://files.clo-set.com/public/fitting/avatar/0/Thomas.zrest",
+      url: "https://files.clo-set.com/public/fitting/avatar/0/Nest.zrest",
       funcOnProgress: null,
       funcOnLoad: null,
       zrest: this.zrest,
       isAvatar: true,
     });
+    console.log(this.zrest.zProperty.rootMap);
 
     const avatarGeometry = new Map(
       this.zrest.zProperty.rootMap.get("mapGeometry")
@@ -599,13 +628,11 @@ export default class Fitting {
     });
     this.setAvatarInfo(listSkinController);
 
-    this.buildAvatarUsingSC(listSkinController);
-
-    this.convertListSCtoMap(listSkinController);
+    const mapSkinController = this.convertListSCtoMap(listSkinController);
 
     await this.r(0);
-    // TODO: This is test only, very confusing code
-    const geoIdx = this.resizableBody.inputBaseVertex(this.mapSkinController);
+
+    // this.buildAvatarUsingSC(mapSkinController);
 
     // const computed = this.resizableBody.computeResizing(
     //   170,

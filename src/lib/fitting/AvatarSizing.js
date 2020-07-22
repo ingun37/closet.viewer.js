@@ -141,13 +141,59 @@ export default class ResizableBody {
     // console.log(this.mHeightWeightTo5SizesMap);
   }
 
-  inputBaseVertex = (baseVertex) => {
+  inputBaseVertex = (mapSkinController) => {
     console.log("inputBaseVertex");
+    console.log(mapSkinController);
+    const integratedPos = new Array(this.mVertexSize * 3);
+    const integratedIdx = new Array(this.mVertexSize);
+
+    for (const entries of this.mStartIndexMap.entries()) {
+      // const partName = entries[0];
+      const partName = "body";
+      const startIndex = entries[1];
+      const partSC =
+        mapSkinController.get(partName) ||
+        mapSkinController.get(partName + "_Shape");
+      // console.log(partName, startIndex, partSC);
+
+      if (partSC) {
+        const partMapMesh = partSC.get("mapMesh");
+        const partPosition = readByteArray(
+          "Float",
+          partMapMesh.get("baPosition")
+        );
+        const partIndex = readByteArray("Uint", partMapMesh.get("baIndex"));
+        console.log(partIndex);
+        console.log(partPosition);
+        // console.log(startIndex, partPosition.length);
+
+        for (
+          let index = startIndex;
+          index < partPosition.length + startIndex;
+          ++index
+        ) {
+          const curIdx = startIndex + index;
+          integratedPos[index] = partPosition[curIdx];
+          integratedIdx[index] = partIndex[curIdx] + index;
+        }
+
+        // console.log(partPosition);
+        // console.log(partIndex);
+      } else {
+        console.warn("Skin controller missing: " + partName);
+      }
+    }
+
+    this.mBaseVertex = this.convertFloatArrayToVector3Array(integratedPos);
+    console.log(this.mBaseVertex);
+
+    return integratedIdx;
+
     // console.log(this.mBaseVertex);
     // console.log(baseVertex);
-    for (let i = 0; i < baseVertex; ++i) {
-      this.mBaseVertex[i] = baseVertex[i];
-    }
+    // for (let i = 0; i < baseVertex; ++i) {
+    //   this.mBaseVertex[i] = baseVertex[i];
+    // }
     // this.mBaseVertex = baseVertex;
     // test
     // if (baseVertex) {
@@ -155,6 +201,21 @@ export default class ResizableBody {
     //     console.log("BASE VERTEX CORRECT");
     //   }
     // }
+  };
+
+  convertFloatArrayToVector3Array = (floatArray) => {
+    const vec3Array = [];
+    for (let v = 0; v < floatArray.length; v += 3) {
+      const idx = v * 3;
+      vec3Array.push(
+        new THREE.Vector3(
+          floatArray[idx],
+          floatArray[idx + 1],
+          floatArray[idx + 2]
+        )
+      );
+    }
+    return vec3Array;
   };
 
   computeResizing = (
@@ -261,9 +322,9 @@ export default class ResizableBody {
     console.log("after computeResizingWithFeatureValues: ");
     console.log(returnVertex);
 
-    const bodyStartIndex = this.mStartIndexMap.get("body");
-    console.log("bodyStartIndex: " + bodyStartIndex);
-    console.log(this.mStartIndexMap);
+    // const bodyStartIndex = this.mStartIndexMap.get("body");
+    // console.log("bodyStartIndex: " + bodyStartIndex);
+    // console.log(this.mStartIndexMap);
 
     return returnVertex;
 

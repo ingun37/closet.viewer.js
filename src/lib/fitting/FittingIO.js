@@ -62,14 +62,55 @@ async function unzipParse({ loadedData, filename }) {
   return parsedData;
 }
 
-async function loadUnzipParse({ url }) {
-  const loadedData = await loadFile(url);
+export async function loadZrestForFitting({
+  url: url,
+  funcOnProgress: onProgress,
+  funcOnLoad: onLoad,
+  zrest: zrest,
+  isAvatar: isAvatar = false,
+}) {
+  // const scene = this.scene;
 
-  const unzippedData = await unZip(loadedData, "BaseMesh.map");
+  const progress = function (xhr) {
+    if (xhr.lengthComputable) {
+      const percentComplete = (xhr.loaded / xhr.total) * 100;
+      const percent = Math.round(percentComplete, 2);
+      if (onProgress) onProgress(percent);
+    }
+  };
 
-  const fileOffset = { Offset: 0 };
-  const dataView = new DataView(unzippedData);
-  const parsedData = readMap(dataView, fileOffset);
+  const error = function (xhr) {};
 
-  return parsedData;
+  // const loaded = () => {};
+  const loaded = async (object, loadedCamera, data) => {
+    if (isAvatar) zrest.addToScene(object, "fittingAvatar");
+    else zrest.addToScene(object);
+    // this.addToScene(object);
+
+    if (onLoad) onLoad(this);
+
+    zrest.zoomToObjects(loadedCamera, zrest.scene);
+    if (!isAvatar) this.updateRenderer();
+    // this.updateRenderer();
+
+    return zrest.scene;
+  };
+
+  if (zrest !== undefined) {
+    console.log(zrest);
+    zrest.clearMaps();
+    // zrest = null;
+  }
+
+  // const zrest = new ZRestLoader({
+  //   scene: this.scene,
+  //   camera: this.camera,
+  //   controls: this.controls,
+  //   cameraPosition: this.cameraPosition,
+  // });
+
+  const dataArr = await zrest.loadOnly(url, progress);
+  await zrest.parseAsync(dataArr, loaded);
+
+  return zrest;
 }
