@@ -77,7 +77,7 @@ export default class ResizableBody {
 
     listMatshapeRenderToSkinPos.forEach((entry) => {
       const renderToSkinPos = readByteArray(
-        "Float",
+        "Int",
         entry.get("baRenderToSkinPos")
       );
       const strName = readByteArray("String", entry.get("strNameUTF8"));
@@ -105,7 +105,7 @@ export default class ResizableBody {
     armLength,
     legLength
   ) => {
-    let featureValues = new Array(
+    const featureValues = new Array(
       MEASUREMENT_LIST_NAME.SIZE_OF_MEASUREMENT_LIST
     );
 
@@ -352,67 +352,67 @@ export default class ResizableBody {
       returnVertex[i].sub(meanPosition);
   };
 
-  inputBaseVertex = (mapSkinController) => {
-    console.log("inputBaseVertex");
-    console.log(mapSkinController);
-    const integratedPos = new Array(this.mVertexSize * 3);
-    const integratedIdx = new Array(this.mVertexSize);
+  // inputBaseVertex = (mapSkinController) => {
+  //   console.log("inputBaseVertex");
+  //   console.log(mapSkinController);
+  //   const integratedPos = new Array(this.mVertexSize * 3);
+  //   const integratedIdx = new Array(this.mVertexSize);
 
-    for (const entries of this.mStartIndexMap.entries()) {
-      // const partName = entries[0];
-      const partName = "body";
-      const startIndex = entries[1];
-      const partSC =
-        mapSkinController.get(partName) ||
-        mapSkinController.get(partName + "_Shape");
-      // console.log(partName, startIndex, partSC);
+  //   for (const entries of this.mStartIndexMap.entries()) {
+  //     // const partName = entries[0];
+  //     const partName = "body";
+  //     const startIndex = entries[1];
+  //     const partSC =
+  //       mapSkinController.get(partName) ||
+  //       mapSkinController.get(partName + "_Shape");
+  //     // console.log(partName, startIndex, partSC);
 
-      if (partSC) {
-        const partMapMesh = partSC.get("mapMesh");
-        const partPosition = readByteArray(
-          "Float",
-          partMapMesh.get("baPosition")
-        );
-        const partIndex = readByteArray("Uint", partMapMesh.get("baIndex"));
-        console.log(partIndex);
-        console.log(partPosition);
-        // console.log(startIndex, partPosition.length);
+  //     if (partSC) {
+  //       const partMapMesh = partSC.get("mapMesh");
+  //       const partPosition = readByteArray(
+  //         "Float",
+  //         partMapMesh.get("baPosition")
+  //       );
+  //       const partIndex = readByteArray("Uint", partMapMesh.get("baIndex"));
+  //       console.log(partIndex);
+  //       console.log(partPosition);
+  //       // console.log(startIndex, partPosition.length);
 
-        for (
-          let index = startIndex;
-          index < partPosition.length + startIndex;
-          ++index
-        ) {
-          const curIdx = startIndex + index;
-          integratedPos[index] = partPosition[curIdx];
-          integratedIdx[index] = partIndex[curIdx] + index;
-        }
+  //       for (
+  //         let index = startIndex;
+  //         index < partPosition.length + startIndex;
+  //         ++index
+  //       ) {
+  //         const curIdx = startIndex + index;
+  //         integratedPos[index] = partPosition[curIdx];
+  //         integratedIdx[index] = partIndex[curIdx] + index;
+  //       }
 
-        // console.log(partPosition);
-        // console.log(partIndex);
-      } else {
-        console.warn("Skin controller missing: " + partName);
-      }
-    }
+  //       // console.log(partPosition);
+  //       // console.log(partIndex);
+  //     } else {
+  //       console.warn("Skin controller missing: " + partName);
+  //     }
+  //   }
 
-    this.baseVertex = this.convertFloatArrayToVector3Array(integratedPos);
-    console.log(this.baseVertex);
+  //   this.baseVertex = this.convertFloatArrayToVector3Array(integratedPos);
+  //   console.log(this.baseVertex);
 
-    return integratedIdx;
+  //   return integratedIdx;
 
-    // console.log(this.mBaseVertex);
-    // console.log(baseVertex);
-    // for (let i = 0; i < baseVertex; ++i) {
-    //   this.mBaseVertex[i] = baseVertex[i];
-    // }
-    // this.mBaseVertex = baseVertex;
-    // test
-    // if (baseVertex) {
-    //   if (baseVertex.length / 3 === this.mVertexSize) {
-    //     console.log("BASE VERTEX CORRECT");
-    //   }
-    // }
-  };
+  //   // console.log(this.mBaseVertex);
+  //   // console.log(baseVertex);
+  //   // for (let i = 0; i < baseVertex; ++i) {
+  //   //   this.mBaseVertex[i] = baseVertex[i];
+  //   // }
+  //   // this.mBaseVertex = baseVertex;
+  //   // test
+  //   // if (baseVertex) {
+  //   //   if (baseVertex.length / 3 === this.mVertexSize) {
+  //   //     console.log("BASE VERTEX CORRECT");
+  //   //   }
+  //   // }
+  // };
 
   convertFloatArrayToVector3Array = (floatArray) => {
     const vec3Array = [];
