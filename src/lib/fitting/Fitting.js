@@ -5,6 +5,7 @@ import { loadJson } from "@/lib/clo/readers/FileLoader";
 import { getGarmentFileName } from "@/lib/clo/utils/UtilFunctions";
 import ResizableBody from "./AvatarSizing";
 import { loadZrestForFitting, processAvatarSizingFile } from "./FittingIO";
+import FittingSkinControllerManager from "./FittingSkinControllerManager";
 // import ZrestLoader from "@/lib/clo/readers/ZrestLoader";
 
 export default class Fitting {
@@ -36,6 +37,8 @@ export default class Fitting {
     this.avatarSkinType = 0;
 
     this.zrest = zrest;
+
+    this.scManager = new FittingSkinControllerManager(this.zrest);
   }
 
   init({ rootPath: rootPath, mapAvatarPath: mapAvatarPath }) {
@@ -554,7 +557,13 @@ export default class Fitting {
         "/Sizing.zip",
     });
 
-    const bodyShape = this.resizableBody.mBaseVertex;
+    // const bodyShape = this.resizableBody.baseVertex;
+    // const bodyShape = this.resizableBody.convertFloatArrayToVector3Array(
+    //   this.scManager.getVertexByPartName("body")
+    // );
+
+    // this.resizableBody.mBaseVertex = bodyShape;
+
     const computed = this.resizableBody.computeResizing(
       180,
       95,
@@ -578,24 +587,16 @@ export default class Fitting {
     // console.log(computed);
 
     // Render for test only
-    const v = this.resizableBody.mBaseVertex;
+    // const v = this.resizableBody.baseVertex;
     const bv = [];
 
     // const bufferGeometry = new THREE.BufferGeometry();
     this.resizableBufferGeometry = new THREE.BufferGeometry();
-    // v.forEach((vertex) => {
-    // bodyShape.forEach((vertex) => {
-    //   bv.push(vertex.x, vertex.y, vertex.z);
-    // });
-    //computed
+
     const m = 10.0;
     computed.forEach((vertex) => {
       bv.push(vertex.x * m, vertex.y * m, vertex.z * m);
     });
-    // const bufferGeometry = matMesh.geometry;
-
-    // TEST ONLY
-    this.bodyVertexPos = bv.slice(0, this.bodyVertexPos.length);
 
     this.resizableBufferGeometry.addAttribute(
       "position",

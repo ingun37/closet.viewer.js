@@ -237,28 +237,38 @@ export default class ClosetViewer {
     console.log("rootMap of avatar");
     console.log(this.zrest.zProperty.rootMap);
 
+    this.fitting.scManager.init(this.zrest);
     await this.fitting.r(0);
-    console.warn(this.fitting.mapSkinController);
-    this.fitting.buildAvatarUsingSC(this.fitting.mapSkinController);
+    if (
+      !this.fitting.scManager.validate(
+        this.fitting.resizableBody.mapMatshapeRenderToSkinPos
+      )
+    ) {
+      console.error("ERROR: invalid mapMatshapeRenderToSkinPos");
+    }
+    // this.fitting.scManager.getVertexByPartName("body");
+
+    // console.warn(this.fitting.mapSkinController);
+    // this.fitting.buildAvatarUsingSC(this.fitting.mapSkinController);
 
     // this.fitting.r(0);
     // console.log(this.fitting.bodyVertexPos);
     // this.fitting.resizableBody.inputBaseVertex(this.fitting.bodyVertexPos);
 
-    console.log("fitting get init garment +");
-    await this.loadZrestForFitting({
-      url: "f/garment.zrest",
-      funcOnProgress: onProgress,
-      funcOnLoad: null,
-      isAvatar: false,
-    });
-    console.log("fitting get init garment -");
+    // console.log("fitting get init garment +");
+    // await this.loadZrestForFitting({
+    //   url: "f/garment.zrest",
+    //   funcOnProgress: onProgress,
+    //   funcOnLoad: null,
+    //   isAvatar: false,
+    // });
+    // console.log("fitting get init garment -");
 
-    console.log("fittingGetInitGarment +");
-    await this.fitting.getDrapingData(
-      "f/P0_187_73.zcrp",
-      this.zrest.matMeshMap
-    );
+    // console.log("fittingGetInitGarment +");
+    // await this.fitting.getDrapingData(
+    //   "f/P0_187_73.zcrp",
+    //   this.zrest.matMeshMap
+    // );
 
     this.updateRenderer();
     console.log("fittingGetInitGarment -");
@@ -297,6 +307,7 @@ export default class ClosetViewer {
       skinType: skinType,
     });
 
+    // TODO: CHECK THIS OUT
     await this.loadZrestForFitting({
       url: avatarUrl,
       funcOnProgress: onProgress,
@@ -791,7 +802,7 @@ export default class ClosetViewer {
     const dataArr = await this.zrest.loadOnly(url, progress);
     await this.zrest.parseAsync(dataArr, loaded);
 
-    return;
+    return this.zrest;
   }
 
   loadSeparatedZrest = async (zrestJSON, onProgress, colorwayIndex) => {
