@@ -1,9 +1,9 @@
 ﻿import * as THREE from "@/lib/threejs/three";
+import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 import {
   MEASUREMENT_LIST_NAME,
   AVATAR_GENDER,
 } from "@/lib/fitting/FittingConst";
-import { readMap, readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 
 // baseMeshMap은 MVMap
 // convertinMatData 는 float array
@@ -18,127 +18,81 @@ export default class ResizableBody {
     zrestSkinControllerArray
   ) {
     this.mCurrentGender = gender;
-    this.mFeatureEnable = new Array(
-      MEASUREMENT_LIST_NAME.SIZE_OF_MEASUREMENT_LIST
-    ).fill(false);
-
-    // 다음을 default로. 따로 파일 읽을 필요 없음
-    this.mFeatureEnable[MEASUREMENT_LIST_NAME.HEIGHT_Total] = true;
-    this.mFeatureEnable[MEASUREMENT_LIST_NAME.CIRCUMFERENCE_Bust] = true;
-    this.mFeatureEnable[MEASUREMENT_LIST_NAME.CIRCUMFERENCE_Waist] = true;
-    this.mFeatureEnable[MEASUREMENT_LIST_NAME.CIRCUMFERENCE_LowHip] = true;
-    this.mFeatureEnable[MEASUREMENT_LIST_NAME.LENGTH_Arm] = true;
-    this.mFeatureEnable[MEASUREMENT_LIST_NAME.HEIGHT_Crotch] = true;
+    this.mConvertingMatData = convertingMatData;
+    this.mHeightWeightTo5SizesMap = heightWeightTo5SizesMap;
+    this.mZrestSkinControllerArray = zrestSkinControllerArray;
 
     this.mVertexSize = baseMeshMap.get("uiVertexCount");
-    const baPosition = readByteArray("Float", baseMeshMap.get("baPosition"));
-
-    this.mBaseVertex = new Array(this.mVertexSize);
-    for (let i = 0; i < this.mVertexSize; i++) {
-      this.mBaseVertex[i] = new THREE.Vector3(
-        baPosition[i * 3],
-        baPosition[i * 3 + 1],
-        baPosition[i * 3 + 2]
-      );
-    }
-    this.mStartIndexMap = baseMeshMap.get("mapStartIndex");
     this.mSymmetryIndex = readByteArray(
       "Uint",
       baseMeshMap.get("baSymmetryIndex")
     );
 
-    // mConvertingMatData 읽어들이기
-    this.mConvertingMatData = convertingMatData;
+    this.mFeatureEnable = this.setFeatureEnable();
+    this.mBaseVertex = this.buildBaseVertex(baseMeshMap);
+    this.mapMatshapeRenderToSkinPos = this.buildMapMatshapeRenderToSkinPos(
+      baseMeshMap
+    );
 
-    // mHeightWeightTo5SizesMap
-    this.mHeightWeightTo5SizesMap = heightWeightTo5SizesMap;
-
-    this.mZrestSkinControllerArray = zrestSkinControllerArray;
-
-    // console.log(vCount);
-    // console.log(baPosition);
-    console.log(baseMeshMap);
-    console.log(this.mStartIndexMap);
-    // console.log(this.mSymmetryIndex);
-    // console.log(this.mConvertingMatData);
-    // console.log(this.mHeightWeightTo5SizesMap);
+    console.log(this.mapMatshapeRenderToSkinPos);
   }
 
-  inputBaseVertex = (mapSkinController) => {
-    console.log("inputBaseVertex");
-    console.log(mapSkinController);
-    const integratedPos = new Array(this.mVertexSize * 3);
-    const integratedIdx = new Array(this.mVertexSize);
+  setFeatureEnable = () => {
+    const featureEnable = new Array(
+      MEASUREMENT_LIST_NAME.SIZE_OF_MEASUREMENT_LIST
+    ).fill(false);
 
-    for (const entries of this.mStartIndexMap.entries()) {
-      // const partName = entries[0];
-      const partName = "body";
-      const startIndex = entries[1];
-      const partSC =
-        mapSkinController.get(partName) ||
-        mapSkinController.get(partName + "_Shape");
-      // console.log(partName, startIndex, partSC);
+    // 다음을 default로. 따로 파일 읽을 필요 없음
+    featureEnable[MEASUREMENT_LIST_NAME.HEIGHT_Total] = true;
+    featureEnable[MEASUREMENT_LIST_NAME.CIRCUMFERENCE_Bust] = true;
+    featureEnable[MEASUREMENT_LIST_NAME.CIRCUMFERENCE_Waist] = true;
+    featureEnable[MEASUREMENT_LIST_NAME.CIRCUMFERENCE_LowHip] = true;
+    featureEnable[MEASUREMENT_LIST_NAME.LENGTH_Arm] = true;
+    featureEnable[MEASUREMENT_LIST_NAME.HEIGHT_Crotch] = true;
 
-      if (partSC) {
-        const partMapMesh = partSC.get("mapMesh");
-        const partPosition = readByteArray(
-          "Float",
-          partMapMesh.get("baPosition")
-        );
-        const partIndex = readByteArray("Uint", partMapMesh.get("baIndex"));
-        console.log(partIndex);
-        console.log(partPosition);
-        // console.log(startIndex, partPosition.length);
-
-        for (
-          let index = startIndex;
-          index < partPosition.length + startIndex;
-          ++index
-        ) {
-          const curIdx = startIndex + index;
-          integratedPos[index] = partPosition[curIdx];
-          integratedIdx[index] = partIndex[curIdx] + index;
-        }
-
-        // console.log(partPosition);
-        // console.log(partIndex);
-      } else {
-        console.warn("Skin controller missing: " + partName);
-      }
-    }
-
-    this.mBaseVertex = this.convertFloatArrayToVector3Array(integratedPos);
-    console.log(this.mBaseVertex);
-
-    return integratedIdx;
-
-    // console.log(this.mBaseVertex);
-    // console.log(baseVertex);
-    // for (let i = 0; i < baseVertex; ++i) {
-    //   this.mBaseVertex[i] = baseVertex[i];
-    // }
-    // this.mBaseVertex = baseVertex;
-    // test
-    // if (baseVertex) {
-    //   if (baseVertex.length / 3 === this.mVertexSize) {
-    //     console.log("BASE VERTEX CORRECT");
-    //   }
-    // }
+    return featureEnable;
   };
 
-  convertFloatArrayToVector3Array = (floatArray) => {
-    const vec3Array = [];
-    for (let v = 0; v < floatArray.length; v += 3) {
-      const idx = v * 3;
-      vec3Array.push(
-        new THREE.Vector3(
-          floatArray[idx],
-          floatArray[idx + 1],
-          floatArray[idx + 2]
-        )
+  buildBaseVertex = (baseMeshMap) => {
+    const baPosition = readByteArray("Float", baseMeshMap.get("baPosition"));
+    const baseVertex = new Array(this.mVertexSize);
+
+    for (let i = 0; i < this.mVertexSize; i++) {
+      baseVertex[i] = new THREE.Vector3(
+        baPosition[i * 3],
+        baPosition[i * 3 + 1],
+        baPosition[i * 3 + 2]
       );
     }
-    return vec3Array;
+
+    return baseVertex;
+  };
+
+  buildMapMatshapeRenderToSkinPos = (baseMeshMap) => {
+    const listMatshapeRenderToSkinPos = baseMeshMap.get(
+      "listMatshapeRenderToSkinPos"
+    );
+    const mapMatshapeRenderToSkinPos = new Map();
+    // this.mapMatshapeRenderToSkinPos = new Map();
+
+    listMatshapeRenderToSkinPos.forEach((entry) => {
+      const renderToSkinPos = readByteArray(
+        "Float",
+        entry.get("baRenderToSkinPos")
+      );
+      const strName = readByteArray("String", entry.get("strNameUTF8"));
+      const uiVertexCount = entry.get("uiVertexCount");
+
+      mapMatshapeRenderToSkinPos.set(
+        strName,
+        new Map([
+          ["renderToSkinPos", renderToSkinPos],
+          ["uiVertexCount", uiVertexCount],
+        ])
+      );
+    });
+
+    return mapMatshapeRenderToSkinPos;
   };
 
   computeResizing = (
@@ -396,5 +350,82 @@ export default class ResizableBody {
 
     for (let i = 0; i < returnVertex.length; i++)
       returnVertex[i].sub(meanPosition);
+  };
+
+  inputBaseVertex = (mapSkinController) => {
+    console.log("inputBaseVertex");
+    console.log(mapSkinController);
+    const integratedPos = new Array(this.mVertexSize * 3);
+    const integratedIdx = new Array(this.mVertexSize);
+
+    for (const entries of this.mStartIndexMap.entries()) {
+      // const partName = entries[0];
+      const partName = "body";
+      const startIndex = entries[1];
+      const partSC =
+        mapSkinController.get(partName) ||
+        mapSkinController.get(partName + "_Shape");
+      // console.log(partName, startIndex, partSC);
+
+      if (partSC) {
+        const partMapMesh = partSC.get("mapMesh");
+        const partPosition = readByteArray(
+          "Float",
+          partMapMesh.get("baPosition")
+        );
+        const partIndex = readByteArray("Uint", partMapMesh.get("baIndex"));
+        console.log(partIndex);
+        console.log(partPosition);
+        // console.log(startIndex, partPosition.length);
+
+        for (
+          let index = startIndex;
+          index < partPosition.length + startIndex;
+          ++index
+        ) {
+          const curIdx = startIndex + index;
+          integratedPos[index] = partPosition[curIdx];
+          integratedIdx[index] = partIndex[curIdx] + index;
+        }
+
+        // console.log(partPosition);
+        // console.log(partIndex);
+      } else {
+        console.warn("Skin controller missing: " + partName);
+      }
+    }
+
+    this.baseVertex = this.convertFloatArrayToVector3Array(integratedPos);
+    console.log(this.baseVertex);
+
+    return integratedIdx;
+
+    // console.log(this.mBaseVertex);
+    // console.log(baseVertex);
+    // for (let i = 0; i < baseVertex; ++i) {
+    //   this.mBaseVertex[i] = baseVertex[i];
+    // }
+    // this.mBaseVertex = baseVertex;
+    // test
+    // if (baseVertex) {
+    //   if (baseVertex.length / 3 === this.mVertexSize) {
+    //     console.log("BASE VERTEX CORRECT");
+    //   }
+    // }
+  };
+
+  convertFloatArrayToVector3Array = (floatArray) => {
+    const vec3Array = [];
+    for (let v = 0; v < floatArray.length; v += 3) {
+      const idx = v * 3;
+      vec3Array.push(
+        new THREE.Vector3(
+          floatArray[idx],
+          floatArray[idx + 1],
+          floatArray[idx + 2]
+        )
+      );
+    }
+    return vec3Array;
   };
 }
