@@ -15,12 +15,16 @@ export default class ResizableBody {
     baseMeshMap,
     convertingMatData,
     heightWeightTo5SizesMap,
-    zrestSkinControllerArray
+    // zrestSkinControllerArray,
+    scManager
   ) {
+    console.warn(baseMeshMap);
+
     this.mCurrentGender = gender;
     this.mConvertingMatData = convertingMatData;
     this.mHeightWeightTo5SizesMap = heightWeightTo5SizesMap;
-    this.mZrestSkinControllerArray = zrestSkinControllerArray;
+    // this.mZrestSkinControllerArray = zrestSkinControllerArray;
+    this.scManager = scManager;
 
     this.mVertexSize = baseMeshMap.get("uiVertexCount");
     this.mSymmetryIndex = readByteArray(
@@ -34,6 +38,16 @@ export default class ResizableBody {
       baseMeshMap
     );
 
+    this.mapStartIndex = new Map([
+      ["body", 0],
+      ["eye_L", 35739],
+      ["eye_R", 18843],
+      ["eyelash_L", 19165],
+      ["eyelash_R", 21643],
+    ]);
+
+    console.log(this.mBaseVertex);
+    console.log(this.mapStartIndex);
     console.log(this.mapMatshapeRenderToSkinPos);
   }
 
@@ -124,7 +138,7 @@ export default class ResizableBody {
     if (waist < 0) waist = tableSize.waist;
     if (hip < 0) hip = tableSize.hip;
     if (armLength < 0) armLength = tableSize.armLength;
-    if (legLength < 0) legLength = tableSize.legLength;
+    if (legLength < 0) legLength = tableSize.legLen;
 
     featureValues[MEASUREMENT_LIST_NAME.HEIGHT_Total] = height;
     //featureValues[MEASUREMENT_LIST_NAME.WEIGHT_Total] = weight; // 의미 없다. 안쓰이기 때문에
@@ -350,6 +364,84 @@ export default class ResizableBody {
 
     for (let i = 0; i < returnVertex.length; i++)
       returnVertex[i].sub(meanPosition);
+  };
+
+  updateRenderPositionFromPhysical = (partName) => {
+    // const renderPos = this.scManager.getVertexOnMatMeshByPartName(partName);
+    const phyPosStartIndex = this.mapStartIndex.get(partName);
+    console.log(this.mapStartIndex);
+    console.log(partName + " phyPosStartIndex: " + phyPosStartIndex);
+    // const phyPosLength = mapMatshapeRenderToSkinPos.get(partName).get();
+    // const phyPos =
+
+    // NOTE: TEST ONLY
+    // const vertexSize = 18521;
+    const phyPos = this.mBaseVertex.slice(phyPosStartIndex);
+    const renderToSkinPos = this.mapMatshapeRenderToSkinPos
+      .get(partName)
+      .get("renderToSkinPos");
+    const renderPos = new Array(renderToSkinPos.length * 3).fill(-999.999);
+    console.log(this.mBaseVertex);
+    // console.log(renderPos);
+    console.log(phyPos);
+    console.log(renderToSkinPos);
+
+    // phyPos;
+    // vec3* pos = GetPosition();
+    // vec3* normal = GetNormal();
+
+    // mat4 wtol = GetWorldToLocalMatrix();
+
+    console.log(
+      "MIN: " +
+        Math.min(...renderToSkinPos) +
+        " / MAX: " +
+        Math.max(...renderToSkinPos)
+    );
+
+    const multifier = 10.0;
+    for (let i = 0; i < renderPos.length; ++i) {
+      // const idx = renderToSkinPos[i];
+      // const renderVector = phyPos[idx / 3];
+
+      // console.log(renderToSkinPos[i / 3]);
+      // console.log(phyPos[renderToSkinPos[i / 3]]);
+      // console.log(phyPos[renderToSkinPos[i / 3]].x);
+      const vectorIdx = Math.trunc(i / 3);
+      const renderVector = phyPos[renderToSkinPos[vectorIdx]];
+      if (!renderVector) {
+        console.warn(i, vectorIdx, renderToSkinPos[vectorIdx]);
+      }
+      switch (i % 3) {
+        case 0:
+          renderPos[i] = renderVector.x;
+          break;
+        case 1:
+          renderPos[i] = renderVector.y;
+          break;
+        case 2:
+          renderPos[i] = renderVector.z;
+          break;
+      }
+      renderPos[i] *= multifier;
+      // renderPos[i] = phyPos[renderToSkinPos[i / 3][i % 3]];
+      // pos[i] = wtol * phyPos[m_RenderToSkinPos[i]];
+
+      // 	if (phyNormal)
+      // 	{
+      // 		vec3 tmpV; // omp 바깥으로 빼서 공유하게 되면 결과값 이상해 진다
+      // 		normal[i] = mult_dir(tmpV, wtol, phyNormal[m_RenderToSkinPos[i]]);
+      // 		normal[i].normalize();
+      // 	}
+    }
+
+    renderPos.forEach((pos) => {
+      if (pos == -999.999) console.warn(pos);
+    });
+
+    console.log(renderPos);
+
+    return renderPos;
   };
 
   // inputBaseVertex = (mapSkinController) => {

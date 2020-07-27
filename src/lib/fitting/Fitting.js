@@ -62,7 +62,8 @@ export default class Fitting {
       0,
       retObj.mapBaseMesh,
       retObj.convertingMatData,
-      retObj.mapHeightWeightTo5Sizes
+      retObj.mapHeightWeightTo5Sizes,
+      this.scManager
     );
   }
 
@@ -408,15 +409,15 @@ export default class Fitting {
 
   buildMesh(bufferGeometry, material = null) {
     // console.warn("buildMesh");
-    const defaultMaterial = new THREE.MeshPhongMaterial({});
-    defaultMaterial.color = THREE.Vector3(1, 1, 1);
+    // const defaultMaterial = new THREE.MeshPhongMaterial({});
+    // defaultMaterial.color = THREE.Vector3(1, 1, 1);
 
-    // const defaultMaterial = new THREE.PointsMaterial({
-    //   color: 0x880000,
-    // });
+    const defaultMaterial = new THREE.PointsMaterial({
+      color: 0x880000,
+    });
     const threeMaterial = material ? material : defaultMaterial;
-    // const threeMesh = new THREE.Points(bufferGeometry, threeMaterial);
-    const threeMesh = new THREE.Mesh(bufferGeometry, threeMaterial);
+    const threeMesh = new THREE.Points(bufferGeometry, threeMaterial);
+    // const threeMesh = new THREE.Mesh(bufferGeometry, threeMaterial);
     // console.log(threeMesh);
     this.container.add(threeMesh);
 
@@ -551,6 +552,7 @@ export default class Fitting {
   // NOTE: Test code for avatar resizing
   r = async (testNo = 0) => {
     await this.initResizableAvatar({
+      //"./Sizing (4).zip",
       url:
         "https://files.clo-set.com/public/fitting/avatar/" +
         testNo +
@@ -598,15 +600,22 @@ export default class Fitting {
       bv.push(vertex.x * m, vertex.y * m, vertex.z * m);
     });
 
+    const body = this.resizableBody.updateRenderPositionFromPhysical("body");
+    this.resizableBody.scManager.putVertexOnMatMeshByPartName("body", body);
+
+    const eye_L = this.resizableBody.updateRenderPositionFromPhysical("eye_L");
+    this.resizableBody.scManager.putVertexOnMatMeshByPartName("eye_L", eye_L);
+
     this.resizableBufferGeometry.addAttribute(
       "position",
-      new THREE.Float32BufferAttribute(new Float32Array(bv), 3)
+      new THREE.Float32BufferAttribute(new Float32Array(eye_L), 3)
+      // new THREE.Float32BufferAttribute(new Float32Array(bv), 3)
     );
-    this.resizableBufferGeometry.setIndex(
-      new THREE.BufferAttribute(new Uint32Array(this.bodyVertexIndex), 1)
-    );
-    this.resizableBufferGeometry.computeFaceNormals();
-    this.resizableBufferGeometry.computeVertexNormals();
+    // this.resizableBufferGeometry.setIndex(
+    //   new THREE.BufferAttribute(new Uint32Array(this.bodyVertexIndex), 1)
+    // );
+    // this.resizableBufferGeometry.computeFaceNormals();
+    // this.resizableBufferGeometry.computeVertexNormals();
 
     this.buildMesh(this.resizableBufferGeometry);
   };

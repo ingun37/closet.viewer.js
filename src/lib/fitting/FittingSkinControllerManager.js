@@ -1,3 +1,5 @@
+import * as THREE from "@/lib/threejs/three";
+
 export default class FittingSkinControllerManager {
   constructor() {
     this.mapSCMatMeshID = null;
@@ -8,12 +10,12 @@ export default class FittingSkinControllerManager {
     this.mapSCMatMeshID = zrest.meshFactory.matmeshManager.mapSCMatmeshID;
     this.mapMatMesh = zrest.zProperty.matMeshMap;
 
-    console.log(zrest);
+    // console.log(zrest);
     console.log(zrest.meshFactory.matmeshManager.mapSCMatmeshID);
     console.log(zrest.matMeshMap);
   }
 
-  getVertexByPartName = (partName) => {
+  getVertexOnMatMeshByPartName = (partName) => {
     const combinedVertex = [];
     this.mapSCMatMeshID.get(partName).forEach((matMeshId) => {
       const matMesh = this.mapMatMesh.get(matMeshId);
@@ -26,12 +28,37 @@ export default class FittingSkinControllerManager {
     return combinedVertex;
   };
 
+  putVertexOnMatMeshByPartName = (partName, vertex) => {
+    const combinedVertex = this.getVertexOnMatMeshByPartName(partName);
+    if (vertex.length != combinedVertex.length) {
+      console.warn("FAILED");
+      return;
+    }
+
+    let lastIndex = 0;
+    this.mapSCMatMeshID.get(partName).forEach((matMeshId) => {
+      const matMesh = this.mapMatMesh.get(matMeshId);
+      console.log(matMesh);
+      const vertexArr = matMesh.geometry.attributes.position.array;
+      const vertexSize = vertexArr.length;
+
+      const slicedVertexArr = new Float32Array(
+        vertex.slice(lastIndex, lastIndex + vertexSize)
+      );
+      // TODO: Find better way
+      for (let j = 0; j < vertexArr.length; ++j) {
+        vertexArr[j] = slicedVertexArr[j];
+      }
+      lastIndex += vertexSize;
+    });
+  };
+
   validate = (mapMatshapeRenderToSkinPos) => {
     for (const entries of mapMatshapeRenderToSkinPos.entries()) {
-      // console.log(entries);
       const partName = entries[0];
       const uiVertexCount = entries[1].get("uiVertexCount");
-      const zrestVertexCount = this.getVertexByPartName(partName).length / 3;
+      const zrestVertexCount =
+        this.getVertexOnMatMeshByPartName(partName).length / 3;
 
       if (uiVertexCount !== zrestVertexCount) return false;
     }
