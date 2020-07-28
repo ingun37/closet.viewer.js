@@ -409,15 +409,15 @@ export default class Fitting {
 
   buildMesh(bufferGeometry, material = null) {
     // console.warn("buildMesh");
-    // const defaultMaterial = new THREE.MeshPhongMaterial({});
-    // defaultMaterial.color = THREE.Vector3(1, 1, 1);
+    const defaultMaterial = new THREE.MeshPhongMaterial({});
+    defaultMaterial.color = THREE.Vector3(1, 1, 1);
 
-    const defaultMaterial = new THREE.PointsMaterial({
-      color: 0x880000,
-    });
+    // const defaultMaterial = new THREE.PointsMaterial({
+    //   color: 0x880000,
+    // });
     const threeMaterial = material ? material : defaultMaterial;
-    const threeMesh = new THREE.Points(bufferGeometry, threeMaterial);
-    // const threeMesh = new THREE.Mesh(bufferGeometry, threeMaterial);
+    // const threeMesh = new THREE.Points(bufferGeometry, threeMaterial);
+    const threeMesh = new THREE.Mesh(bufferGeometry, threeMaterial);
     // console.log(threeMesh);
     this.container.add(threeMesh);
 
@@ -552,19 +552,11 @@ export default class Fitting {
   // NOTE: Test code for avatar resizing
   r = async (testNo = 0) => {
     await this.initResizableAvatar({
-      //"./Sizing (4).zip",
       url:
-        "https://files.clo-set.com/public/fitting/avatar/" +
-        testNo +
+        // "https://files.clo-set.com/public/fitting/avatar/" +
+        // testNo +
         "/Sizing.zip",
     });
-
-    // const bodyShape = this.resizableBody.baseVertex;
-    // const bodyShape = this.resizableBody.convertFloatArrayToVector3Array(
-    //   this.scManager.getVertexByPartName("body")
-    // );
-
-    // this.resizableBody.mBaseVertex = bodyShape;
 
     const computed = this.resizableBody.computeResizing(
       180,
@@ -581,6 +573,8 @@ export default class Fitting {
       // sizes.armLength,
       // sizes.legLength
     );
+
+    // this.bodyVertexPos = computed;
 
     // console.log("mBaseVertex: ");
     // console.log(bodyShape);
@@ -600,17 +594,18 @@ export default class Fitting {
       bv.push(vertex.x * m, vertex.y * m, vertex.z * m);
     });
 
-    const body = this.resizableBody.updateRenderPositionFromPhysical("body");
-    this.resizableBody.scManager.putVertexOnMatMeshByPartName("body", body);
+    for (const entries of this.resizableBody.mapStartIndex.entries()) {
+      const partName = entries[0];
+      const v = this.resizableBody.updateRenderPositionFromPhysical(partName);
+      // console.log(partName);
+      // console.log(v);
+      this.resizableBody.scManager.putVertexOnMatMeshByPartName(partName, v);
+    }
 
-    const eye_L = this.resizableBody.updateRenderPositionFromPhysical("eye_L");
-    this.resizableBody.scManager.putVertexOnMatMeshByPartName("eye_L", eye_L);
-
-    this.resizableBufferGeometry.addAttribute(
-      "position",
-      new THREE.Float32BufferAttribute(new Float32Array(eye_L), 3)
-      // new THREE.Float32BufferAttribute(new Float32Array(bv), 3)
-    );
+    // this.resizableBufferGeometry.addAttribute(
+    //   "position",
+    //   new THREE.Float32BufferAttribute(new Float32Array(bv), 3)
+    // );
     // this.resizableBufferGeometry.setIndex(
     //   new THREE.BufferAttribute(new Uint32Array(this.bodyVertexIndex), 1)
     // );

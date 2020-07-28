@@ -246,14 +246,13 @@ export default class ClosetViewer {
     ) {
       console.error("ERROR: invalid mapMatshapeRenderToSkinPos");
     }
-    // this.fitting.scManager.getVertexByPartName("body");
+    console.log(this.fitting.scManager.getVertexOnMatMeshByPartName("body"));
+    console.log(this.fitting.bodyVertexPos);
 
-    // console.warn(this.fitting.mapSkinController);
-    // this.fitting.buildAvatarUsingSC(this.fitting.mapSkinController);
+    this.fitting.buildAvatarUsingSC(this.fitting.mapSkinController);
 
     // this.fitting.r(0);
     // console.log(this.fitting.bodyVertexPos);
-    // this.fitting.resizableBody.inputBaseVertex(this.fitting.bodyVertexPos);
 
     // console.log("fitting get init garment +");
     // await this.loadZrestForFitting({

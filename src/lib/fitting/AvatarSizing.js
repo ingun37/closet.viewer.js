@@ -37,14 +37,15 @@ export default class ResizableBody {
     this.mapMatshapeRenderToSkinPos = this.buildMapMatshapeRenderToSkinPos(
       baseMeshMap
     );
+    this.mapStartIndex = baseMeshMap.get("mapStartIndex");
 
-    this.mapStartIndex = new Map([
-      ["body", 0],
-      ["eye_L", 35739],
-      ["eye_R", 18843],
-      ["eyelash_L", 19165],
-      ["eyelash_R", 21643],
-    ]);
+    // this.mapStartIndex = new Map([
+    //   ["body", 0],
+    //   ["eye_L", 35739],
+    //   ["eye_R", 18843],
+    //   ["eyelash_L", 19165],
+    //   ["eyelash_R", 21643],
+    // ]);
 
     console.log(this.mBaseVertex);
     console.log(this.mapStartIndex);
@@ -298,6 +299,8 @@ export default class ResizableBody {
   };
 
   getTableSize = (height, weight) => {
+    console.log(this.mHeightWeightTo5SizesMap);
+    console.log(height, weight);
     const arrSize = this.mHeightWeightTo5SizesMap
       .get(String(height))
       .get(String(weight));
