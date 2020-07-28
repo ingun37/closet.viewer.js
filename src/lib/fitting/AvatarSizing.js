@@ -47,9 +47,13 @@ export default class ResizableBody {
     //   ["eyelash_R", 21643],
     // ]);
 
-    console.log(this.mBaseVertex);
-    console.log(this.mapStartIndex);
-    console.log(this.mapMatshapeRenderToSkinPos);
+    // console.log(this.mCurrentGender);
+    // console.log(this.mConvertingMatData);
+    // console.log(this.mHeightWeightTo5SizesMap);
+
+    // console.log(this.mBaseVertex);
+    // console.log(this.mapStartIndex);
+    // console.log(this.mapMatshapeRenderToSkinPos);
   }
 
   setFeatureEnable = () => {
@@ -123,9 +127,10 @@ export default class ResizableBody {
     const featureValues = new Array(
       MEASUREMENT_LIST_NAME.SIZE_OF_MEASUREMENT_LIST
     );
+    console.warn(MEASUREMENT_LIST_NAME.SIZE_OF_MEASUREMENT_LIST);
 
-    var tableSize = this.getTableSize(height, weight);
-    var changedSize = this.applyBodyShape(
+    const tableSize = this.getTableSize(height, weight);
+    const changedSize = this.applyBodyShape(
       bodyShape,
       tableSize.chest,
       tableSize.waist,
@@ -134,12 +139,14 @@ export default class ResizableBody {
     tableSize.chest = changedSize.chest;
     tableSize.waist = changedSize.waist;
     tableSize.hip = changedSize.hip;
+    // console.log(changedSize);
+    // console.log(tableSize);
 
     if (chest < 0) chest = tableSize.chest;
     if (waist < 0) waist = tableSize.waist;
     if (hip < 0) hip = tableSize.hip;
     if (armLength < 0) armLength = tableSize.armLength;
-    if (legLength < 0) legLength = tableSize.legLen;
+    if (legLength < 0) legLength = tableSize.legLength;
 
     featureValues[MEASUREMENT_LIST_NAME.HEIGHT_Total] = height;
     //featureValues[MEASUREMENT_LIST_NAME.WEIGHT_Total] = weight; // 의미 없다. 안쓰이기 때문에
@@ -164,16 +171,24 @@ export default class ResizableBody {
       100
     );
 
+    // console.warn(featureValues);
+
     return this.computeResizingWithFeatureValues(featureValues);
   };
 
   computeResizingWithFeatureValues = (featureValues) => {
     const returnVertex = new Array(this.mBaseVertex.length);
-    for (let i = 0; i < this.mBaseVertex.length; i++)
+
+    for (let i = 0; i < this.mBaseVertex.length; ++i) {
       returnVertex[i] = new THREE.Vector3();
+    }
+
+    console.warn(this.mBaseVertex);
+    console.warn(returnVertex);
 
     for (let i = 0; i < this.mBaseVertex.length; i++) {
       returnVertex[i].copy(this.mBaseVertex[i]);
+      // console.log(returnVertex[i]);
 
       for (let j = 0; j < 3; j++) {
         let index = i * 3 + j;
@@ -185,31 +200,48 @@ export default class ResizableBody {
           k++
         ) {
           if (this.mFeatureEnable[k]) {
-            if (j == 0)
-              returnVertex[i].x +=
-                this.mConvertingMatData[featureIdx][index] * featureValues[k];
-            else if (j == 1)
-              returnVertex[i].y +=
-                this.mConvertingMatData[featureIdx][index] * featureValues[k];
-            else
-              returnVertex[i].z +=
-                this.mConvertingMatData[featureIdx][index] * featureValues[k];
+            let c =
+              this.mConvertingMatData[featureIdx][index] * featureValues[k];
+            if (!c) {
+              console.log(c);
+              // console.log(featureIdx);
+              // console.log(index);
+              // console.log(k);
+              // console.log(featureValues);
+              // console.log(this.mConvertingMatData[featureIdx]);
+              // console.log(this.mConvertingMatData[featureIdx][index]);
+              // console.log(featureValues[k]);
+
+              c = 0;
+            }
+            if (j == 0) returnVertex[i].x += c;
+            // this.mConvertingMatData[featureIdx][index] * featureValues[k];
+            else if (j == 1) returnVertex[i].y += c;
+            // this.mConvertingMatData[featureIdx][index] * featureValues[k];
+            else returnVertex[i].z += c;
+            // this.mConvertingMatData[featureIdx][index] * featureValues[k];
 
             featureIdx++;
           }
         }
 
-        if (j == 0)
-          returnVertex[i].x += this.mConvertingMatData[featureIdx][index];
-        else if (j == 1)
-          returnVertex[i].y += this.mConvertingMatData[featureIdx][index];
-        else if (j == 2)
-          returnVertex[i].z += this.mConvertingMatData[featureIdx][index];
-      }
-    }
+        let cm = this.mConvertingMatData[featureIdx][index];
+        if (!cm) {
+          console.warn(cm);
+          cm = 0;
+        }
 
-    this.dataSymmetrization(returnVertex);
-    this.dataNormalization(returnVertex);
+        if (j == 0) returnVertex[i].x += cm;
+        //this.mConvertingMatData[featureIdx][index];
+        else if (j == 1) returnVertex[i].y += cm;
+        //this.mConvertingMatData[featureIdx][index];
+        else if (j == 2) returnVertex[i].z += cm; //this.mConvertingMatData[featureIdx][index];
+      }
+      // console.log(returnVertex[i]);
+    }
+    // console.log(returnVertex);
+    // this.dataSymmetrization(returnVertex);
+    // this.dataNormalization(returnVertex);
 
     console.log("after computeResizingWithFeatureValues: ");
     console.log(returnVertex);
@@ -313,6 +345,7 @@ export default class ResizableBody {
     returnValue["armLength"] = arrSize[3];
     returnValue["legLength"] = arrSize[4];
 
+    console.log(returnValue);
     return returnValue;
   };
 
@@ -347,7 +380,9 @@ export default class ResizableBody {
     }
 
     // for (let i = 0; i < returnVertex.length; i++)
-    for (let i = 0; i < bodyLength; i++) returnVertex[i].copy(newVertex[i]);
+    for (let i = 0; i < bodyLength; i++) {
+      returnVertex[i].copy(newVertex[i]);
+    }
   };
 
   dataNormalization = (returnVertex) => {
@@ -384,10 +419,10 @@ export default class ResizableBody {
       .get(partName)
       .get("renderToSkinPos");
     const renderPos = new Array(renderToSkinPos.length * 3).fill(-999.999);
-    console.log(this.mBaseVertex);
+    // console.log(this.mBaseVertex);
     // console.log(renderPos);
-    console.log(phyPos);
-    console.log(renderToSkinPos);
+    // console.log(phyPos);
+    // console.log(renderToSkinPos);
 
     // phyPos;
     // vec3* pos = GetPosition();
@@ -442,7 +477,7 @@ export default class ResizableBody {
       if (pos == -999.999) console.warn(pos);
     });
 
-    console.log(renderPos);
+    // console.log(renderPos);
 
     return renderPos;
   };

@@ -574,7 +574,30 @@ export default class Fitting {
       // sizes.legLength
     );
 
-    // this.bodyVertexPos = computed;
+    // TODO: CHECK THIS OUT
+    console.warn(computed);
+    const v = [];
+    computed.forEach((vector) => {
+      if (!vector.x || !vector.y || !vector.z) {
+        console.warn(vector);
+      }
+      v.push(vector.x, vector.y, vector.z);
+    });
+    console.log(v);
+    // this.bodyVertexPos = [
+    //   ...computed.map((v) => {
+    //     // console.log(v);
+    //     return [v.x, v.y, v.z];
+    //   }),
+    // ];
+    console.log(this.bodyVertexPos);
+    console.log(this.resizableBody.mBaseVertex);
+    this.resizableBody.mBaseVertex = computed;
+    const l = this.bodyVertexPos.length;
+    const nb = v.slice(0, l);
+    // console.log(nb);
+    // this.bodyVertexPos = nb;
+    // console.log(this.resizableBody.mBaseVertex);
 
     // console.log("mBaseVertex: ");
     // console.log(bodyShape);
@@ -602,15 +625,15 @@ export default class Fitting {
       this.resizableBody.scManager.putVertexOnMatMeshByPartName(partName, v);
     }
 
-    // this.resizableBufferGeometry.addAttribute(
-    //   "position",
-    //   new THREE.Float32BufferAttribute(new Float32Array(bv), 3)
-    // );
-    // this.resizableBufferGeometry.setIndex(
-    //   new THREE.BufferAttribute(new Uint32Array(this.bodyVertexIndex), 1)
-    // );
-    // this.resizableBufferGeometry.computeFaceNormals();
-    // this.resizableBufferGeometry.computeVertexNormals();
+    this.resizableBufferGeometry.addAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(new Float32Array(bv), 3)
+    );
+    this.resizableBufferGeometry.setIndex(
+      new THREE.BufferAttribute(new Uint32Array(this.bodyVertexIndex), 1)
+    );
+    this.resizableBufferGeometry.computeFaceNormals();
+    this.resizableBufferGeometry.computeVertexNormals();
 
     this.buildMesh(this.resizableBufferGeometry);
   };
@@ -637,7 +660,7 @@ export default class Fitting {
 
     await this.r(0);
 
-    // this.buildAvatarUsingSC(mapSkinController);
+    this.buildAvatarUsingSC(mapSkinController);
 
     // const computed = this.resizableBody.computeResizing(
     //   170,

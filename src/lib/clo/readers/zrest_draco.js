@@ -455,9 +455,9 @@ export const createMatMesh = async (
     if (mapElement) {
       const nameUTF8 = mapElement.get("qsNameUTF8");
       const skinControllerName = readByteArray("String", nameUTF8);
-      console.warn(skinControllerName);
+      // console.warn(skinControllerName);
       // console.log(matMeshManager);
-      console.log(listMatMeshIDOnIndexedMesh);
+      // console.log(listMatMeshIDOnIndexedMesh);
 
       const listMatMeshID = [];
       listMatMeshIDOnIndexedMesh.forEach((matShape) => {
