@@ -46,7 +46,6 @@ export default class ZRestLoader {
     this.zProperty.drawMode = this.getParsedDrawMode(drawMode);
 
     this.matMeshMap = new Map();
-    this.currentColorwayIndex = 0;
     this.jsZip = null;
 
     // List for measurement
@@ -59,7 +58,7 @@ export default class ZRestLoader {
       materialInformationMap: this.materialInformationMap,
       camera: this.camera,
       zrestProperty: this.zProperty,
-      zrestVersion: this.zProperty._version,
+      zrestVersion: this.zProperty.version,
     });
 
     this.wireframe = new Wireframe(this.matMeshMap);
@@ -78,8 +77,9 @@ export default class ZRestLoader {
     colorwayIndex,
     bUseSeamPuckeringNormalMap,
     camera
+
   ) => {
-    // console.log(zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera, version);
+    this.meshFactory.currentColorwayIndex = colorwayIndex;
     return await makeMaterial({
       jsZip: zip,
       matProperty: matProperty,
