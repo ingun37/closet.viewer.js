@@ -29,7 +29,14 @@ export async function processAvatarSizingFile({ url: url }) {
     "HeightWeightTo5SizesMap.map"
   );
 
-  return { mapBaseMesh, convertingMatData, mapHeightWeightTo5Sizes };
+  const mapAccessoryMesh = await getParsedData("AccessoryMesh.map");
+
+  return {
+    mapBaseMesh,
+    convertingMatData,
+    mapHeightWeightTo5Sizes,
+    mapAccessoryMesh,
+  };
 }
 
 function readConvertingMatData({ unzippedConvertingMatData }) {

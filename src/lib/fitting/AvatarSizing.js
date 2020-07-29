@@ -10,34 +10,45 @@ import {
 // heightWeightTo5SizesMap MVMap
 // zrestSkinControllerArray 아바타 zrest의 1) skincontroller name(or matshape name), 2) 해당 메쉬의 vertexCount 3) three.js vertex3d 의 pointer 세개를 가지고 있는 triple의 array
 export default class ResizableBody {
-  constructor(
+  constructor({
     gender,
-    baseMeshMap,
+    mapBaseMesh: mapBaseMesh,
     convertingMatData,
-    heightWeightTo5SizesMap,
+    mapHeightWeightTo5Sizes: mapHeightWeightTo5Sizes,
+    mapAccessoryMesh: mapAccessoryMesh,
     // zrestSkinControllerArray,
-    scManager
-  ) {
-    console.warn(baseMeshMap);
-
+    scManager,
+  }) {
     this.mCurrentGender = gender;
     this.mConvertingMatData = convertingMatData;
-    this.mHeightWeightTo5SizesMap = heightWeightTo5SizesMap;
+    this.mHeightWeightTo5SizesMap = mapHeightWeightTo5Sizes;
     // this.mZrestSkinControllerArray = zrestSkinControllerArray;
     this.scManager = scManager;
 
-    this.mVertexSize = baseMeshMap.get("uiVertexCount");
+    this.mVertexSize = mapBaseMesh.get("uiVertexCount");
     this.mSymmetryIndex = readByteArray(
       "Uint",
-      baseMeshMap.get("baSymmetryIndex")
+      mapBaseMesh.get("baSymmetryIndex")
     );
 
     this.mFeatureEnable = this.setFeatureEnable();
-    this.mBaseVertex = this.buildBaseVertex(baseMeshMap);
+    this.mBaseVertex = this.buildBaseVertex(mapBaseMesh);
     this.mapMatshapeRenderToSkinPos = this.buildMapMatshapeRenderToSkinPos(
-      baseMeshMap
+      mapBaseMesh
     );
-    this.mapStartIndex = baseMeshMap.get("mapStartIndex");
+    this.mapStartIndex = mapBaseMesh.get("mapStartIndex");
+
+    // this.accessoryMeshMap = mapAccessoryMesh;
+    // const listMatshapeRenderToSkinPos = baseMeshMap.get(
+    //   "listMatshapeRenderToSkinPos"
+    // );
+
+    // console.log(this.accessoryMeshMap);
+
+    this.mapAccessoryMSRenderToSkinPos = this.buildMapMatshapeRenderToSkinPos(
+      mapAccessoryMesh
+    );
+    console.log(this.mapAccessoryMSRenderToSkinPos);
 
     // this.mapStartIndex = new Map([
     //   ["body", 0],
@@ -183,8 +194,8 @@ export default class ResizableBody {
       returnVertex[i] = new THREE.Vector3();
     }
 
-    console.warn(this.mBaseVertex);
-    console.warn(returnVertex);
+    // console.warn(this.mBaseVertex);
+    // console.warn(returnVertex);
 
     for (let i = 0; i < this.mBaseVertex.length; i++) {
       returnVertex[i].copy(this.mBaseVertex[i]);
@@ -482,6 +493,60 @@ export default class ResizableBody {
     return renderPos;
   };
 
+  updateRenderPositionFromPhysical2 = (phyPos, renderToSkinPos, wtol) => {
+    const renderPos = new Array(renderToSkinPos.length * 3).fill(-999.999);
+    const multifier = 1.0;
+    console.log(wtol);
+
+    console.log(
+      "MIN: " +
+        Math.min(...renderToSkinPos) +
+        " / MAX: " +
+        Math.max(...renderToSkinPos)
+    );
+
+    for (let i = 0; i < renderPos.length; ++i) {
+      // const idx = renderToSkinPos[i];
+      // const renderVector = phyPos[idx / 3];
+
+      // console.log(renderToSkinPos[i / 3]);
+      // console.log(phyPos[renderToSkinPos[i / 3]]);
+      // console.log(phyPos[renderToSkinPos[i / 3]].x);
+      const vectorIdx = Math.trunc(i / 3);
+      // const renderVector = phyPos[renderToSkinPos[vectorIdx]].applyMatrix4(
+      //   wtol
+      // );
+      const renderVector = phyPos[renderToSkinPos[vectorIdx]];
+
+      // console.log(renderVector);
+      // console.log(wtol);
+      // console.log(wtol.scale(renderVector));
+      // console.log("-");
+
+      if (!renderVector) {
+        console.warn(i, vectorIdx, renderToSkinPos[vectorIdx]);
+      }
+      switch (i % 3) {
+        case 0:
+          renderPos[i] = renderVector.x;
+          break;
+        case 1:
+          renderPos[i] = renderVector.y;
+          break;
+        case 2:
+          renderPos[i] = renderVector.z;
+          break;
+      }
+      renderPos[i] *= multifier;
+    }
+
+    renderPos.forEach((pos) => {
+      if (pos == -999.999) console.warn(pos);
+    });
+
+    return renderPos;
+  };
+
   // inputBaseVertex = (mapSkinController) => {
   //   console.log("inputBaseVertex");
   //   console.log(mapSkinController);
@@ -544,18 +609,22 @@ export default class ResizableBody {
   //   // }
   // };
 
-  convertFloatArrayToVector3Array = (floatArray) => {
+  convertFloatArrayToVec3Array = (floatArray) => {
     const vec3Array = [];
     for (let v = 0; v < floatArray.length; v += 3) {
-      const idx = v * 3;
+      // const idx = v * 3;
       vec3Array.push(
-        new THREE.Vector3(
-          floatArray[idx],
-          floatArray[idx + 1],
-          floatArray[idx + 2]
-        )
+        new THREE.Vector3(floatArray[v], floatArray[v + 1], floatArray[v + 2])
       );
     }
     return vec3Array;
+  };
+
+  convertVec3ArrayToFloatArray = (vec3Array) => {
+    const floatArray = [];
+    vec3Array.forEach((v) => {
+      floatArray.push(v.x, v.y, v.z);
+    });
+    return floatArray;
   };
 }

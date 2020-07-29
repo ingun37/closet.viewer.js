@@ -16,7 +16,12 @@ export default class Fitting {
     this.scene = scene;
     this.container = new THREE.Object3D();
     this.container.name = "fittingContainer";
+
+    this.accContainer = new THREE.Object3D();
+    this.accContainer.name = "fittingAccessoryContainer";
+
     this.scene.add(this.container);
+    this.scene.add(this.accContainer);
 
     this.mapTriangleIdx = new Map();
 
@@ -58,13 +63,15 @@ export default class Fitting {
 
   async initResizableAvatar({ url }) {
     const retObj = await processAvatarSizingFile({ url });
-    this.resizableBody = new ResizableBody(
-      0,
-      retObj.mapBaseMesh,
-      retObj.convertingMatData,
-      retObj.mapHeightWeightTo5Sizes,
-      this.scManager
-    );
+    console.warn(retObj);
+    this.resizableBody = new ResizableBody({
+      gender: 0,
+      mapBaseMesh: retObj.mapBaseMesh,
+      convertingMatData: retObj.convertingMatData,
+      mapHeightWeightTo5Sizes: retObj.mapHeightWeightTo5Sizes,
+      mapAccessoryMesh: retObj.mapAccessoryMesh,
+      scManager: this.scManager,
+    });
   }
 
   getAvatarURL({ id: avatarId, skinType: avatarSkinType }) {
@@ -326,19 +333,19 @@ export default class Fitting {
     const vertexCount = mapMesh.get("uiVertexCount");
 
     if (ABGList.length <= 0) {
-      console.warn("ABGList is empty");
-      console.warn(ABGList);
+      // console.warn("ABGList is empty");
+      // console.warn(ABGList);
       return;
     }
-    console.log(skinController);
+    // console.log(skinController);
 
     const calculatedPosition = this.computeBarycentric(
       ABGList,
       triangleIndexList
     );
 
-    console.log("calculatedPosition");
-    console.log(calculatedPosition);
+    // console.log("calculatedPosition");
+    // console.log(calculatedPosition);
 
     // Build Mesh
     const bufferGeometry = new THREE.BufferGeometry();
@@ -479,7 +486,18 @@ export default class Fitting {
       if (id !== "body" && id !== "body_Shape") {
         console.log(id);
         const mesh = this.parseSkinControllerUsingABG(sc);
-        this.mapSkinMesh.set(id, mesh);
+
+        // TODO: FIX THIS
+        if (mesh) {
+          // console.log(mesh);
+          // this.scManager.putVertexOnMatMeshByPartName(
+          //   id,
+          //   v
+          // mesh.userData.originalPos
+          //mesh.geometry.attributes.position.array
+          // );
+          this.mapSkinMesh.set(id, mesh);
+        }
       }
       // else console.warn(id);
     }
@@ -560,7 +578,7 @@ export default class Fitting {
 
     const computed = this.resizableBody.computeResizing(
       180,
-      95,
+      80,
       0,
       -1,
       -1,
@@ -575,7 +593,7 @@ export default class Fitting {
     );
 
     // TODO: CHECK THIS OUT
-    console.warn(computed);
+    // console.warn(computed);
     const v = [];
     computed.forEach((vector) => {
       if (!vector.x || !vector.y || !vector.z) {
@@ -583,20 +601,22 @@ export default class Fitting {
       }
       v.push(vector.x, vector.y, vector.z);
     });
-    console.log(v);
+    // console.log(v);
     // this.bodyVertexPos = [
     //   ...computed.map((v) => {
     //     // console.log(v);
     //     return [v.x, v.y, v.z];
     //   }),
     // ];
+    console.log("this.bodyVertexPos");
     console.log(this.bodyVertexPos);
     console.log(this.resizableBody.mBaseVertex);
     this.resizableBody.mBaseVertex = computed;
     const l = this.bodyVertexPos.length;
     const nb = v.slice(0, l);
+    // console.log("nb");
     // console.log(nb);
-    // this.bodyVertexPos = nb;
+    this.bodyVertexPos = nb.map((x) => x * 10);
     // console.log(this.resizableBody.mBaseVertex);
 
     // console.log("mBaseVertex: ");
@@ -614,13 +634,14 @@ export default class Fitting {
 
     const m = 10.0;
     computed.forEach((vertex) => {
+      // this.bodyVertexPos.forEach((vertex) => {
       bv.push(vertex.x * m, vertex.y * m, vertex.z * m);
     });
 
     for (const entries of this.resizableBody.mapStartIndex.entries()) {
       const partName = entries[0];
       const v = this.resizableBody.updateRenderPositionFromPhysical(partName);
-      // console.log(partName);
+      console.warn(partName);
       // console.log(v);
       this.resizableBody.scManager.putVertexOnMatMeshByPartName(partName, v);
     }

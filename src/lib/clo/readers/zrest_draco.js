@@ -370,7 +370,7 @@ const splitMatSpaceToMatMesh = async (
     // Temporary codes for fitting
     // Should be removed after live
     if (type === MATMESH_TYPE.PATTERN_MATMESH) {
-      // threeMesh.userData.originalPos = dracoGeometry.vertices;
+      threeMesh.userData.originalPos = dracoGeometry.vertices;
       threeMesh.userData.originalIndices = dracoGeometry.indices;
       threeMesh.userData.originalUv = dracoGeometry.uvs;
       // threeMesh.userData.originalUv2 = dracoGeometry.uv2s;
@@ -426,8 +426,7 @@ export const createMatMesh = async (
 ) => {
   let frontVertexCount = 0;
 
-  const newListMatShape = listMatShape.map(async (item) => {
-    const matShape = item;
+  const newListMatShape = listMatShape.map(async (matShape) => {
     const listMatMeshIDOnIndexedMesh = matShape.get(
       "listMatMeshIDOnIndexedMesh"
     );
@@ -453,19 +452,17 @@ export const createMatMesh = async (
     // TODO: Remove here after test
     const mapElement = matShape.get("mapElement");
     if (mapElement) {
-      const nameUTF8 = mapElement.get("qsNameUTF8");
-      const skinControllerName = readByteArray("String", nameUTF8);
-      // console.warn(skinControllerName);
-      // console.log(matMeshManager);
-      // console.log(listMatMeshIDOnIndexedMesh);
+      const name = mapElement.get("qsNameUTF8") || mapElement.get("qsName");
+      if (name) {
+        const skinControllerName = readByteArray("String", name);
+        const listMatMeshID = [];
+        listMatMeshIDOnIndexedMesh.forEach((matShape) => {
+          const matMeshID = matShape.get("uiMatMeshID");
+          if (matMeshID) listMatMeshID.push(matMeshID);
+        });
 
-      const listMatMeshID = [];
-      listMatMeshIDOnIndexedMesh.forEach((matShape) => {
-        const matMeshID = matShape.get("uiMatMeshID");
-        if (matMeshID) listMatMeshID.push(matMeshID);
-      });
-
-      matMeshManager.mapSCMatmeshID.set(skinControllerName, listMatMeshID);
+        matMeshManager.mapSCMatmeshID.set(skinControllerName, listMatMeshID);
+      }
     }
 
     const dracoFilename =
