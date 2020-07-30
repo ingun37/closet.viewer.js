@@ -208,15 +208,14 @@ export default class ZRestLoader {
     }
   };
 
-  addToScene(object, _name = "object3D") {
-    console.warn("addToScene");
-    if (object.name !== _name) {
+  addToScene(container, containerName = "object3D") {
+    if (container.name !== containerName) {
       //return;
-      object.name = _name;
+      container.name = containerName;
     }
     let objIndex = -1;
     for (let i = 0; i < this.scene.children.length; ++i) {
-      if (this.scene.children[i].name === _name) {
+      if (this.scene.children[i].name === containerName) {
         clearThree(this.scene.children[i]);
         this.scene.children[i].remove(...this.scene.children[i].children);
         objIndex = i;
@@ -224,12 +223,12 @@ export default class ZRestLoader {
     }
 
     if (objIndex >= 0) {
-      this.scene.children[objIndex] = object;
+      this.scene.children[objIndex] = container;
     } else {
-      this.scene.add(object);
+      this.scene.add(container);
     }
 
-    this.object3D = object;
+    this.object3D = container;
   }
 
   parse = (data, onLoad) => {

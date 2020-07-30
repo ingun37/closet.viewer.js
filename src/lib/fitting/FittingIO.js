@@ -104,7 +104,6 @@ export async function loadZrestForFitting({
   };
 
   if (zrest !== undefined) {
-    console.log(zrest);
     zrest.clearMaps();
     // zrest = null;
   }

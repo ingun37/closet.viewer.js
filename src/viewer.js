@@ -208,36 +208,10 @@ export default class ClosetViewer {
     _weight = 81,
     onProgress
   ) {
-    const rootPath = "https://files.clo-set.com/public/fitting";
-    const mapAvatarPath = new Map();
-    mapAvatarPath.set(0, [
-      "avatar/0/Henry.zrest",
-      "avatar/0/Nate.zrest",
-      "avatar/0/Thomas.zrest",
-    ]);
-    mapAvatarPath.set(1, [
-      "avatar/1/Mara.zrest",
-      "avatar/1/Feifei.zrest",
-      "avatar/1/Grace.zrest",
-    ]);
+    const url =
+      "https://files.clo-set.com/public/fitting/avatar/0/Thomas.zrest";
+    await this.fitting.loadAvatar({ url });
 
-    console.log("fitting init");
-    this.fittingInit({
-      rootPath: rootPath,
-      mapAvatarPath: mapAvatarPath,
-    });
-
-    console.log("fitting get avatar +");
-    await this.fittingGetAvatar({
-      id: _avatarId,
-      skinType: _skinType,
-    });
-    console.log("fitting get avatar -");
-
-    console.log("rootMap of avatar");
-    console.log(this.zrest.zProperty.rootMap);
-
-    this.fitting.scManager.init(this.zrest);
     await this.fitting.r(0);
     if (
       !this.fitting.scManager.validate(
@@ -307,8 +281,8 @@ export default class ClosetViewer {
       this.zrest.matMeshMap
     );
 
-    this.updateRenderer();
-    console.log("fittingGetInitGarment -");
+    // this.updateRenderer();
+    // console.log("fittingGetInitGarment -");
   }
 
   dt(height, weight) {
@@ -333,35 +307,35 @@ export default class ClosetViewer {
     });
   }
 
-  async fittingGetAvatar({
-    id: id,
-    skinType: skinType,
-    funcOnProgress: onProgress,
-    funcOnLoad: onLoad,
-  }) {
-    const avatarUrl = this.fitting.getAvatarURL({
-      id: id,
-      skinType: skinType,
-    });
+  // async fittingGetAvatar({
+  //   id: id,
+  //   skinType: skinType,
+  //   funcOnProgress: onProgress,
+  //   funcOnLoad: onLoad,
+  // }) {
+  //   const avatarUrl = this.fitting.getAvatarURL({
+  //     id: id,
+  //     skinType: skinType,
+  //   });
 
-    // TODO: CHECK THIS OUT
-    await this.loadZrestForFitting({
-      url: avatarUrl,
-      funcOnProgress: onProgress,
-      funcOnLoad: onLoad,
-      isAvatar: true,
-    });
-    const avatarGeometry = new Map(
-      this.zrest.zProperty.rootMap.get("mapGeometry")
-    );
-    const listSkinController = this.fitting.loadGeometry({
-      mapGeometry: avatarGeometry,
-    });
-    this.fitting.setAvatarInfo(listSkinController);
-    const mapSkinController = this.fitting.convertListSCtoMap(
-      listSkinController
-    );
-  }
+  //   // TODO: CHECK THIS OUT
+  //   await this.loadZrestForFitting({
+  //     url: avatarUrl,
+  //     funcOnProgress: onProgress,
+  //     funcOnLoad: onLoad,
+  //     isAvatar: true,
+  //   });
+  //   const avatarGeometry = new Map(
+  //     this.zrest.zProperty.rootMap.get("mapGeometry")
+  //   );
+  //   const listSkinController = this.fitting.loadGeometry({
+  //     mapGeometry: avatarGeometry,
+  //   });
+  //   this.fitting.setAvatarInfo(listSkinController);
+  //   const mapSkinController = this.fitting.convertListSCtoMap(
+  //     listSkinController
+  //   );
+  // }
 
   async fittingGetInitGarment({
     styleId: styleId,
@@ -811,14 +785,14 @@ export default class ClosetViewer {
     // const loaded = () => {};
     const loaded = async (object, loadedCamera, data) => {
       if (isAvatar) this.zrest.addToScene(object, "fittingAvatar");
-      else this.zrest.addToScene(object);
+      else this.zrest.addToScene(object, "fittingGarment");
       // this.addToScene(object);
 
       if (onLoad) onLoad(this);
 
       this.zrest.zoomToObjects(loadedCamera, this.scene);
       if (!isAvatar) this.updateRenderer();
-      else this.setAllAvatarVisible(false);
+      // else this.setAllAvatarVisible(false);
       // this.updateRenderer();
 
       return scene;

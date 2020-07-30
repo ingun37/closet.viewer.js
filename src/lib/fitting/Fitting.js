@@ -13,12 +13,16 @@ export default class Fitting {
     this.listSkinController = new Map(); // This is named "list" but actually a map. This name according to the CLO SW.
     this.mapSkinController = new Map(); // NOTE: This map is created by parsing the listSkinController. Keys are the name of the SkinController. After creating this map, listSkinController is deallocated from memory.
 
+    // Set containers for three.js
     this.scene = scene;
     this.container = new THREE.Object3D();
     this.container.name = "fittingContainer";
 
     this.accContainer = new THREE.Object3D();
     this.accContainer.name = "fittingAccessoryContainer";
+
+    this.avatarContainer = new THREE.Object3D();
+    this.avatarContainer.name = "fittingAvatarContainer";
 
     this.scene.add(this.container);
     this.scene.add(this.accContainer);
@@ -59,6 +63,26 @@ export default class Fitting {
         console.log(rootPath + "/" + avatarPath);
       });
     });
+  }
+
+  async loadAvatar({ url, onProgress, onLoad }) {
+    await loadZrestForFitting({
+      url: url,
+      funcOnProgress: onProgress,
+      funcOnLoad: onLoad,
+      zrest: this.zrest,
+      isAvatar: true,
+    });
+    const avatarGeometry = new Map(
+      this.zrest.zProperty.rootMap.get("mapGeometry")
+    );
+    const listSkinController = this.loadGeometry({
+      mapGeometry: avatarGeometry,
+    });
+    this.setAvatarInfo(listSkinController);
+    const mapSkinController = this.convertListSCtoMap(listSkinController);
+
+    this.scManager.init(this.zrest);
   }
 
   async initResizableAvatar({ url }) {
