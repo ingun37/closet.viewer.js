@@ -1,4 +1,4 @@
-import "babel-polyfill";
+import "@babel/polyfill";
 import ClosetViewer from "./viewer";
 global._babelPolyfill = false;
 
@@ -8,6 +8,6 @@ const closet = window.closet || {
 
 closet.ClosetViewer = ClosetViewer;
 
-exports.closet = closet;
+export { closet };
 
 if (window.cvInit) window.cvInit();

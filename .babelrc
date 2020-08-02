@@ -1,9 +1,11 @@
 {
   "presets": [
-    "env",
-    "es2017",
-    "stage-2"
+    "@babel/preset-env"
   ],
   "plugins": [
+    "@babel/plugin-syntax-dynamic-import",
+    ["@babel/plugin-proposal-decorators", { "legacy": true }],
+    ["@babel/plugin-proposal-class-properties", { "loose": true }],
+    ["transform-remove-console", { "exclude": [ "error", "warn"] }] // console.log 확인하고 싶을 때는 주석 처리
   ]
 }

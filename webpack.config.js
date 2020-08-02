@@ -8,7 +8,7 @@ function resolve(dir) {
 module.exports = {
   entry: {
     'main': [
-      'babel-polyfill',
+      '@babel/polyfill',
       './src/index.js',
     ],
   },
@@ -21,7 +21,7 @@ module.exports = {
       {
         test: /\.js$/,
         loader: 'babel-loader',
-        include: resolve('src'),
+        include: resolve('src')
       },
       {
         test: /\.(png|jpg|gif)$/,
