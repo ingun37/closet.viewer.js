@@ -3,29 +3,36 @@ import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 import FittingGarment from "./FittingGarment";
 import { loadJson } from "@/lib/clo/readers/FileLoader";
 import { getGarmentFileName } from "@/lib/clo/utils/UtilFunctions";
-import ResizableBody from "./AvatarSizing";
+import ResizableBody from "./FittingResizableBody";
 import { loadZrestForFitting, processAvatarSizingFile } from "./FittingIO";
 import FittingSkinControllerManager from "./FittingSkinControllerManager";
+import FittingAvatar from "./FittingAvatar";
+import FittingAccessary from "./FittingAccessary";
 // import ZrestLoader from "@/lib/clo/readers/ZrestLoader";
 
 export default class Fitting {
   constructor({ scene: scene, zrest: zrest }) {
-    this.listSkinController = new Map(); // This is named "list" but actually a map. This name according to the CLO SW.
-    this.mapSkinController = new Map(); // NOTE: This map is created by parsing the listSkinController. Keys are the name of the SkinController. After creating this map, listSkinController is deallocated from memory.
+    // NOTE: This is named "list" but actually a map. This name according to the CLO SW.
+    this.listSkinController = new Map();
+
+    // NOTE: This map is created by parsing the listSkinController.
+    //       Keys are the name of the SkinController. After creating this map, listSkinController is deallocated from memory.
+    this.mapSkinController = new Map();
 
     // Set containers for three.js
     this.scene = scene;
-    this.container = new THREE.Object3D();
-    this.container.name = "fittingContainer";
+    // this.container = new THREE.Object3D();
+    // this.container.name = "fittingContainer";
 
-    this.accContainer = new THREE.Object3D();
-    this.accContainer.name = "fittingAccessoryContainer";
+    this.accessoryContainer = new THREE.Object3D();
+    this.accessoryContainer.name = "fittingAccessoryContainer";
 
     this.avatarContainer = new THREE.Object3D();
     this.avatarContainer.name = "fittingAvatarContainer";
 
-    this.scene.add(this.container);
-    this.scene.add(this.accContainer);
+    // this.scene.add(this.container);
+    this.scene.add(this.accessoryContainer);
+    this.scene.add(this.avatarContainer);
 
     this.mapTriangleIdx = new Map();
 
@@ -36,9 +43,6 @@ export default class Fitting {
     this.bodyVertexIndex = [];
     this.bodyVertexPos = [];
 
-    this.garments = new FittingGarment();
-    this.loadZcrp = this.garments.loadZcrp;
-
     this.processAvatarSizingFile = processAvatarSizingFile;
 
     this.resizableBody = null;
@@ -46,6 +50,13 @@ export default class Fitting {
     this.avatarSkinType = 0;
 
     this.zrest = zrest;
+    // this.avatar = new FittingAvatar();
+
+    // this.accessoryContainer = new THREE.Object3D();
+    // this.accessory = new FittingAccessary(this.accessoryContainer);
+
+    this.garments = new FittingGarment();
+    this.loadZcrp = this.garments.loadZcrp;
 
     this.scManager = new FittingSkinControllerManager(this.zrest);
   }
@@ -66,6 +77,8 @@ export default class Fitting {
   }
 
   async loadAvatar({ url, onProgress, onLoad }) {
+    // TODO: Error when calling repeatedly. Fix it.
+    this.zrest.clear();
     await loadZrestForFitting({
       url: url,
       funcOnProgress: onProgress,
@@ -73,6 +86,9 @@ export default class Fitting {
       zrest: this.zrest,
       isAvatar: true,
     });
+    console.log(this.zrest);
+
+    // TODO: Move this modules into FittingAvatar.js
     const avatarGeometry = new Map(
       this.zrest.zProperty.rootMap.get("mapGeometry")
     );
@@ -85,9 +101,9 @@ export default class Fitting {
     this.scManager.init(this.zrest);
   }
 
-  async initResizableAvatar({ url }) {
+  async loadAvatarResizingData({ url }) {
     const retObj = await processAvatarSizingFile({ url });
-    console.warn(retObj);
+    // console.warn(retObj);
     this.resizableBody = new ResizableBody({
       gender: 0,
       mapBaseMesh: retObj.mapBaseMesh,
@@ -306,37 +322,37 @@ export default class Fitting {
     return this.mapSkinController;
   }
 
-  buildMeshUsingMapMesh(mapMesh) {
-    const bufferGeometry = new THREE.BufferGeometry();
-    const arrayIndex = readByteArray("Uint", mapMesh.get("baIndex"));
-    const arrayPosition = readByteArray("Float", mapMesh.get("baPosition"));
+  // buildMeshUsingMapMesh(mapMesh) {
+  //   const bufferGeometry = new THREE.BufferGeometry();
+  //   const arrayIndex = readByteArray("Uint", mapMesh.get("baIndex"));
+  //   const arrayPosition = readByteArray("Float", mapMesh.get("baPosition"));
 
-    // console.log(mapMesh);
-    // console.log(arrayPosition);
-    // console.log(arrayIndex);
+  //   // console.log(mapMesh);
+  //   // console.log(arrayPosition);
+  //   // console.log(arrayIndex);
 
-    bufferGeometry.addAttribute(
-      "position",
-      new THREE.BufferAttribute(new Float32Array(arrayPosition), 3)
-    );
-    bufferGeometry.setIndex(
-      new THREE.BufferAttribute(new Uint32Array(arrayIndex), 1)
-    );
-    bufferGeometry.computeFaceNormals();
-    bufferGeometry.computeVertexNormals();
+  //   bufferGeometry.addAttribute(
+  //     "position",
+  //     new THREE.BufferAttribute(new Float32Array(arrayPosition), 3)
+  //   );
+  //   bufferGeometry.setIndex(
+  //     new THREE.BufferAttribute(new Uint32Array(arrayIndex), 1)
+  //   );
+  //   bufferGeometry.computeFaceNormals();
+  //   bufferGeometry.computeVertexNormals();
 
-    // const material = new THREE.PointsMaterial({ color: 0x880000 });
-    // const threeMesh = new THREE.Points(bufferGeometry, material);
-    const material = new THREE.MeshPhongMaterial();
-    material.color = THREE.Vector3(1, 1, 1);
-    const threeMesh = new THREE.Mesh(bufferGeometry, material);
+  //   // const material = new THREE.PointsMaterial({ color: 0x880000 });
+  //   // const threeMesh = new THREE.Points(bufferGeometry, material);
+  //   const material = new THREE.MeshPhongMaterial();
+  //   material.color = THREE.Vector3(1, 1, 1);
+  //   const threeMesh = new THREE.Mesh(bufferGeometry, material);
 
-    this.container.add(threeMesh);
+  //   this.container.add(threeMesh);
 
-    return threeMesh;
+  //   return threeMesh;
 
-    // console.log(threeMesh);
-  }
+  //   // console.log(threeMesh);
+  // }
   parseSkinControllerUsingABG(skinController) {
     const readData = (type, field) => {
       return this.readBA({
@@ -450,7 +466,7 @@ export default class Fitting {
     // const threeMesh = new THREE.Points(bufferGeometry, threeMaterial);
     const threeMesh = new THREE.Mesh(bufferGeometry, threeMaterial);
     // console.log(threeMesh);
-    this.container.add(threeMesh);
+    // this.container.add(threeMesh);
 
     return threeMesh;
   }
@@ -494,38 +510,6 @@ export default class Fitting {
 
     // NOTE: For test only
     // this.buildMeshUsingMapMesh(mapMesh);
-  }
-
-  buildAvatarUsingSC(mapSkinController) {
-    this.mapSkinMesh = new Map();
-    for (const entries of mapSkinController) {
-      const id = entries[0];
-      const sc = entries[1];
-      // const mapMesh = entries[1].get("mapMesh");
-      // const mesh = this.buildMeshUsingMapMesh(mapMesh);
-      // this.mapSkinMesh.set(id, mesh);
-      // this.mapSkinMesh.set(id, mapMesh);
-      // console.log(this.buildMeshUsingMapMesh(mapMesh));
-
-      if (id !== "body" && id !== "body_Shape") {
-        console.log(id);
-        const mesh = this.parseSkinControllerUsingABG(sc);
-
-        // TODO: FIX THIS
-        if (mesh) {
-          // console.log(mesh);
-          // this.scManager.putVertexOnMatMeshByPartName(
-          //   id,
-          //   v
-          // mesh.userData.originalPos
-          //mesh.geometry.attributes.position.array
-          // );
-          this.mapSkinMesh.set(id, mesh);
-        }
-      }
-      // else console.warn(id);
-    }
-    // console.log(this.mapSkinMesh);
   }
 
   findBodySkinController(listSkinController) {
@@ -591,29 +575,25 @@ export default class Fitting {
     return v;
   };
 
-  // NOTE: Test code for avatar resizing
-  r = async (testNo = 0) => {
-    await this.initResizableAvatar({
-      url:
-        // "https://files.clo-set.com/public/fitting/avatar/" +
-        // testNo +
-        "/Sizing.zip",
-    });
-
+  resizeAvatar = async ({
+    height,
+    weight,
+    bodyShape,
+    chest = -1,
+    waist = -1,
+    hip = -1,
+    armLength = -1,
+    legLength = -1,
+  }) => {
     const computed = this.resizableBody.computeResizing(
-      180,
-      80,
-      0,
-      -1,
-      -1,
-      -1,
-      -1,
-      -1
-      // sizes.chest,
-      // sizes.waist,
-      // sizes.hip,
-      // sizes.armLength,
-      // sizes.legLength
+      height,
+      weight,
+      bodyShape,
+      chest,
+      waist,
+      hip,
+      armLength,
+      legLength
     );
 
     // TODO: CHECK THIS OUT
@@ -632,116 +612,257 @@ export default class Fitting {
     //     return [v.x, v.y, v.z];
     //   }),
     // ];
-    console.log("this.bodyVertexPos");
-    console.log(this.bodyVertexPos);
-    console.log(this.resizableBody.mBaseVertex);
-    this.resizableBody.mBaseVertex = computed;
+    // console.log("this.bodyVertexPos");
+    // console.log(this.bodyVertexPos);
+    // console.log(this.resizableBody.mBaseVertex);
+    // this.resizableBody.mBaseVertex = computed;
     const l = this.bodyVertexPos.length;
     const nb = v.slice(0, l);
-    // console.log("nb");
-    // console.log(nb);
     this.bodyVertexPos = nb.map((x) => x * 10);
-    // console.log(this.resizableBody.mBaseVertex);
-
-    // console.log("mBaseVertex: ");
-    // console.log(bodyShape);
-
-    // console.log("after computeResizing: ");
-    // console.log(computed);
-
-    // Render for test only
-    // const v = this.resizableBody.baseVertex;
-    const bv = [];
+    // const bv = [];
 
     // const bufferGeometry = new THREE.BufferGeometry();
+    if (this.resizableBufferGeometry) this.resizableBufferGeometry.dispose();
     this.resizableBufferGeometry = new THREE.BufferGeometry();
 
-    const m = 10.0;
-    computed.forEach((vertex) => {
-      // this.bodyVertexPos.forEach((vertex) => {
-      bv.push(vertex.x * m, vertex.y * m, vertex.z * m);
-    });
+    // const m = 10.0;
+    // computed.forEach((vertex) => {
+    //   // this.bodyVertexPos.forEach((vertex) => {
+    //   bv.push(vertex.x * m, vertex.y * m, vertex.z * m);
+    // });
 
     for (const entries of this.resizableBody.mapStartIndex.entries()) {
       const partName = entries[0];
-      const v = this.resizableBody.updateRenderPositionFromPhysical(partName);
-      console.warn(partName);
+      const partRenderPos = this.resizableBody.updateRenderPositionFromPhysical(
+        partName,
+        computed
+      );
+      // console.warn(partName);
       // console.log(v);
-      this.resizableBody.scManager.putVertexOnMatMeshByPartName(partName, v);
+      this.resizableBody.scManager.putVertexOnMatMeshByPartName(
+        partName,
+        partRenderPos
+      );
     }
-
-    this.resizableBufferGeometry.addAttribute(
-      "position",
-      new THREE.Float32BufferAttribute(new Float32Array(bv), 3)
-    );
-    this.resizableBufferGeometry.setIndex(
-      new THREE.BufferAttribute(new Uint32Array(this.bodyVertexIndex), 1)
-    );
-    this.resizableBufferGeometry.computeFaceNormals();
-    this.resizableBufferGeometry.computeVertexNormals();
-
-    this.buildMesh(this.resizableBufferGeometry);
   };
 
-  async rz() {
-    await loadZrestForFitting({
-      url: "https://files.clo-set.com/public/fitting/avatar/0/Nest.zrest",
-      funcOnProgress: null,
-      funcOnLoad: null,
-      zrest: this.zrest,
-      isAvatar: true,
-    });
-    console.log(this.zrest.zProperty.rootMap);
+  resizeAccessory = () => {
+    this.buildAvatarUsingSC(this.mapSkinController);
+    // this.accessoryContainer.dispose();
+    // this.accessoryContainer.children = [];
 
-    const avatarGeometry = new Map(
-      this.zrest.zProperty.rootMap.get("mapGeometry")
-    );
-    const listSkinController = this.loadGeometry({
-      mapGeometry: avatarGeometry,
-    });
-    this.setAvatarInfo(listSkinController);
+    for (const entries of this.mapSkinMesh.entries()) {
+      const partName = entries[0];
+      const phyPos = this.mapSkinMesh.get(partName).geometry.attributes.position
+        .array;
 
-    const mapSkinController = this.convertListSCtoMap(listSkinController);
+      const phyPosVec3 = this.resizableBody.convertFloatArrayToVec3Array(
+        phyPos
+      );
+      const renderToSkinPos = this.resizableBody.mapAccessoryMSRenderToSkinPos
+        .get(partName)
+        .get("renderToSkinPos");
+      // console.log(renderToSkinPos);
+      const renderPos = this.resizableBody.updateRenderPositionFromPhysical2(
+        phyPosVec3,
+        renderToSkinPos
+        // invMatrixWorld
+      );
+      // console.log(renderPos);
+      // console.log("renderPos.length: " + renderPos.length);
+      const listMatMesh = this.scManager.putVertexOnMatMeshByPartName(
+        partName,
+        renderPos
+      );
+      // console.log(listMatMesh);
+      this.accessoryContainer.add(...listMatMesh);
+      console.log(this.accessoryContainer);
+    }
+  };
 
-    await this.r(0);
+  // NOTE: Test code for avatar resizing
+  // r = async (testNo = 0) => {
+  //   // await this.initResizableAvatar({
+  //   //   url:
+  //   //     // "https://files.clo-set.com/public/fitting/avatar/" +
+  //   //     // testNo +
+  //   //     "/Sizing.zip",
+  //   // });
 
-    this.buildAvatarUsingSC(mapSkinController);
+  //   const computed = this.resizableBody.computeResizing(
+  //     180,
+  //     80,
+  //     0,
+  //     -1,
+  //     -1,
+  //     -1,
+  //     -1,
+  //     -1
+  //     // sizes.chest,
+  //     // sizes.waist,
+  //     // sizes.hip,
+  //     // sizes.armLength,
+  //     // sizes.legLength
+  //   );
 
-    // const computed = this.resizableBody.computeResizing(
-    //   170,
-    //   95,
-    //   0,
-    //   -1,
-    //   -1,
-    //   -1,
-    //   -1,
-    //   -1
-    //   // sizes.chest,
-    //   // sizes.waist,
-    //   // sizes.hip,
-    //   // sizes.armLength,
-    //   // sizes.legLength
-    // );
+  //   // TODO: CHECK THIS OUT
+  //   // console.warn(computed);
+  //   const v = [];
+  //   computed.forEach((vector) => {
+  //     if (!vector.x || !vector.y || !vector.z) {
+  //       console.warn(vector);
+  //     }
+  //     v.push(vector.x, vector.y, vector.z);
+  //   });
+  //   // console.log(v);
+  //   // this.bodyVertexPos = [
+  //   //   ...computed.map((v) => {
+  //   //     // console.log(v);
+  //   //     return [v.x, v.y, v.z];
+  //   //   }),
+  //   // ];
+  //   console.log("this.bodyVertexPos");
+  //   console.log(this.bodyVertexPos);
+  //   console.log(this.resizableBody.mBaseVertex);
+  //   this.resizableBody.mBaseVertex = computed;
+  //   const l = this.bodyVertexPos.length;
+  //   const nb = v.slice(0, l);
+  //   // console.log("nb");
+  //   // console.log(nb);
+  //   this.bodyVertexPos = nb.map((x) => x * 10);
+  //   // console.log(this.resizableBody.mBaseVertex);
 
-    // const geometry = this.container.children[0].geometry;
-    // const geoPos = [];
+  //   // console.log("mBaseVertex: ");
+  //   // console.log(bodyShape);
 
-    // const m = 1.0;
-    // computed.forEach((pos) => {
-    //   geoPos.push(pos.x * m, pos.y * m, pos.z * m);
-    // });
+  //   // console.log("after computeResizing: ");
+  //   // console.log(computed);
 
-    // // console.warn(geometry.attributes.position);
+  //   // Render for test only
+  //   // const v = this.resizableBody.baseVertex;
+  //   const bv = [];
 
-    // geometry.addAttribute(
-    //   "position",
-    //   new THREE.BufferAttribute(new Float32Array(geoPos), 3)
-    // );
+  //   // const bufferGeometry = new THREE.BufferGeometry();
+  //   this.resizableBufferGeometry = new THREE.BufferGeometry();
 
-    // console.log(geoPos);
-    // console.log(geoIdx);
-    // geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(geoIdx), 1));
+  //   const m = 10.0;
+  //   computed.forEach((vertex) => {
+  //     // this.bodyVertexPos.forEach((vertex) => {
+  //     bv.push(vertex.x * m, vertex.y * m, vertex.z * m);
+  //   });
 
-    // console.warn(geometry.attributes.position);
+  //   for (const entries of this.resizableBody.mapStartIndex.entries()) {
+  //     const partName = entries[0];
+  //     const v = this.resizableBody.updateRenderPositionFromPhysical(partName);
+  //     console.warn(partName);
+  //     // console.log(v);
+  //     this.resizableBody.scManager.putVertexOnMatMeshByPartName(partName, v);
+  //   }
+
+  //   this.resizableBufferGeometry.addAttribute(
+  //     "position",
+  //     new THREE.Float32BufferAttribute(new Float32Array(bv), 3)
+  //   );
+  //   this.resizableBufferGeometry.setIndex(
+  //     new THREE.BufferAttribute(new Uint32Array(this.bodyVertexIndex), 1)
+  //   );
+  //   this.resizableBufferGeometry.computeFaceNormals();
+  //   this.resizableBufferGeometry.computeVertexNormals();
+
+  //   this.buildMesh(this.resizableBufferGeometry);
+  // };
+
+  buildAvatarUsingSC(mapSkinController) {
+    this.mapSkinMesh = new Map();
+    for (const entries of mapSkinController) {
+      const id = entries[0];
+      const sc = entries[1];
+      // const mapMesh = entries[1].get("mapMesh");
+      // const mesh = this.buildMeshUsingMapMesh(mapMesh);
+      // this.mapSkinMesh.set(id, mesh);
+      // this.mapSkinMesh.set(id, mapMesh);
+      // console.log(this.buildMeshUsingMapMesh(mapMesh));
+
+      if (id !== "body" && id !== "body_Shape") {
+        // console.log(id);
+        const mesh = this.parseSkinControllerUsingABG(sc);
+
+        // TODO: FIX THIS
+        if (mesh) {
+          // console.log(mesh);
+          // this.scManager.putVertexOnMatMeshByPartName(
+          //   id,
+          //   v
+          // mesh.userData.originalPos
+          //mesh.geometry.attributes.position.array
+          // );
+          this.mapSkinMesh.set(id, mesh);
+        }
+      }
+      // else console.warn(id);
+    }
+    // console.log(this.mapSkinMesh);
   }
+
+  // async rz() {
+  //   await loadZrestForFitting({
+  //     url: "https://files.clo-set.com/public/fitting/avatar/0/Nest.zrest",
+  //     funcOnProgress: null,
+  //     funcOnLoad: null,
+  //     zrest: this.zrest,
+  //     isAvatar: true,
+  //   });
+  //   console.log(this.zrest.zProperty.rootMap);
+
+  //   const avatarGeometry = new Map(
+  //     this.zrest.zProperty.rootMap.get("mapGeometry")
+  //   );
+  //   const listSkinController = this.loadGeometry({
+  //     mapGeometry: avatarGeometry,
+  //   });
+  //   this.setAvatarInfo(listSkinController);
+
+  //   const mapSkinController = this.convertListSCtoMap(listSkinController);
+
+  //   await this.r(0);
+
+  //   this.buildAvatarUsingSC(mapSkinController);
+
+  //   // const computed = this.resizableBody.computeResizing(
+  //   //   170,
+  //   //   95,
+  //   //   0,
+  //   //   -1,
+  //   //   -1,
+  //   //   -1,
+  //   //   -1,
+  //   //   -1
+  //   //   // sizes.chest,
+  //   //   // sizes.waist,
+  //   //   // sizes.hip,
+  //   //   // sizes.armLength,
+  //   //   // sizes.legLength
+  //   // );
+
+  //   // const geometry = this.container.children[0].geometry;
+  //   // const geoPos = [];
+
+  //   // const m = 1.0;
+  //   // computed.forEach((pos) => {
+  //   //   geoPos.push(pos.x * m, pos.y * m, pos.z * m);
+  //   // });
+
+  //   // // console.warn(geometry.attributes.position);
+
+  //   // geometry.addAttribute(
+  //   //   "position",
+  //   //   new THREE.BufferAttribute(new Float32Array(geoPos), 3)
+  //   // );
+
+  //   // console.log(geoPos);
+  //   // console.log(geoIdx);
+  //   // geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(geoIdx), 1));
+
+  //   // console.warn(geometry.attributes.position);
+  // }
 }

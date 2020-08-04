@@ -198,6 +198,60 @@ export default class ClosetViewer {
     this.updateRenderer(1);
   }
 
+  async fit() {
+    const sleep = (ms) => {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    };
+
+    const url = "https://files.clo-set.com/public/fitting/avatar/0/Henry.zrest";
+    await this.fitting.loadAvatar({ url });
+    await this.fitting.loadAvatarResizingData({
+      url: "./Sizing.zip",
+    });
+    await this.fitting.resizeAvatar({
+      height: 180,
+      weight: 80,
+      bodyShape: 0,
+    });
+    await this.fitting.resizeAccessory();
+
+    await this.loadZrestForFitting({
+      url: "f/garment.zrest",
+      // funcOnProgress: onProgress,
+      funcOnLoad: null,
+      isAvatar: false,
+    });
+
+    await this.fitting.getDrapingData(
+      "f/P0_187_73.zcrp",
+      this.zrest.matMeshMap
+    );
+
+    // TEST
+    for (let height = 195; height >= 170; height -= 5) {
+      console.log({
+        height: height,
+        weight: 80,
+        bodyShape: 0,
+      });
+      await sleep(1000);
+      await this.fitting.resizeAvatar({
+        height: height,
+        weight: 80,
+        bodyShape: 0,
+      });
+      await this.fitting.resizeAccessory();
+
+      await this.fitting.getDrapingData(
+        "f/P0_187_73.zcrp",
+        this.zrest.matMeshMap
+      );
+
+      this.updateRenderer(1);
+    }
+    this.updateRenderer(1);
+  }
+
   async ft(
     _skinType = 1,
     _styleId = "c31a632e03fe44f2aa18b2aa8cc44435",
@@ -208,81 +262,82 @@ export default class ClosetViewer {
     _weight = 81,
     onProgress
   ) {
-    const url =
-      "https://files.clo-set.com/public/fitting/avatar/0/Thomas.zrest";
+    const url = "https://files.clo-set.com/public/fitting/avatar/0/Nate.zrest";
     await this.fitting.loadAvatar({ url });
+    await this.fitting.loadAvatarResizingData({ url: "./Sizing.zip" });
+    await this.fitting.resizeAvatar({ height: 190, weight: 80, bodyShape: 0 });
 
-    await this.fitting.r(0);
-    if (
-      !this.fitting.scManager.validate(
-        this.fitting.resizableBody.mapMatshapeRenderToSkinPos
-      )
-    ) {
-      console.error("ERROR: invalid mapMatshapeRenderToSkinPos");
-    }
-    // console.log(this.fitting.scManager.getVertexOnMatMeshByPartName("body"));
-    // console.log(this.fitting.bodyVertexPos);
+    // await this.fitting.r(0);
+    // if (
+    //   !this.fitting.scManager.validate(
+    //     this.fitting.resizableBody.mapMatshapeRenderToSkinPos
+    //   )
+    // ) {
+    //   console.error("ERROR: invalid mapMatshapeRenderToSkinPos");
+    // }
+    // // console.log(this.fitting.scManager.getVertexOnMatMeshByPartName("body"));
+    // // console.log(this.fitting.bodyVertexPos);
 
-    this.fitting.buildAvatarUsingSC(this.fitting.mapSkinController);
-    for (const entries of this.fitting.mapSkinMesh.entries()) {
-      const partName = entries[0];
-      // const partName = "hair_Shape";
-      const combined = this.fitting.scManager.getVertexOnMatMeshByPartName(
-        partName
-      );
-      const invMatrixWorld = this.fitting.scManager.getInvMatrixWorld(partName);
-      console.log(invMatrixWorld);
-      // console.log(partName + " =====================");
-      // console.log("combined.length: " + combined.length);
-      const phyPos = this.fitting.mapSkinMesh.get(partName).geometry.attributes
-        .position.array;
-      // console.log(phyPos);
-      // console.log("phyPos.length: " + phyPos.length);
-      const phyPosVec3 = this.fitting.resizableBody.convertFloatArrayToVec3Array(
-        phyPos
-      );
-      // console.log(phyPosVec3);
-      const renderToSkinPos = this.fitting.resizableBody.mapAccessoryMSRenderToSkinPos
-        .get(partName)
-        .get("renderToSkinPos");
-      // console.log(renderToSkinPos);
-      const renderPos = this.fitting.resizableBody.updateRenderPositionFromPhysical2(
-        phyPosVec3,
-        renderToSkinPos,
-        invMatrixWorld
-      );
-      // console.log(renderPos);
-      // console.log("renderPos.length: " + renderPos.length);
-      const listMatMesh = this.fitting.scManager.putVertexOnMatMeshByPartName(
-        partName,
-        renderPos
-      );
-      this.fitting.accContainer.add(...listMatMesh);
-    }
+    // this.fitting.buildAvatarUsingSC(this.fitting.mapSkinController);
+    // for (const entries of this.fitting.mapSkinMesh.entries()) {
+    //   const partName = entries[0];
+    //   // const partName = "hair_Shape";
+    //   const combined = this.fitting.scManager.getVertexOnMatMeshByPartName(
+    //     partName
+    //   );
+    //   const invMatrixWorld = this.fitting.scManager.getInvMatrixWorld(partName);
+    //   console.log(invMatrixWorld);
+    //   // console.log(partName + " =====================");
+    //   // console.log("combined.length: " + combined.length);
+    //   const phyPos = this.fitting.mapSkinMesh.get(partName).geometry.attributes
+    //     .position.array;
+    //   // console.log(phyPos);
+    //   // console.log("phyPos.length: " + phyPos.length);
+    //   const phyPosVec3 = this.fitting.resizableBody.convertFloatArrayToVec3Array(
+    //     phyPos
+    //   );
+    //   // console.log(phyPosVec3);
+    //   const renderToSkinPos = this.fitting.resizableBody.mapAccessoryMSRenderToSkinPos
+    //     .get(partName)
+    //     .get("renderToSkinPos");
+    //   // console.log(renderToSkinPos);
+    //   const renderPos = this.fitting.resizableBody.updateRenderPositionFromPhysical2(
+    //     phyPosVec3,
+    //     renderToSkinPos,
+    //     invMatrixWorld
+    //   );
+    //   // console.log(renderPos);
+    //   // console.log("renderPos.length: " + renderPos.length);
+    //   const listMatMesh = this.fitting.scManager.putVertexOnMatMeshByPartName(
+    //     partName,
+    //     renderPos
+    //   );
+    //   this.fitting.accContainer.add(...listMatMesh);
+    // }
 
-    console.log(this.zrest.zProperty);
-    console.log(this.camera.matrixWorld);
+    // console.log(this.zrest.zProperty);
+    // console.log(this.camera.matrixWorld);
 
-    // this.fitting.r(0);
-    // console.log(this.fitting.bodyVertexPos);
+    // // this.fitting.r(0);
+    // // console.log(this.fitting.bodyVertexPos);
 
-    console.log("fitting get init garment +");
-    await this.loadZrestForFitting({
-      url: "f/garment.zrest",
-      funcOnProgress: onProgress,
-      funcOnLoad: null,
-      isAvatar: false,
-    });
-    console.log("fitting get init garment -");
+    // console.log("fitting get init garment +");
+    // await this.loadZrestForFitting({
+    //   url: "f/garment.zrest",
+    //   funcOnProgress: onProgress,
+    //   funcOnLoad: null,
+    //   isAvatar: false,
+    // });
+    // console.log("fitting get init garment -");
 
-    console.log("fittingGetInitGarment +");
-    await this.fitting.getDrapingData(
-      "f/P0_187_73.zcrp",
-      this.zrest.matMeshMap
-    );
+    // console.log("fittingGetInitGarment +");
+    // await this.fitting.getDrapingData(
+    //   "f/P0_187_73.zcrp",
+    //   this.zrest.matMeshMap
+    // );
 
-    // this.updateRenderer();
-    // console.log("fittingGetInitGarment -");
+    // // this.updateRenderer();
+    // // console.log("fittingGetInitGarment -");
   }
 
   dt(height, weight) {

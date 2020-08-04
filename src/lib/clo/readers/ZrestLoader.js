@@ -216,7 +216,7 @@ export default class ZRestLoader {
     let objIndex = -1;
     for (let i = 0; i < this.scene.children.length; ++i) {
       if (this.scene.children[i].name === containerName) {
-        clearThree(this.scene.children[i]);
+        this.clearThree(this.scene.children[i]);
         this.scene.children[i].remove(...this.scene.children[i].children);
         objIndex = i;
       }
@@ -230,6 +230,25 @@ export default class ZRestLoader {
 
     this.object3D = container;
   }
+
+  clearThree = (obj) => {
+    while (obj.children.length > 0) {
+      this.clearThree(obj.children[0]);
+      obj.remove(obj.children[0]);
+    }
+
+    const disposeIfExists = (component) => {
+      if (component !== undefined) {
+        component.dispose();
+      }
+    };
+
+    disposeIfExists(obj.geometry);
+    disposeIfExists(obj.material);
+    disposeIfExists(obj.texture);
+
+    obj = undefined;
+  };
 
   parse = (data, onLoad) => {
     this.data = data;

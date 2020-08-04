@@ -46,12 +46,12 @@ export default class FittingSkinControllerManager {
     return matrixWorld;
   };
 
-  putVertexOnMatMeshByPartName = (partName, vertex) => {
+  putVertexOnMatMeshByPartName = (partName, partRenderPos) => {
     // prettier-ignore
-    const initWorldMatrix = new THREE.Matrix4().set(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+    // const initWorldMatrix = new THREE.Matrix4().set(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
     // console.warn(initWorldMatrix);
     const combinedVertex = this.getVertexOnMatMeshByPartName(partName);
-    if (vertex.length != combinedVertex.length) {
+    if (partRenderPos.length != combinedVertex.length) {
       console.warn("FAILED: " + partName);
       return;
     }
@@ -63,16 +63,18 @@ export default class FittingSkinControllerManager {
     const retListMatMesh = [];
     this.mapSCMatMeshID.get(partName).forEach((matMeshId) => {
       const matMesh = this.mapMatMesh.get(matMeshId);
-      matMesh.matrixAutoUpdate = false;
-      matMesh.matrixWorld.copy(initWorldMatrix);
-      matMesh.matrixWorldNeedsUpdate = true;
-      console.log(matMesh);
+      // matMesh.matrixAutoUpdate = false;
+      // matMesh.matrixWorld.copy(initWorldMatrix);
+      // matMesh.matrixWorldNeedsUpdate = true;
+      // console.log(matMesh);
       retListMatMesh.push(matMesh);
+
       const vertexArr = matMesh.geometry.attributes.position.array;
       const vertexSize = vertexArr.length;
+      matMesh.geometry.attributes.position.needsUpdate = true;
 
       const slicedVertexArr = new Float32Array(
-        vertex.slice(lastIndex, lastIndex + vertexSize)
+        partRenderPos.slice(lastIndex, lastIndex + vertexSize)
       );
       // TODO: Find better way
       for (let j = 0; j < vertexArr.length; ++j) {
