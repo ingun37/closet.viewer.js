@@ -1,23 +1,21 @@
-// import "@/lib/clo/readers/FileLoader";
-//import { FileLoader } from "three";
-// import ZRestLoader from "@/lib/clo/readers/ZrestLoader";
 import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
-import { readMap, readByteArray } from "@/lib/clo/file/KeyValueMapReader";
+import { readMap } from "@/lib/clo/file/KeyValueMapReader";
 
-export async function processAvatarSizingFile({ url: url }) {
-  const loadedData = await loadFile(url);
+export async function processAvatarSizingFile({ sizingURL, accURL }) {
+  const loadedSizingData = await loadFile(sizingURL);
+  const loadedAccData = await loadFile(accURL);
 
-  const getParsedData = async (filename) => {
+  const getParsedData = async (filename, loadedData) => {
     return await unzipParse({
       loadedData: loadedData,
       filename: filename,
     });
   };
 
-  const mapBaseMesh = await getParsedData("BaseMesh.map");
+  const mapBaseMesh = await getParsedData("BaseMesh.map", loadedSizingData);
 
   const unzippedConvertingMatData = await unZip(
-    loadedData,
+    loadedSizingData,
     "ConvertingMat_DETAIL_Simple_Weight_TotalHeight.bd"
   );
 
@@ -26,10 +24,11 @@ export async function processAvatarSizingFile({ url: url }) {
   });
 
   const mapHeightWeightTo5Sizes = await getParsedData(
-    "HeightWeightTo5SizesMap.map"
+    "HeightWeightTo5SizesMap.map",
+    loadedSizingData
   );
 
-  const mapAccessoryMesh = await getParsedData("AccessoryMesh.map");
+  const mapAccessoryMesh = await readMapFromUnzippedData(loadedAccData, 0);
 
   return {
     mapBaseMesh,
@@ -61,12 +60,13 @@ function readConvertingMatData({ unzippedConvertingMatData }) {
 
 async function unzipParse({ loadedData, filename }) {
   const unzippedData = await unZip(loadedData, filename);
+  return readMapFromUnzippedData(unzippedData, 0);
+}
 
-  const fileOffset = { Offset: 0 };
+function readMapFromUnzippedData(unzippedData, offset) {
+  const fileOffset = { Offset: offset };
   const dataView = new DataView(unzippedData);
-  const parsedData = readMap(dataView, fileOffset);
-
-  return parsedData;
+  return readMap(dataView, fileOffset);
 }
 
 export async function loadZrestForFitting({

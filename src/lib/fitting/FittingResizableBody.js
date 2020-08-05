@@ -16,13 +16,11 @@ export default class ResizableBody {
     convertingMatData,
     mapHeightWeightTo5Sizes: mapHeightWeightTo5Sizes,
     mapAccessoryMesh: mapAccessoryMesh,
-    // zrestSkinControllerArray,
     scManager,
   }) {
     this.mCurrentGender = gender;
     this.mConvertingMatData = convertingMatData;
     this.mHeightWeightTo5SizesMap = mapHeightWeightTo5Sizes;
-    // this.mZrestSkinControllerArray = zrestSkinControllerArray;
     this.scManager = scManager;
 
     this.mVertexSize = mapBaseMesh.get("uiVertexCount");
@@ -37,34 +35,9 @@ export default class ResizableBody {
       mapBaseMesh
     );
     this.mapStartIndex = mapBaseMesh.get("mapStartIndex");
-
-    // this.accessoryMeshMap = mapAccessoryMesh;
-    // const listMatshapeRenderToSkinPos = baseMeshMap.get(
-    //   "listMatshapeRenderToSkinPos"
-    // );
-
-    // console.log(this.accessoryMeshMap);
-
     this.mapAccessoryMSRenderToSkinPos = this.buildMapMatshapeRenderToSkinPos(
       mapAccessoryMesh
     );
-    // console.log(this.mapAccessoryMSRenderToSkinPos);
-
-    // this.mapStartIndex = new Map([
-    //   ["body", 0],
-    //   ["eye_L", 35739],
-    //   ["eye_R", 18843],
-    //   ["eyelash_L", 19165],
-    //   ["eyelash_R", 21643],
-    // ]);
-
-    // console.log(this.mCurrentGender);
-    // console.log(this.mConvertingMatData);
-    // console.log(this.mHeightWeightTo5SizesMap);
-
-    // console.log(this.mBaseVertex);
-    // console.log(this.mapStartIndex);
-    // console.log(this.mapMatshapeRenderToSkinPos);
   }
 
   setFeatureEnable = () => {
@@ -141,6 +114,8 @@ export default class ResizableBody {
     // console.warn(MEASUREMENT_LIST_NAME.SIZE_OF_MEASUREMENT_LIST);
 
     const tableSize = this.getTableSize(height, weight);
+    if (!tableSize) return;
+
     const changedSize = this.applyBodyShape(
       bodyShape,
       tableSize.chest,
@@ -347,11 +322,20 @@ export default class ResizableBody {
   };
 
   getTableSize = (height, weight) => {
-    console.log(this.mHeightWeightTo5SizesMap);
-    console.log(height, weight);
-    const arrSize = this.mHeightWeightTo5SizesMap
-      .get(String(height))
-      .get(String(weight));
+    // console.log(this.mHeightWeightTo5SizesMap);
+    // console.log(height, weight);
+    const heightTable = this.mHeightWeightTo5SizesMap.get(String(height));
+    const arrSize = heightTable ? heightTable.get(String(weight)) : null;
+
+    if (!arrSize) {
+      console.error(
+        "ERROR: No data found. height: " + height + ", weight: " + weight
+      );
+      return;
+    }
+    // const arrSize = this.mHeightWeightTo5SizesMap
+    //   .get(String(height))
+    //   .get(String(weight));
 
     // TODO: Check if this order is correct
     const returnValue = {};
@@ -361,7 +345,7 @@ export default class ResizableBody {
     returnValue["armLength"] = arrSize[3];
     returnValue["legLength"] = arrSize[4];
 
-    console.log(returnValue);
+    // console.log(returnValue);
     return returnValue;
   };
 

@@ -6,8 +6,8 @@ import { getGarmentFileName } from "@/lib/clo/utils/UtilFunctions";
 import ResizableBody from "./FittingResizableBody";
 import { loadZrestForFitting, processAvatarSizingFile } from "./FittingIO";
 import FittingSkinControllerManager from "./FittingSkinControllerManager";
-import FittingAvatar from "./FittingAvatar";
-import FittingAccessary from "./FittingAccessary";
+// import FittingAvatar from "./FittingAvatar";
+// import FittingAccessary from "./FittingAccessary";
 // import ZrestLoader from "@/lib/clo/readers/ZrestLoader";
 
 export default class Fitting {
@@ -44,6 +44,9 @@ export default class Fitting {
     this.bodyVertexPos = [];
 
     this.processAvatarSizingFile = processAvatarSizingFile;
+    this.getSizes = () => {
+      return null;
+    };
 
     this.resizableBody = null;
     this.avatarId = 0;
@@ -101,8 +104,8 @@ export default class Fitting {
     this.scManager.init(this.zrest);
   }
 
-  async loadAvatarResizingData({ url }) {
-    const retObj = await processAvatarSizingFile({ url });
+  async loadAvatarResizingData({ sizingURL, accURL }) {
+    const retObj = await processAvatarSizingFile({ sizingURL, accURL });
     // console.warn(retObj);
     this.resizableBody = new ResizableBody({
       gender: 0,
@@ -112,6 +115,7 @@ export default class Fitting {
       mapAccessoryMesh: retObj.mapAccessoryMesh,
       scManager: this.scManager,
     });
+    this.getSizes = this.resizableBody.getTableSize;
   }
 
   getAvatarURL({ id: avatarId, skinType: avatarSkinType }) {
@@ -595,6 +599,8 @@ export default class Fitting {
       armLength,
       legLength
     );
+
+    if (!computed) return;
 
     // TODO: CHECK THIS OUT
     // console.warn(computed);
