@@ -209,27 +209,83 @@ export default class ClosetViewer {
       sizingURL: "./Sizing.zip",
       accURL: "https://files.clo-set.com/public/fitting/avatar/0/Henry.Acc.map",
     });
-    await this.fitting.resizeAvatar({
-      height: 180,
-      weight: 50,
-      bodyShape: 0,
-    });
-    await this.fitting.resizeAccessory();
+    // await this.fitting.resizeAvatar({
+    //   height: 180,
+    //   weight: 70,
+    //   bodyShape: 0,
+    // });
+    // await this.fitting.resizeAccessory();
+    //
+    // await this.loadZrestForFitting({
+    //   url: "https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/0/garment.zrest",
+    //   // funcOnProgress: onProgress,
+    //   funcOnLoad: null,
+    //   isAvatar: false,
+    // });
+    //
+    // await this.fitting.getDrapingData(
+    //     "https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/0/P0_192_73.zcrp",
+    //   this.zrest.matMeshMap
+    // );
+    //
+    // const sampling = await this.fitting.getSamplingJson(
+    //   "4decc245ab5f4ec7bd0687a94e7ec8e8",
+    //   1
+    // );
+
+    const testSetList = [
+      [162, 50],
+      [179, 60],
+      [184, 73],
+      [192, 97],
+    ];
 
     await this.loadZrestForFitting({
-      url: "f/garment.zrest",
+      url:
+        "https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/0/garment.zrest",
       // funcOnProgress: onProgress,
       funcOnLoad: null,
       isAvatar: false,
     });
 
-    await this.fitting.getDrapingData(
-      "f/P0_187_73.zcrp",
-      this.zrest.matMeshMap
-    );
+    for (let i = 0; i < testSetList.length; i++) {
+      const [height, weight] = testSetList[i];
+      console.log("2222");
 
-    // // TEST
+      // await Pro
+
+      await this.fitting.resizeAvatar({
+        height,
+        weight,
+        bodyShape: 0,
+      });
+      await this.fitting.resizeAccessory();
+      await this.fitting.getDrapingData(
+        `https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/0/P0_${height}_${weight}.zcrp`,
+        this.zrest.matMeshMap
+      );
+
+      this.updateRenderer(1);
+      this.updateRenderer(1);
+      await sleep(0);
+      this.updateRenderer(1);
+      await sleep(500);
+      this.updateRenderer(1);
+      await sleep(2000);
+      this.updateRenderer(1);
+    }
+    //
+    // testSetList.forEach(async ([height, weight]) => {
+    //   // this.updateRenderer(1);
+    // });
+
+    // console.log('^^', sampling)
+    // TEST
     // for (let height = 170; height <= 195; height += 5) {
+    //   const weight = sampling.avgWeight;
+    //
+    //   console.log(height, weight);
+    //
     //   console.log({
     //     height: height,
     //     weight: 85,
