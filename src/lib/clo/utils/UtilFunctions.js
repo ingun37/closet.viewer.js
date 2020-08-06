@@ -220,7 +220,7 @@ export function getGarmentFileName(height, weight, samplingConfiguration) {
     "P0_" +
     String(closestSize.height) +
     "_" +
-    String(closestSize.weight) +
+    String(closestSize.weight - 1) +
     ".zcrp"
   );
 }

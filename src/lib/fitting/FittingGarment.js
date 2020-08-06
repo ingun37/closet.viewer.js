@@ -79,8 +79,8 @@ export default class FittingGarment {
   // getDrapingData = async (zcrpURL, mapMatMesh) => {
   async loadDrapingData({ rootPath, height, weight, mapMatMesh }) {
     const zcrpName = getGarmentFileName(height, weight, this.samplingJSON);
-    const zcrpURL = rootPath + `P0_${height}_${weight}.zcrp`;
-    // const zcrpURL = rootPath + zcrpURL;
+    // const zcrpURL = rootPath + `P0_${height}_${weight}.zcrp`;
+    const zcrpURL = rootPath + zcrpName;
     const listBarycentricCoord = await this.loadZcrp(zcrpURL);
     if (!listBarycentricCoord) {
       console.warn("Build barycentric coordinate failed.");
