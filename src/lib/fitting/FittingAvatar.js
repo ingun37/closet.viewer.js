@@ -74,6 +74,15 @@ export default class FittingAvatar {
   }
   resize() {}
 
+  getAvatarURL({ id: avatarId, skinType: avatarSkinType }) {
+    this.avatarId = avatarId;
+
+    const listById = this.mapAvtPath.get(avatarId);
+    const zrestFileName = listById[avatarSkinType];
+    const avtURL = this.avtRootPath + "/" + zrestFileName;
+    console.log(avtURL);
+    return avtURL;
+  }
   // async load({url, onProgress, onLoad}) {
 
   // }

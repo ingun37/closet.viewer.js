@@ -1,18 +1,35 @@
 "use strict";
 import * as THREE from "@/lib/threejs/three";
 
+import { loadJson } from "@/lib/clo/readers/FileLoader";
 import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
 import { readMap } from "@/lib/clo/file/KeyValueMapReader";
+import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
+
+import { getGarmentFileName } from "@/lib/clo/utils/UtilFunctions";
 
 export default class FittingGarment {
   // listBarycentric = [];
   constructor() {
     this.listBarycentricCoord = [];
+    this.samplingJSON = null;
+    // this.getGarmentFileName = (height, weight) => {
+    //   return getGarmentFileName(height, weight, this.samplingJSON);
+    // }
   }
 
   loadGarment() {}
 
-  loadDrapingData() {}
+  async loadSamplingJson({ jsonURL }) {
+    const onLoad = (data) => {
+      return data;
+    };
+    const jsonData = await loadJson(jsonURL, onLoad);
+    this.samplingJSON = jsonData;
+    return jsonData;
+  }
+
+  // loadDrapingSamplingJSON() {}
 
   draping() {}
 
@@ -55,13 +72,16 @@ export default class FittingGarment {
     return this.listBarycentricCoord;
   }
 
-  getListBaryCoord = () => {
+  getListBaryCoord() {
     return this.listBarycentricCoord;
-  };
+  }
 
-  getDrapingData = async (zcrpURL, mapMatMesh) => {
-    console.log("loadGarment");
-    const listBarycentricCoord = await this.garments.loadZcrp(zcrpURL);
+  // getDrapingData = async (zcrpURL, mapMatMesh) => {
+  async loadDrapingData({ rootPath, height, weight, mapMatMesh }) {
+    const zcrpName = getGarmentFileName(height, weight, this.samplingJSON);
+    const zcrpURL = rootPath + `P0_${height}_${weight}.zcrp`;
+    // const zcrpURL = rootPath + zcrpURL;
+    const listBarycentricCoord = await this.loadZcrp(zcrpURL);
     if (!listBarycentricCoord) {
       console.warn("Build barycentric coordinate failed.");
       return;
@@ -143,5 +163,47 @@ export default class FittingGarment {
     });
 
     console.log("loadGarment Done");
-  };
+  }
+
+  // async getSamplingJson(styleId, version) {
+  //   this.styleId = styleId;
+  //   this.styleVersion = version;
+  //   const jsonURL =
+  //     this.avtRootPath +
+  //     "/" +
+  //     styleId +
+  //     "/" +
+  //     version +
+  //     "/" +
+  //     this.avatarId +
+  //     "/sampling.json";
+  //   console.log(jsonURL);
+
+  //   const onLoad = (data) => {
+  //     return data;
+  //   };
+  //   const jsonData = await loadJson(jsonURL, onLoad);
+  //   console.log("jsonData: ");
+  //   console.log(jsonData);
+  //   return jsonData;
+  // }
+
+  // getDrapingDataURL({pathRoot, height, weight, samplingData, gradingIndex}) {
+  //   const garmentFilename = getGarmentFileName(height, weight, samplingData);
+  //   const garmentURL =
+  //     pathRoot +
+  //     "/" +
+  //     this.styleId +
+  //     "/" +
+  //     this.styleVersion +
+  //     "/" +
+  //     this.avatarId +
+  //     "/" +
+  //     gradingIndex +
+  //     "/" +
+  //     garmentFilename;
+  //   // console.log(garmentURL);
+
+  //   return garmentURL;
+  // }
 }

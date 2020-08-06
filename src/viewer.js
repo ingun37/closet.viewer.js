@@ -203,11 +203,11 @@ export default class ClosetViewer {
       return new Promise((resolve) => setTimeout(resolve, ms));
     };
 
-    const url = "https://files.clo-set.com/public/fitting/avatar/0/Henry.zrest";
-    await this.fitting.loadAvatar({ url });
+    const avatarURL = "https://files.clo-set.com/public/fitting/avatar/0/Thomas.zrest";
+    await this.fitting.loadAvatar({ url: avatarURL });
     await this.fitting.loadAvatarResizingData({
       sizingURL: "./Sizing.zip",
-      accURL: "https://files.clo-set.com/public/fitting/avatar/0/Henry.Acc.map",
+      accURL: "https://files.clo-set.com/public/fitting/avatar/0/Thomas.Acc.map",
     });
     // await this.fitting.resizeAvatar({
     //   height: 180,
@@ -250,9 +250,6 @@ export default class ClosetViewer {
 
     for (let i = 0; i < testSetList.length; i++) {
       const [height, weight] = testSetList[i];
-      console.log("2222");
-
-      // await Pro
 
       await this.fitting.resizeAvatar({
         height,
@@ -260,16 +257,14 @@ export default class ClosetViewer {
         bodyShape: 0,
       });
       await this.fitting.resizeAccessory();
-      await this.fitting.getDrapingData(
-        `https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/0/P0_${height}_${weight}.zcrp`,
-        this.zrest.matMeshMap
-      );
+      await this.fitting.loadDrapingSamplingJSON({ jsonURL: "./sampling.json" });
+      // await this.fitting.loadDrapingSamplingJSON({ jsonURL: "http://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/sampling.json" });
+      await this.fitting.loadDrapingData({ rootPath: "https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/0/", height: height, weight: weight, mapMatMesh: this.zrest.matMeshMap});
+      // await this.fitting.getDrapingData(
+      //   `https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/0/P0_${height}_${weight}.zcrp`,
+      //   this.zrest.matMeshMap
+      // );
 
-      this.updateRenderer(1);
-      this.updateRenderer(1);
-      await sleep(0);
-      this.updateRenderer(1);
-      await sleep(500);
       this.updateRenderer(1);
       await sleep(2000);
       this.updateRenderer(1);

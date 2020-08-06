@@ -1,8 +1,6 @@
 import * as THREE from "@/lib/threejs/three";
 import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 import FittingGarment from "./FittingGarment";
-import { loadJson } from "@/lib/clo/readers/FileLoader";
-import { getGarmentFileName } from "@/lib/clo/utils/UtilFunctions";
 import ResizableBody from "./FittingResizableBody";
 import { loadZrestForFitting, processAvatarSizingFile } from "./FittingIO";
 import FittingSkinControllerManager from "./FittingSkinControllerManager";
@@ -58,8 +56,10 @@ export default class Fitting {
     // this.accessoryContainer = new THREE.Object3D();
     // this.accessory = new FittingAccessary(this.accessoryContainer);
 
-    this.garments = new FittingGarment();
-    this.loadZcrp = this.garments.loadZcrp;
+    this.garment = new FittingGarment();
+    this.loadZcrp = this.garment.loadZcrp;
+    this.loadDrapingSamplingJSON = this.garment.loadSamplingJson;
+    this.loadDrapingData = this.garment.loadDrapingData;
 
     this.scManager = new FittingSkinControllerManager(this.zrest);
   }
@@ -118,43 +118,10 @@ export default class Fitting {
     this.getSizes = this.resizableBody.getTableSize;
   }
 
-  getAvatarURL({ id: avatarId, skinType: avatarSkinType }) {
-    this.avatarId = avatarId;
-
-    const listById = this.mapAvtPath.get(avatarId);
-    const zrestFileName = listById[avatarSkinType];
-    const avtURL = this.avtRootPath + "/" + zrestFileName;
-    console.log(avtURL);
-    return avtURL;
-  }
-
   loadGeometry({ mapGeometry: mapGeometry }) {
     this.extractController(mapGeometry);
     // this.convertListSCtoMap(this.listSkinController);
     return this.listSkinController;
-  }
-
-  async getSamplingJson(styleId, version) {
-    this.styleId = styleId;
-    this.styleVersion = version;
-    const jsonURL =
-      this.avtRootPath +
-      "/" +
-      styleId +
-      "/" +
-      version +
-      "/" +
-      this.avatarId +
-      "/sampling.json";
-    console.log(jsonURL);
-
-    const onLoad = (data) => {
-      return data;
-    };
-    const jsonData = await loadJson(jsonURL, onLoad);
-    console.log("jsonData: ");
-    console.log(jsonData);
-    return jsonData;
   }
 
   getInitGarmentURL(styleId, styleVersion, gradingIndex, avatarId) {
@@ -178,113 +145,97 @@ export default class Fitting {
     return getInitGarmentURL;
   }
 
-  getDrapingDataURL(height, weight, samplingData, gradingIndex) {
-    const garmentFilename = getGarmentFileName(height, weight, samplingData);
-    const garmentURL =
-      this.avtRootPath +
-      "/" +
-      this.styleId +
-      "/" +
-      this.styleVersion +
-      "/" +
-      this.avatarId +
-      "/" + //"/G" +
-      gradingIndex +
-      "/" +
-      garmentFilename;
-    console.log(garmentURL);
+  // getDrapingData = async (zcrpURL, mapMatMesh) => {
+  // async getDrapingData({ rootPath, height, weight, mapMatMesh }) {
+  //   const zcrpURL = this.garment.get
+    
+  //   // console.log("loadGarment");
+  //   const listBarycentricCoord = await this.garment.loadZcrp(zcrpURL);
+  //   if (!listBarycentricCoord) {
+  //     console.warn("Build barycentric coordinate failed.");
+  //     return;
+  //   }
 
-    return garmentURL;
-  }
+  //   listBarycentricCoord.forEach((garment) => {
+  //     // const garment = listBarycentricCoord[0];
+  //     // console.log(garment);
+  //     const listABG = readByteArray("Float", garment.get("baAbgs"));
+  //     const listTriangleIndex = readByteArray(
+  //       "Uint",
+  //       garment.get("baTriangleIndices")
+  //     );
+  //     const listMatMeshID = garment.get("listMatMeshID");
+  //     if (!listMatMeshID) {
+  //       console.warn("MatMeshID info missing");
+  //       return;
+  //     }
 
-  getDrapingData = async (zcrpURL, mapMatMesh) => {
-    console.log("loadGarment");
-    const listBarycentricCoord = await this.garments.loadZcrp(zcrpURL);
-    if (!listBarycentricCoord) {
-      console.warn("Build barycentric coordinate failed.");
-      return;
-    }
+  //     // const listUV = readByteArray("Float", garment.get("baTexCoord"));
 
-    listBarycentricCoord.forEach((garment) => {
-      // const garment = listBarycentricCoord[0];
-      // console.log(garment);
-      const listABG = readByteArray("Float", garment.get("baAbgs"));
-      const listTriangleIndex = readByteArray(
-        "Uint",
-        garment.get("baTriangleIndices")
-      );
-      const listMatMeshID = garment.get("listMatMeshID");
-      if (!listMatMeshID) {
-        console.warn("MatMeshID info missing");
-        return;
-      }
+  //     //const matMeshId = listMatMeshID[0];
+  //     listMatMeshID.forEach((matMeshId) => {
+  //       const matMesh = mapMatMesh.get(matMeshId);
 
-      // const listUV = readByteArray("Float", garment.get("baTexCoord"));
+  //       if (!matMesh) {
+  //         console.error(
+  //           "matMesh(" + matMeshId + ") is not exist on init garment"
+  //         );
+  //         console.log(matMeshId);
+  //         console.log(mapMatMesh);
 
-      //const matMeshId = listMatMeshID[0];
-      listMatMeshID.forEach((matMeshId) => {
-        const matMesh = mapMatMesh.get(matMeshId);
+  //         return;
+  //       }
+  //       // console.log(matMesh);
 
-        if (!matMesh) {
-          console.error(
-            "matMesh(" + matMeshId + ") is not exist on init garment"
-          );
-          console.log(matMeshId);
-          console.log(mapMatMesh);
+  //       const index = matMesh.userData.originalIndices;
+  //       const uv = matMesh.userData.originalUv;
+  //       const uv2 = matMesh.userData.originalUv2;
 
-          return;
-        }
-        // console.log(matMesh);
+  //       // console.log(index);
+  //       // console.log(uv);
+  //       // console.log(uv2);
 
-        const index = matMesh.userData.originalIndices;
-        const uv = matMesh.userData.originalUv;
-        const uv2 = matMesh.userData.originalUv2;
+  //       const calculatedCoord = this.computeBarycentric(
+  //         listABG,
+  //         listTriangleIndex
+  //       );
+  //       const bufferGeometry = new THREE.BufferGeometry();
+  //       bufferGeometry.addAttribute(
+  //         "position",
+  //         new THREE.Float32BufferAttribute(new Float32Array(calculatedCoord), 3)
+  //       );
 
-        // console.log(index);
-        // console.log(uv);
-        // console.log(uv2);
+  //       bufferGeometry.setIndex(
+  //         new THREE.BufferAttribute(new Uint32Array(index), 1)
+  //       );
 
-        const calculatedCoord = this.computeBarycentric(
-          listABG,
-          listTriangleIndex
-        );
-        const bufferGeometry = new THREE.BufferGeometry();
-        bufferGeometry.addAttribute(
-          "position",
-          new THREE.Float32BufferAttribute(new Float32Array(calculatedCoord), 3)
-        );
+  //       // bufferGeometry.computeBoundingBox();
+  //       bufferGeometry.computeFaceNormals();
+  //       bufferGeometry.computeVertexNormals();
 
-        bufferGeometry.setIndex(
-          new THREE.BufferAttribute(new Uint32Array(index), 1)
-        );
+  //       bufferGeometry.addAttribute(
+  //         "uv",
+  //         new THREE.Float32BufferAttribute(uv, 2)
+  //       );
+  //       bufferGeometry.addAttribute(
+  //         "uv2",
+  //         new THREE.Float32BufferAttribute(uv2, 2)
+  //       );
 
-        // bufferGeometry.computeBoundingBox();
-        bufferGeometry.computeFaceNormals();
-        bufferGeometry.computeVertexNormals();
+  //       matMesh.geometry = bufferGeometry;
+  //     });
 
-        bufferGeometry.addAttribute(
-          "uv",
-          new THREE.Float32BufferAttribute(uv, 2)
-        );
-        bufferGeometry.addAttribute(
-          "uv2",
-          new THREE.Float32BufferAttribute(uv2, 2)
-        );
+  //     // bufferGeometry.attributes.uv2 = uv2;
 
-        matMesh.geometry = bufferGeometry;
-      });
+  //     // const threeMesh = new THREE.Mesh(bufferGeometry, material);
+  //     // console.log("threeMesh");
+  //     // console.log(threeMesh);
+  //     // this.container.add(threeMesh);
+  //     // this.buildMesh(bufferGeometry, material);
+  //   });
 
-      // bufferGeometry.attributes.uv2 = uv2;
-
-      // const threeMesh = new THREE.Mesh(bufferGeometry, material);
-      // console.log("threeMesh");
-      // console.log(threeMesh);
-      // this.container.add(threeMesh);
-      // this.buildMesh(bufferGeometry, material);
-    });
-
-    console.log("loadGarment Done");
-  };
+  //   console.log("loadGarment Done");
+  // };
 
   // TODO: Refactor this module
   extractController(mapInput) {
@@ -326,37 +277,6 @@ export default class Fitting {
     return this.mapSkinController;
   }
 
-  // buildMeshUsingMapMesh(mapMesh) {
-  //   const bufferGeometry = new THREE.BufferGeometry();
-  //   const arrayIndex = readByteArray("Uint", mapMesh.get("baIndex"));
-  //   const arrayPosition = readByteArray("Float", mapMesh.get("baPosition"));
-
-  //   // console.log(mapMesh);
-  //   // console.log(arrayPosition);
-  //   // console.log(arrayIndex);
-
-  //   bufferGeometry.addAttribute(
-  //     "position",
-  //     new THREE.BufferAttribute(new Float32Array(arrayPosition), 3)
-  //   );
-  //   bufferGeometry.setIndex(
-  //     new THREE.BufferAttribute(new Uint32Array(arrayIndex), 1)
-  //   );
-  //   bufferGeometry.computeFaceNormals();
-  //   bufferGeometry.computeVertexNormals();
-
-  //   // const material = new THREE.PointsMaterial({ color: 0x880000 });
-  //   // const threeMesh = new THREE.Points(bufferGeometry, material);
-  //   const material = new THREE.MeshPhongMaterial();
-  //   material.color = THREE.Vector3(1, 1, 1);
-  //   const threeMesh = new THREE.Mesh(bufferGeometry, material);
-
-  //   this.container.add(threeMesh);
-
-  //   return threeMesh;
-
-  //   // console.log(threeMesh);
-  // }
   parseSkinControllerUsingABG(skinController) {
     const readData = (type, field) => {
       return this.readBA({
@@ -480,23 +400,6 @@ export default class Fitting {
       ? readByteArray(type, skinController.get(field))
       : [];
   }
-
-  /*
-  extractAvatarMeshes(mapMatMesh) {
-    let cnt = 0;
-    mapMatMesh.forEach((matMesh) => {
-      if (matMesh.userData.TYPE === 5) {
-        // AVATAR_MATMESH:
-        // console.log(matMesh);
-        console.log(matMesh.geometry.attributes.position.count);
-        cnt += matMesh.geometry.attributes.position.count;
-        this.listAvatarMesh.push(matMesh);
-        this.listAvatarMeshIdx.push(cnt);
-      }
-    });
-    console.log("total: " + cnt);
-  }
-  */
 
   setAvatarInfo(listSkinController) {
     const bodySkinController = this.findBodySkinController(listSkinController);
@@ -685,6 +588,56 @@ export default class Fitting {
       console.log(this.accessoryContainer);
     }
   };
+
+  
+  // buildMeshUsingMapMesh(mapMesh) {
+  //   const bufferGeometry = new THREE.BufferGeometry();
+  //   const arrayIndex = readByteArray("Uint", mapMesh.get("baIndex"));
+  //   const arrayPosition = readByteArray("Float", mapMesh.get("baPosition"));
+
+  //   // console.log(mapMesh);
+  //   // console.log(arrayPosition);
+  //   // console.log(arrayIndex);
+
+  //   bufferGeometry.addAttribute(
+  //     "position",
+  //     new THREE.BufferAttribute(new Float32Array(arrayPosition), 3)
+  //   );
+  //   bufferGeometry.setIndex(
+  //     new THREE.BufferAttribute(new Uint32Array(arrayIndex), 1)
+  //   );
+  //   bufferGeometry.computeFaceNormals();
+  //   bufferGeometry.computeVertexNormals();
+
+  //   // const material = new THREE.PointsMaterial({ color: 0x880000 });
+  //   // const threeMesh = new THREE.Points(bufferGeometry, material);
+  //   const material = new THREE.MeshPhongMaterial();
+  //   material.color = THREE.Vector3(1, 1, 1);
+  //   const threeMesh = new THREE.Mesh(bufferGeometry, material);
+
+  //   this.container.add(threeMesh);
+
+  //   return threeMesh;
+
+  //   // console.log(threeMesh);
+  // }
+  /*
+  extractAvatarMeshes(mapMatMesh) {
+    let cnt = 0;
+    mapMatMesh.forEach((matMesh) => {
+      if (matMesh.userData.TYPE === 5) {
+        // AVATAR_MATMESH:
+        // console.log(matMesh);
+        console.log(matMesh.geometry.attributes.position.count);
+        cnt += matMesh.geometry.attributes.position.count;
+        this.listAvatarMesh.push(matMesh);
+        this.listAvatarMeshIdx.push(cnt);
+      }
+    });
+    console.log("total: " + cnt);
+  }
+  */
+
 
   // NOTE: Test code for avatar resizing
   // r = async (testNo = 0) => {
