@@ -1,4 +1,4 @@
-export default class FittingAccessary {
+export default class FittingAccessory {
   constructor(threejsContainer) {
     this.container = threejsContainer;
     this.container.name = "fittingAccessoryContainer";

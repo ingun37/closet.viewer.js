@@ -32,17 +32,7 @@ export default class FittingAvatar {
       }
       v.push(vector.x, vector.y, vector.z);
     });
-    // console.log(v);
-    // this.bodyVertexPos = [
-    //   ...computed.map((v) => {
-    //     // console.log(v);
-    //     return [v.x, v.y, v.z];
-    //   }),
-    // ];
-    // console.log("this.bodyVertexPos");
-    // console.log(this.bodyVertexPos);
-    // console.log(this.resizableBody.mBaseVertex);
-    // this.resizableBody.mBaseVertex = computed;
+
     const l = this.bodyVertexPos.length;
     const nb = v.slice(0, l);
     this.bodyVertexPos = nb.map((x) => x * 10);
@@ -51,12 +41,6 @@ export default class FittingAvatar {
     // const bufferGeometry = new THREE.BufferGeometry();
     if (this.resizableBufferGeometry) this.resizableBufferGeometry.dispose();
     this.resizableBufferGeometry = new THREE.BufferGeometry();
-
-    // const m = 10.0;
-    // computed.forEach((vertex) => {
-    //   // this.bodyVertexPos.forEach((vertex) => {
-    //   bv.push(vertex.x * m, vertex.y * m, vertex.z * m);
-    // });
 
     for (const entries of this.resizableBody.mapStartIndex.entries()) {
       const partName = entries[0];
@@ -72,7 +56,6 @@ export default class FittingAvatar {
       );
     }
   }
-  resize() {}
 
   getAvatarURL({ id: avatarId, skinType: avatarSkinType }) {
     this.avatarId = avatarId;
@@ -83,22 +66,4 @@ export default class FittingAvatar {
     console.log(avtURL);
     return avtURL;
   }
-  // async load({url, onProgress, onLoad}) {
-
-  // }
-
-  // async fittingGetAvatar({
-  //   id: id,
-  //   skinType: skinType,
-  //   funcOnProgress: onProgress,
-  //   funcOnLoad: onLoad,
-  // }) {
-  // const avatarUrl = this.fitting.getAvatarURL({
-  //   id: id,
-  //   skinType: skinType,
-  // });
-
-  // TODO: CHECK THIS OUT
-
-  // }
 }

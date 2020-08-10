@@ -3,22 +3,22 @@ import * as THREE from "@/lib/threejs/three";
 
 import { loadJson } from "@/lib/clo/readers/FileLoader";
 import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
-import { readMap } from "@/lib/clo/file/KeyValueMapReader";
-import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
-
+import { readMap, readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 import { getGarmentFileName } from "@/lib/clo/utils/UtilFunctions";
+import { computeBarycentric } from "./FittingBarycentricCoord";
 
 export default class FittingGarment {
-  // listBarycentric = [];
   constructor() {
     this.listBarycentricCoord = [];
     this.samplingJSON = null;
-    // this.getGarmentFileName = (height, weight) => {
-    //   return getGarmentFileName(height, weight, this.samplingJSON);
-    // }
+    this.bodyVertexIndex = [];
+    this.bodyVertexPos = [];
   }
 
-  loadGarment() {}
+  setBody(bodyVertexPos, bodyVertexIndex) {
+    this.bodyVertexPos = bodyVertexPos;
+    this.bodyVertexIndex = bodyVertexIndex;
+  }
 
   async loadSamplingJson({ jsonURL }) {
     const onLoad = (data) => {
@@ -28,18 +28,6 @@ export default class FittingGarment {
     this.samplingJSON = jsonData;
     return jsonData;
   }
-
-  // loadDrapingSamplingJSON() {}
-
-  draping() {}
-
-  // loadFile = async (url, onLoad, onProgress, onError) => {
-  //   const loader = new THREE.FileLoader(this.manager);
-  //   loader.setResponseType("arraybuffer");
-  //   return new Promise((onLoad) => {
-  //     loader.load(url, onLoad, onProgress, onError);
-  //   });
-  // };
 
   async loadZcrp(url) {
     const getFilename = (textureURL) => {
@@ -51,37 +39,40 @@ export default class FittingGarment {
     };
 
     const loadedData = await loadFile(url);
-    // console.log("loadedData");
-    // console.log(loadedData);
     if (!loadedData) return;
 
     const crpFilename = getFilename(url).replace(".zcrp", ".crp");
     const unzippedData = await unZip(loadedData, crpFilename);
-    // console.log("unzippedData");
-    // console.log(unzippedData);
 
     const fileOffset = { Offset: 0 };
     const dataView = new DataView(unzippedData);
     const loadedMap = readMap(dataView, fileOffset);
-    // console.log(loadedMap);
-    // console.log(this.listBarycentricCoord);
     this.listBarycentricCoord =
       loadedMap.get("listBarycentric") || loadedMap.get("listBaryCentric"); // FIX ME: Would be "listBarycentric"
-    // console.log(this.listBarycentricCoord);
 
     return this.listBarycentricCoord;
   }
 
-  getListBaryCoord() {
-    return this.listBarycentricCoord;
+  async loadDrapingDataFromURL({ zcrpURL, mapMatMesh }) {
+    const listBarycentricCoord = await this.loadZcrp(zcrpURL);
+    return this.draping({ listBarycentricCoord, mapMatMesh });
   }
 
-  // getDrapingData = async (zcrpURL, mapMatMesh) => {
   async loadDrapingData({ rootPath, height, weight, mapMatMesh }) {
     const zcrpName = getGarmentFileName(height, weight, this.samplingJSON);
     // const zcrpURL = rootPath + `P0_${height}_${weight}.zcrp`;
     const zcrpURL = rootPath + zcrpName;
     const listBarycentricCoord = await this.loadZcrp(zcrpURL);
+
+    return this.draping({ listBarycentricCoord, mapMatMesh });
+  }
+
+  getListBarycentricCoord() {
+    return this.listBarycentricCoord;
+  }
+
+  draping({ listBarycentricCoord, mapMatMesh }) {
+    console.log({ listBarycentricCoord, mapMatMesh });
     if (!listBarycentricCoord) {
       console.warn("Build barycentric coordinate failed.");
       return;
@@ -103,7 +94,6 @@ export default class FittingGarment {
 
       listMatMeshID.forEach((matMeshId) => {
         const matMesh = mapMatMesh.get(matMeshId);
-
         if (!matMesh) {
           console.error(
             "matMesh(" + matMeshId + ") is not exist on init garment"
@@ -117,16 +107,18 @@ export default class FittingGarment {
 
         const index = matMesh.userData.originalIndices;
         const uv = matMesh.userData.originalUv;
-        const uv2 = matMesh.userData.originalUv2;
+        const uv2 = uv;
 
         // console.log(index);
         // console.log(uv);
         // console.log(uv2);
 
-        const calculatedCoord = this.computeBarycentric(
-          listABG,
-          listTriangleIndex
-        );
+        const calculatedCoord = computeBarycentric({
+          listABG: listABG,
+          listTriangleIndex: listTriangleIndex,
+          bodyVertexPos: this.bodyVertexPos,
+          bodyVertexIndex: this.bodyVertexIndex,
+        });
         const bufferGeometry = new THREE.BufferGeometry();
         bufferGeometry.addAttribute(
           "position",
@@ -152,58 +144,6 @@ export default class FittingGarment {
 
         matMesh.geometry = bufferGeometry;
       });
-
-      // bufferGeometry.attributes.uv2 = uv2;
-
-      // const threeMesh = new THREE.Mesh(bufferGeometry, material);
-      // console.log("threeMesh");
-      // console.log(threeMesh);
-      // this.container.add(threeMesh);
-      // this.buildMesh(bufferGeometry, material);
     });
-
-    console.log("loadGarment Done");
   }
-
-  // async getSamplingJson(styleId, version) {
-  //   this.styleId = styleId;
-  //   this.styleVersion = version;
-  //   const jsonURL =
-  //     this.avtRootPath +
-  //     "/" +
-  //     styleId +
-  //     "/" +
-  //     version +
-  //     "/" +
-  //     this.avatarId +
-  //     "/sampling.json";
-  //   console.log(jsonURL);
-
-  //   const onLoad = (data) => {
-  //     return data;
-  //   };
-  //   const jsonData = await loadJson(jsonURL, onLoad);
-  //   console.log("jsonData: ");
-  //   console.log(jsonData);
-  //   return jsonData;
-  // }
-
-  // getDrapingDataURL({pathRoot, height, weight, samplingData, gradingIndex}) {
-  //   const garmentFilename = getGarmentFileName(height, weight, samplingData);
-  //   const garmentURL =
-  //     pathRoot +
-  //     "/" +
-  //     this.styleId +
-  //     "/" +
-  //     this.styleVersion +
-  //     "/" +
-  //     this.avatarId +
-  //     "/" +
-  //     gradingIndex +
-  //     "/" +
-  //     garmentFilename;
-  //   // console.log(garmentURL);
-
-  //   return garmentURL;
-  // }
 }
