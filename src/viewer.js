@@ -203,84 +203,109 @@ export default class ClosetViewer {
       return new Promise((resolve) => setTimeout(resolve, ms));
     };
 
-    const avatarURL =
-      "https://files.clo-set.com/public/fitting/avatar/0/Thomas.zrest";
+    const fittingRootUrl = "https://files.clo-set.com/public/fitting";
+    const avatarId = 0;
+    const avatarName = `Thomas`;
+    const avatarBaseURL = `${fittingRootUrl}/avatar/${avatarId}`;
+    const avatarURL = `${avatarBaseURL}/${avatarName}.zrest`;
+
+    const styleId = "5021883564f647b2813d57c7cd60b66c";
+    const styleVersion = 1;
+    const gradingIndex = 0;
+
     await this.fitting.loadResizableAvatar({
       avatarURL: avatarURL,
-      sizingURL: "./f/Sizing.zip",
-      accURL:
-        "https://files.clo-set.com/public/fitting/avatar/0/Thomas.Acc.map",
+      sizingURL: `${avatarBaseURL}/Sizing.zip`,
+      accURL: `${avatarBaseURL}/${avatarName}.Acc.map`,
     });
 
-    await this.fitting.resizeAvatar({
-      height: 180,
-      weight: 70,
-      bodyShape: 0,
-    });
-    await this.fitting.resizeAccessory();
+    // getSizes 함수는 loadResizableAvatar 이후에 생김
+    const sizes = this.fitting.getSizes(170, 60);
+    console.log("#Gump# sizes", sizes);
 
+    const samplingConfiguration = await this.fitting.loadDrapingSamplingJSON({
+      // jsonURL: "https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/sampling.json",
+      jsonURL: `${fittingRootUrl}/${styleId}/${styleVersion}/${avatarId}/sampling.json`,
+    });
+    const {
+      avgHeight,
+      avgWeight,
+      minWeight,
+      heightOffset,
+      weightOffset,
+    } = samplingConfiguration;
+
+    console.log(avgHeight, avgWeight, minWeight, heightOffset, weightOffset);
+    /*{
+      "avgHeight" : 177,
+      "avgWeight" : 83,
+      "category" : "male",
+      "heightOffset" : 15,
+      "heightStepSize" : 1,
+      "minWeight" : 50,
+      "version" : 100,
+      "weightOffset" : 25,
+      "weightStepSize" : 8
+    }*/
+
+    // 최초 렌더링 시점
     await this.loadZrestForFitting({
-      url: "./f/garment.zrest",
-      // url:
-      //   "https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/0/garment.zrest",
+      // url: "./f/garment.zrest",
+      url: `${fittingRootUrl}/${styleId}/${styleVersion}/${avatarId}/${gradingIndex}/garment.zrest`,
       // funcOnProgress: onProgress,
       funcOnLoad: null,
       isAvatar: false,
     });
 
-    const samplingConfiguration = await this.fitting.loadDrapingSamplingJSON({
-      jsonURL:
-        "https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/sampling.json",
-    });
+    const testStyle = async () => {
+      const height = 180;
+      const weight = 70;
 
-    await this.fitting.loadDrapingDataFromURL({
-      zcrpURL: "./f/P0_177_83.zcrp",
-      mapMatMesh: this.zrest.matMeshMap,
-    });
+      await Promise.all([
+        this.fitting.resizeAvatar({
+          height,
+          weight,
+          bodyShape: 0,
+        }),
+        this.fitting.resizeAccessory(),
+      ]);
+      // 병렬 수행 괜찮은지?
 
-    // await this.fitting.loadDrapingData({
-    //   rootPath:
-    //     "https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/0/",
-    //   height: 180,
-    //   weight: 70,
-    //   mapMatMesh: this.zrest.matMeshMap,
-    // });
-    const test = async () => {
-      for (let height = 170; height <= 180; height += 1) {
-        const avgWeight =
-          samplingConfiguration.avgWeight +
-          height -
-          samplingConfiguration.avgHeight;
+      await this.fitting.loadDrapingData({
+        rootPath: `${fittingRootUrl}/${styleId}/${styleVersion}/${avatarId}/${gradingIndex}/`,
+        height: height,
+        weight: weight,
+        mapMatMesh: this.zrest.matMeshMap,
+      });
+      this.updateRenderer(1);
+    };
 
-        var minWeight = Math.max(
-          samplingConfiguration.minWeight,
-          avgWeight - samplingConfiguration.weightOffset
-        );
-        var maxWeight = avgWeight + samplingConfiguration.weightOffset;
+    const testStress = async () => {
+      const endHeight = avgHeight + heightOffset;
+      for (
+        let height = avgHeight - heightOffset;
+        height <= endHeight;
+        height += 5
+      ) {
+        const baseWeight = avgWeight + height - avgHeight;
+        const startWeight = Math.max(minWeight, baseWeight - weightOffset);
+        const endWeight = baseWeight + weightOffset;
 
-        for (let weight = minWeight; weight <= maxWeight; weight += 1) {
-          await this.fitting.resizeAvatar({
-            height,
-            weight,
-            bodyShape: 0,
-          });
-          await this.fitting.resizeAccessory();
-          // await this.fitting.loadDrapingSamplingJSON({
-          //   jsonURL:
-          //     "https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/sampling.json",
-          // });
-          // await this.fitting.loadDrapingSamplingJSON({ jsonURL: "http://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/sampling.json" });
+        for (let weight = startWeight; weight <= endWeight; weight += 5) {
+          await Promise.all([
+            this.fitting.resizeAvatar({
+              height,
+              weight,
+              bodyShape: 0,
+            }),
+            this.fitting.resizeAccessory(),
+          ]);
           await this.fitting.loadDrapingData({
-            rootPath:
-              "https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/0/",
+            rootPath: `${fittingRootUrl}/${styleId}/${styleVersion}/${avatarId}/${gradingIndex}/`,
             height: height,
             weight: weight,
             mapMatMesh: this.zrest.matMeshMap,
           });
-          // await this.fitting.getDrapingData(
-          //   `https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/0/P0_${height}_${weight}.zcrp`,
-          //   this.zrest.matMeshMap
-          // );
 
           this.updateRenderer(1);
           await sleep(500);
@@ -289,6 +314,8 @@ export default class ClosetViewer {
       }
     };
     // TEST
+    // testStyle();
+    testStress();
 
     this.updateRenderer(1);
   }
