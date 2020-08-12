@@ -1,5 +1,6 @@
 ﻿import * as THREE from "@/lib/threejs/three";
 import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
+import { buildMapMatshapeRenderToSkinPos } from "./FittingUtil";
 import {
   MEASUREMENT_LIST_NAME,
   AVATAR_GENDER,
@@ -31,13 +32,13 @@ export default class ResizableBody {
 
     this.mFeatureEnable = this.setFeatureEnable();
     this.mBaseVertex = this.buildBaseVertex(mapBaseMesh);
-    this.mapMatshapeRenderToSkinPos = this.buildMapMatshapeRenderToSkinPos(
+    this.mapMatshapeRenderToSkinPos = buildMapMatshapeRenderToSkinPos(
       mapBaseMesh
     );
     this.mapStartIndex = mapBaseMesh.get("mapStartIndex");
-    this.mapAccessoryMSRenderToSkinPos = this.buildMapMatshapeRenderToSkinPos(
-      mapAccessoryMesh
-    );
+    // this.mapAccessoryMSRenderToSkinPos = this.buildMapMatshapeRenderToSkinPos(
+    //   mapAccessoryMesh
+    // );
   }
 
   setFeatureEnable = () => {
@@ -69,33 +70,6 @@ export default class ResizableBody {
     }
 
     return baseVertex;
-  };
-
-  buildMapMatshapeRenderToSkinPos = (baseMeshMap) => {
-    const listMatshapeRenderToSkinPos = baseMeshMap.get(
-      "listMatshapeRenderToSkinPos"
-    );
-    const mapMatshapeRenderToSkinPos = new Map();
-    // this.mapMatshapeRenderToSkinPos = new Map();
-
-    listMatshapeRenderToSkinPos.forEach((entry) => {
-      const renderToSkinPos = readByteArray(
-        "Int",
-        entry.get("baRenderToSkinPos")
-      );
-      const strName = readByteArray("String", entry.get("strNameUTF8"));
-      const uiVertexCount = entry.get("uiVertexCount");
-
-      mapMatshapeRenderToSkinPos.set(
-        strName,
-        new Map([
-          ["renderToSkinPos", renderToSkinPos],
-          ["uiVertexCount", uiVertexCount],
-        ])
-      );
-    });
-
-    return mapMatshapeRenderToSkinPos;
   };
 
   computeResizing = (
@@ -448,60 +422,6 @@ export default class ResizableBody {
     return renderPos;
   };
 
-  updateRenderPositionFromPhysical2 = (phyPos, renderToSkinPos) => {
-    const renderPos = new Array(renderToSkinPos.length * 3).fill(-999.999);
-    const multifier = 1.0;
-    // console.log(wtol);
-
-    // console.log(
-    //   "MIN: " +
-    //     Math.min(...renderToSkinPos) +
-    //     " / MAX: " +
-    //     Math.max(...renderToSkinPos)
-    // );
-
-    for (let i = 0; i < renderPos.length; ++i) {
-      // const idx = renderToSkinPos[i];
-      // const renderVector = phyPos[idx / 3];
-
-      // console.log(renderToSkinPos[i / 3]);
-      // console.log(phyPos[renderToSkinPos[i / 3]]);
-      // console.log(phyPos[renderToSkinPos[i / 3]].x);
-      const vectorIdx = Math.trunc(i / 3);
-      // const renderVector = phyPos[renderToSkinPos[vectorIdx]].applyMatrix4(
-      //   wtol
-      // );
-      const renderVector = phyPos[renderToSkinPos[vectorIdx]];
-
-      // console.log(renderVector);
-      // console.log(wtol);
-      // console.log(wtol.scale(renderVector));
-      // console.log("-");
-
-      if (!renderVector) {
-        console.warn(i, vectorIdx, renderToSkinPos[vectorIdx]);
-      }
-      switch (i % 3) {
-        case 0:
-          renderPos[i] = renderVector.x;
-          break;
-        case 1:
-          renderPos[i] = renderVector.y;
-          break;
-        case 2:
-          renderPos[i] = renderVector.z;
-          break;
-      }
-      renderPos[i] *= multifier;
-    }
-
-    renderPos.forEach((pos) => {
-      if (pos == -999.999) console.warn(pos);
-    });
-
-    return renderPos;
-  };
-
   // inputBaseVertex = (mapSkinController) => {
   //   console.log("inputBaseVertex");
   //   console.log(mapSkinController);
@@ -563,17 +483,6 @@ export default class ResizableBody {
   //   //   }
   //   // }
   // };
-
-  convertFloatArrayToVec3Array = (floatArray) => {
-    const vec3Array = [];
-    for (let v = 0; v < floatArray.length; v += 3) {
-      // const idx = v * 3;
-      vec3Array.push(
-        new THREE.Vector3(floatArray[v], floatArray[v + 1], floatArray[v + 2])
-      );
-    }
-    return vec3Array;
-  };
 
   convertVec3ArrayToFloatArray = (vec3Array) => {
     const floatArray = [];

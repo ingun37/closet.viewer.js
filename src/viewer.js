@@ -214,29 +214,29 @@ export default class ClosetViewer {
 
     await this.fitting.resizeAvatar({
       height: 180,
-      weight: 70,
+      weight: 90,
       bodyShape: 0,
     });
     await this.fitting.resizeAccessory();
 
-    await this.loadZrestForFitting({
-      url: "./f/garment.zrest",
-      // url:
-      //   "https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/0/garment.zrest",
-      // funcOnProgress: onProgress,
-      funcOnLoad: null,
-      isAvatar: false,
-    });
-
-    const samplingConfiguration = await this.fitting.loadDrapingSamplingJSON({
-      jsonURL:
-        "https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/sampling.json",
-    });
-
-    await this.fitting.loadDrapingDataFromURL({
-      zcrpURL: "./f/P0_177_83.zcrp",
-      mapMatMesh: this.zrest.matMeshMap,
-    });
+    // await this.loadZrestForFitting({
+    //   url: "./f/garment.zrest",
+    //   // url:
+    //   //   "https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/0/garment.zrest",
+    //   // funcOnProgress: onProgress,
+    //   funcOnLoad: null,
+    //   isAvatar: false,
+    // });
+    //
+    // const samplingConfiguration = await this.fitting.loadDrapingSamplingJSON({
+    //   jsonURL:
+    //     "https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/sampling.json",
+    // });
+    //
+    // await this.fitting.loadDrapingDataFromURL({
+    //   zcrpURL: "./f/P0_177_83.zcrp",
+    //   mapMatMesh: this.zrest.matMeshMap,
+    // });
 
     // await this.fitting.loadDrapingData({
     //   rootPath:
@@ -676,57 +676,57 @@ export default class ClosetViewer {
     return false;
   }
 
-  async loadZrestForFitting({
-    url: url,
-    funcOnProgress: onProgress,
-    funcOnLoad: onLoad,
-    isAvatar: isAvatar = false,
-  }) {
-    const scene = this.scene;
+  // async loadZrestForFitting({
+  //   url: url,
+  //   funcOnProgress: onProgress,
+  //   funcOnLoad: onLoad,
+  //   isAvatar: isAvatar = false,
+  // }) {
+  //   const scene = this.scene;
 
-    const progress = function (xhr) {
-      if (xhr.lengthComputable) {
-        const percentComplete = (xhr.loaded / xhr.total) * 100;
-        const percent = Math.round(percentComplete, 2);
-        if (onProgress) onProgress(percent);
-      }
-    };
+  //   const progress = function (xhr) {
+  //     if (xhr.lengthComputable) {
+  //       const percentComplete = (xhr.loaded / xhr.total) * 100;
+  //       const percent = Math.round(percentComplete, 2);
+  //       if (onProgress) onProgress(percent);
+  //     }
+  //   };
 
-    const error = function (xhr) {};
+  //   const error = function (xhr) {};
 
-    // const loaded = () => {};
-    const loaded = async (object, loadedCamera, data) => {
-      if (isAvatar) this.zrest.addToScene(object, "fittingAvatar");
-      else this.zrest.addToScene(object, "fittingGarment");
-      // this.addToScene(object);
+  //   // const loaded = () => {};
+  //   const loaded = async (object, loadedCamera, data) => {
+  //     if (isAvatar) this.zrest.addToScene(object, "fittingAvatar");
+  //     else this.zrest.addToScene(object, "fittingGarment");
+  //     // this.addToScene(object);
 
-      if (onLoad) onLoad(this);
+  //     if (onLoad) onLoad(this);
 
-      this.zrest.zoomToObjects(loadedCamera, this.scene);
-      if (!isAvatar) this.updateRenderer();
-      // else this.setAllAvatarVisible(false);
-      // this.updateRenderer();
+  //     this.zrest.zoomToObjects(loadedCamera, this.scene);
+  //     if (!isAvatar) this.updateRenderer();
+  //     // else this.setAllAvatarVisible(false);
+  //     // this.updateRenderer();
 
-      return scene;
-    };
+  //     return scene;
+  //   };
 
-    if (this.zrest !== undefined) {
-      this.zrest.clearMaps();
-      this.zrest = null;
-    }
+  //   if (this.zrest !== undefined) {
+  //     this.zrest.clearMaps();
+  //     this.zrest = null;
+  //   }
 
-    this.zrest = new ZRestLoader({
-      scene: this.scene,
-      camera: this.camera,
-      controls: this.controls,
-      cameraPosition: this.cameraPosition,
-    });
+  //   this.zrest = new ZRestLoader({
+  //     scene: this.scene,
+  //     camera: this.camera,
+  //     controls: this.controls,
+  //     cameraPosition: this.cameraPosition,
+  //   });
 
-    const dataArr = await this.zrest.loadOnly(url, progress);
-    await this.zrest.parseAsync(dataArr, loaded);
+  //   const dataArr = await this.zrest.loadOnly(url, progress);
+  //   await this.zrest.parseAsync(dataArr, loaded);
 
-    return this.zrest;
-  }
+  //   return this.zrest;
+  // }
 
   loadSeparatedZrest = async (zrestJSON, onProgress, colorwayIndex) => {
     const rest = zrestJSON.rest;

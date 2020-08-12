@@ -369,11 +369,11 @@ const splitMatSpaceToMatMesh = async (
 
     // Temporary codes for fitting
     // Should be removed after live
-    if (type === MATMESH_TYPE.PATTERN_MATMESH) {
+    if (type !== MATMESH_TYPE.AVATAR_MATMESH) {
       threeMesh.userData.originalPos = dracoGeometry.vertices;
       threeMesh.userData.originalIndices = dracoGeometry.indices;
       threeMesh.userData.originalUv = dracoGeometry.uvs;
-      // threeMesh.userData.originalUv2 = dracoGeometry.uv2s;
+      threeMesh.userData.originalUv2 = dracoGeometry.uv2s;
     }
 
     matMeshManager.matMeshMap.set(matMeshID, threeMesh);

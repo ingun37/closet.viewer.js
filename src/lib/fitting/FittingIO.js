@@ -1,5 +1,6 @@
 import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
 import { readMap } from "@/lib/clo/file/KeyValueMapReader";
+import * as THREE from "@/lib/threejs/three";
 
 export async function processAvatarSizingFile({ sizingURL, accURL }) {
   const loadedSizingData = await loadFile(sizingURL);
@@ -74,6 +75,7 @@ export async function loadZrestForFitting({
   funcOnProgress: onProgress,
   funcOnLoad: onLoad,
   zrest: zrest,
+  parentContainer: container,
   isAvatar: isAvatar = false,
 }) {
   // const scene = this.scene;
@@ -119,4 +121,15 @@ export async function loadZrestForFitting({
   await zrest.parseAsync(dataArr, loaded);
 
   return zrest;
+}
+
+export function convertFloatArrayToVec3Array(floatArray) {
+  const vec3Array = [];
+  for (let v = 0; v < floatArray.length; v += 3) {
+    // const idx = v * 3;
+    vec3Array.push(
+      new THREE.Vector3(floatArray[v], floatArray[v + 1], floatArray[v + 2])
+    );
+  }
+  return vec3Array;
 }
