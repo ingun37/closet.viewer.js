@@ -64,9 +64,6 @@ class AnnotationManager {
 
     this.onCompleteAnnotationMove = () => {};
     this.onCompleteAnimation = () => {};
-
-    console.log("this.camera");
-    console.log(this.camera);
   }
 
   init({ zrest }) {
