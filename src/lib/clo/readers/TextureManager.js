@@ -45,7 +45,7 @@ export async function loadZrestTexture({
         });
         bHasTexture = true;
       } else {
-        console.warn(textureFilename + " is not found.");
+        console.log("WARNING: " + textureFilename + " is not found.");
       }
     }
   }

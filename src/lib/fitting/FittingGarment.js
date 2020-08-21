@@ -10,7 +10,8 @@ import { computeBarycentric } from "./FittingBarycentricCoord";
 export default class FittingGarment {
   constructor() {
     this.listBarycentricCoord = [];
-    this.samplingJSON = null;
+    // this.samplingJSON = null;
+    FittingGarment.prototype.samplingJSON = null;
     this.bodyVertexIndex = [];
     this.bodyVertexPos = [];
   }
@@ -38,8 +39,10 @@ export default class FittingGarment {
       return filenameWithoutToken;
     };
 
+    console.log(url);
     const loadedData = await loadFile(url);
     if (!loadedData) return;
+    console.log(loadedData);
 
     const crpFilename = getFilename(url).replace(".zcrp", ".crp");
     const unzippedData = await unZip(loadedData, crpFilename);
@@ -55,7 +58,7 @@ export default class FittingGarment {
 
   async loadDrapingDataFromURL({ zcrpURL, mapMatMesh }) {
     const listBarycentricCoord = await this.loadZcrp(zcrpURL);
-    return this.draping({ listBarycentricCoord, mapMatMesh });
+    // return this.draping({ listBarycentricCoord, mapMatMesh });
   }
 
   async loadDrapingData({ rootPath, height, weight, mapMatMesh }) {
@@ -64,7 +67,11 @@ export default class FittingGarment {
     const zcrpURL = rootPath + zcrpName;
     const listBarycentricCoord = await this.loadZcrp(zcrpURL);
 
-    return this.draping({ listBarycentricCoord, mapMatMesh });
+    // console.log(this.samplingJSON);
+    // console.log(mapMatMesh);
+    // console.log(listBarycentricCoord);
+
+    // return this.draping({ listBarycentricCoord, mapMatMesh });
   }
 
   getListBarycentricCoord() {

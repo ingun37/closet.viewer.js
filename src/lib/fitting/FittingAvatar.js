@@ -7,7 +7,7 @@ import FittingAccessory from "@/lib/fitting/FittingAccessory";
 
 export default class FittingAvatar {
   constructor(container, zrest) {
-    this.container = container;
+    this.parentContainer = container;
     this.zrest = zrest;
 
     // NOTE: This is named "list" but actually a map. This name according to the CLO SW.
@@ -17,7 +17,7 @@ export default class FittingAvatar {
     //       Keys are the name of the SkinController. After creating this map, listSkinController is deallocated from memory.
     // this.mapSkinController = new Map();
 
-    // this.avatarContainer = null;
+    this.avatarContainer = null;
     // this.accessoryContainer = null;
 
     this.accessory = null;
@@ -33,15 +33,15 @@ export default class FittingAvatar {
   init() {
     if (!this.zrest) return;
 
-    this.avatarContainer = new THREE.Object3D();
-    this.avatarContainer.name = "fittingAvatarContainer";
-    this.container.add(this.avatarContainer);
+    const arrFoundContainer = this.parentContainer.children.filter(
+      (obj) => obj.name === "fittingAvatarContainer"
+    );
 
-    // this.container.add(this.accessory.getThreeJSContainer());
-    // this.accessory
+    if (arrFoundContainer.length <= 0) {
+      console.error("FittingAvatar init failed.");
+    }
 
-    // this.accessoryContainer.name = "fittingAccessoryContainer";
-    // this.scene.add(this.accessoryContainer);
+    this.avatarContainer = arrFoundContainer[0];
 
     const avatarGeometry = new Map(
       this.zrest.zProperty.rootMap.get("mapGeometry")
@@ -55,7 +55,7 @@ export default class FittingAvatar {
     this.scManager.init(this.zrest);
 
     this.accessory = new FittingAccessory(listSkinController, this.scManager);
-    this.accessory.attachThreeJSContainer(this.container);
+    this.accessory.attachThreeJSContainer(this.parentContainer);
     this.accessory.putBodyVertexInfo(this.bodyVertexPos, this.bodyVertexIndex);
 
     // this.mapSkinController = this.convertListSCtoMap(listSkinController);
@@ -124,7 +124,7 @@ export default class FittingAvatar {
         partName,
         computed
       );
-      console.warn(partName);
+      console.log("\t\t++" + partName);
       // console.log(v);
       this.resizableBody.scManager.putVertexOnMatMeshByPartName(
         partName,

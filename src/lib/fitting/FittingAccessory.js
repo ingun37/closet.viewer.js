@@ -43,17 +43,13 @@ export default class FittingAccessory {
     this.mapAccMatshapeRenderToSkinPos = buildMapMatshapeRenderToSkinPos(
       mapAccessoryMesh
     );
-    console.warn(this.mapAccMatshapeRenderToSkinPos);
+    // console.warn(this.mapAccMatshapeRenderToSkinPos);
   }
 
   putBodyVertexInfo(bodyVertexPos, bodyVertexIndex) {
     this.bodyVertexPos = bodyVertexPos;
     this.bodyVertexIndex = bodyVertexIndex;
   }
-
-  // getThreeJSContainer() {
-  //   return this.container;
-  // }
 
   dispose() {
     if (!this.container) return;
@@ -67,8 +63,7 @@ export default class FittingAccessory {
 
   resize() {
     this.mapSkinMesh = this.buildMapSkinMeshFromSC(this.mapSkinController);
-    console.warn(this.mapSkinMesh);
-    // this.accessoryContainer.dispose();
+    // console.log(this.mapSkinMesh);
     this.container.children = [];
 
     for (const entries of this.mapSkinMesh.entries()) {
@@ -83,14 +78,12 @@ export default class FittingAccessory {
       const renderPos = this.updateRenderPositionFromPhysical(
         phyPosVec3,
         renderToSkinPos
-        // invMatrixWorld
       );
-      // console.log(renderPos);
       const listMatMesh = this.scManager.putVertexOnMatMeshByPartName(
         partName,
         renderPos
       );
-      console.log(listMatMesh);
+      // console.log(listMatMesh);
       this.container.add(...listMatMesh);
     }
   }
@@ -194,7 +187,7 @@ export default class FittingAccessory {
     const demarcationLine = skinController.get("fDemarcationLine");
     const ABGList = readData("Float", "baABGList");
     const triangleIndexList = readData("Uint", "baTriangleIndexList");
-    console.log("demarcationLine: " + demarcationLine);
+    // console.log("demarcationLine: " + demarcationLine);
 
     const mapMesh = skinController.get("mapMesh");
     const meshIndex = readByteArray("Uint", mapMesh.get("baIndex"));
@@ -212,9 +205,6 @@ export default class FittingAccessory {
       bodyVertexPos: this.bodyVertexPos,
       bodyVertexIndex: this.bodyVertexIndex,
     });
-
-    // console.log("calculatedPosition");
-    // console.log(calculatedPosition);
 
     // Build Mesh
     const bufferGeometry = new THREE.BufferGeometry();

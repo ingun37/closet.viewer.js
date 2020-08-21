@@ -1,11 +1,9 @@
 import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
 import { readMap } from "@/lib/clo/file/KeyValueMapReader";
+import { ZRestLoader } from "@/lib/clo/readers/ZrestLoader";
 import * as THREE from "@/lib/threejs/three";
 
 export async function processAvatarSizingFile({ sizingURL, accURL }) {
-  const loadedSizingData = await loadFile(sizingURL);
-  const loadedAccData = await loadFile(accURL);
-
   const getParsedData = async (filename, loadedData) => {
     return await unzipParse({
       loadedData: loadedData,
@@ -13,22 +11,32 @@ export async function processAvatarSizingFile({ sizingURL, accURL }) {
     });
   };
 
+  console.log("\t\t\t++loadSizingData");
+  const loadedSizingData = await loadFile(sizingURL);
+  console.log("\t\t\t++loadAccData");
+  const loadedAccData = await loadFile(accURL);
+
+  console.log("\t\t\t++getParsedData");
   const mapBaseMesh = await getParsedData("BaseMesh.map", loadedSizingData);
 
+  console.log("\t\t\t++unZip");
   const unzippedConvertingMatData = await unZip(
     loadedSizingData,
     "ConvertingMat_DETAIL_Simple_Weight_TotalHeight.bd"
   );
 
+  console.log("\t\t\t++readConvertingMatData");
   const convertingMatData = readConvertingMatData({
     unzippedConvertingMatData,
   });
 
+  console.log("\t\t\t++getParsedData");
   const mapHeightWeightTo5Sizes = await getParsedData(
     "HeightWeightTo5SizesMap.map",
     loadedSizingData
   );
 
+  console.log("\t\t\t++readMapFromUnzippedData");
   const mapAccessoryMesh = await readMapFromUnzippedData(loadedAccData, 0);
 
   return {
@@ -75,7 +83,7 @@ export async function loadZrestForFitting({
   funcOnProgress: onProgress,
   funcOnLoad: onLoad,
   zrest: zrest,
-  parentContainer: container,
+  // parentContainer: container,
   isAvatar: isAvatar = false,
 }) {
   // const scene = this.scene;
@@ -88,37 +96,51 @@ export async function loadZrestForFitting({
     }
   };
 
-  const error = function (xhr) {};
+  const error = function (xhr) {
+    console.error("Load zrest failed. " + xhr);
+  };
 
-  // const loaded = () => {};
   const loaded = async (object, loadedCamera, data) => {
-    if (isAvatar) zrest.addToScene(object, "fittingAvatar");
-    else zrest.addToScene(object);
-    // this.addToScene(object);
+    if (zrest !== undefined) {
+      zrest.clearMaps();
+    }
+    // zrest.addThreeContainerUniquely(new THREE.Object3D(), "fittingContainer");
+    if (isAvatar)
+      zrest.addThreeContainerUniquely(
+        object,
+        "fittingAvatarContainer",
+        "fittingContainer"
+      );
+    // ainerUniquely(object, "fittingAvatar", "fittingContainer");
+    else
+      zrest.addThreeContainerUniquely(
+        object,
+        "fittingGarmentContainer",
+        "fittingContainer"
+      );
 
     if (onLoad) onLoad(this);
 
     zrest.zoomToObjects(loadedCamera, zrest.scene);
-    if (!isAvatar) this.updateRenderer();
+    // if (!isAvatar) this.updateRenderer();
     // this.updateRenderer();
 
     return zrest.scene;
   };
 
-  if (zrest !== undefined) {
-    zrest.clearMaps();
-    // zrest = null;
-  }
+  // TODO: This module is not stable and may cause memory leaks.
+  // if (zrest !== undefined) {
+  //   zrest.clearMaps();
+  //   zrest.clear();
+  // }
 
-  // const zrest = new ZRestLoader({
-  //   scene: this.scene,
-  //   camera: this.camera,
-  //   controls: this.controls,
-  //   cameraPosition: this.cameraPosition,
-  // });
-
+  console.log("\t\t\t\t+ zrest.loadOnly");
   const dataArr = await zrest.loadOnly(url, progress);
+  console.log("\t\t\t\t- zrest.loadOnly");
+
+  console.log("\t\t\t\t+ zrest.parseAsync");
   await zrest.parseAsync(dataArr, loaded);
+  console.log("\t\t\t\t- zrest.parseAsync");
 
   return zrest;
 }
@@ -126,7 +148,6 @@ export async function loadZrestForFitting({
 export function convertFloatArrayToVec3Array(floatArray) {
   const vec3Array = [];
   for (let v = 0; v < floatArray.length; v += 3) {
-    // const idx = v * 3;
     vec3Array.push(
       new THREE.Vector3(floatArray[v], floatArray[v + 1], floatArray[v + 2])
     );

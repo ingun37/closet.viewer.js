@@ -203,50 +203,51 @@ export default class ClosetViewer {
       return new Promise((resolve) => setTimeout(resolve, ms));
     };
 
-    const avatarURL =
-      "https://files.clo-set.com/public/fitting/avatar/0/Thomas.zrest";
+    console.log("++ loadResizableAvatar");
     await this.fitting.loadResizableAvatar({
-      avatarURL: avatarURL,
-      sizingURL: "./f/Sizing.zip",
+      avatarURL:
+        "https://files.clo-set.com/public/fitting/avatar/0/Thomas.zrest",
+      sizingURL: "https://files.clo-set.com/public/fitting/avatar/0/Sizing.zip",
       accURL:
         "https://files.clo-set.com/public/fitting/avatar/0/Thomas.Acc.map",
     });
+    console.log("-- loadResizableAvatar");
 
-    await this.fitting.resizeAvatar({
+    console.log("++ resizeAvatarWithAcc");
+    await this.fitting.resizeAvatarWithAcc({
       height: 180,
       weight: 90,
       bodyShape: 0,
     });
-    await this.fitting.resizeAccessory();
+    console.log("-- resizeAvatarWithAcc");
 
-    // await this.loadZrestForFitting({
-    //   url: "./f/garment.zrest",
-    //   // url:
-    //   //   "https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/0/garment.zrest",
-    //   // funcOnProgress: onProgress,
-    //   funcOnLoad: null,
-    //   isAvatar: false,
-    // });
-    //
-    // const samplingConfiguration = await this.fitting.loadDrapingSamplingJSON({
-    //   jsonURL:
-    //     "https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/sampling.json",
-    // });
-    //
-    // await this.fitting.loadDrapingDataFromURL({
-    //   zcrpURL: "./f/P0_177_83.zcrp",
-    //   mapMatMesh: this.zrest.matMeshMap,
-    // });
+    await this.fitting.loadGarmentData({
+      garmentURL:
+        "https://files.clo-set.com/public/fitting/5021883564f647b2813d57c7cd60b66c/1/0/0/garment.zrest",
+      samplingURL:
+        "https://files.clo-set.com/public/fitting/5021883564f647b2813d57c7cd60b66c/1/0/sampling.json",
+    });
 
-    // await this.fitting.loadDrapingData({
-    //   rootPath:
-    //     "https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/0/",
-    //   height: 180,
-    //   weight: 70,
-    //   mapMatMesh: this.zrest.matMeshMap,
-    // });
+    await this.fitting.drapingUsingZcrpURL({
+      zcrpURL:
+        "https://files.clo-set.com/public/fitting/5021883564f647b2813d57c7cd60b66c/1/0/0/P0_162_52.zcrp",
+    });
+
     const test = async () => {
-      for (let height = 170; height <= 180; height += 1) {
+      const samplingConfiguration = await this.fitting.garment.loadSamplingJson(
+        {
+          jsonURL:
+            "https://files.clo-set.com/public/fitting/5021883564f647b2813d57c7cd60b66c/1/0/sampling.json",
+        }
+      );
+      console.log(samplingConfiguration);
+
+      // await this.fitting.loadDrapingDataFromURL({
+      //   zcrpURL:
+      //     "https://files.clo-set.com/public/fitting/5021883564f647b2813d57c7cd60b66c/1/0/0/P0_162_52.zcrp",
+      //   mapMatMesh: this.zrest.matMeshMap,
+      // });
+      for (let height = 170; height <= 180; height += 100) {
         const avgWeight =
           samplingConfiguration.avgWeight +
           height -
@@ -259,17 +260,17 @@ export default class ClosetViewer {
         var maxWeight = avgWeight + samplingConfiguration.weightOffset;
 
         for (let weight = minWeight; weight <= maxWeight; weight += 1) {
-          await this.fitting.resizeAvatar({
+          await this.fitting.resizeAvatarWithAcc({
             height,
             weight,
             bodyShape: 0,
           });
-          await this.fitting.resizeAccessory();
-          // await this.fitting.loadDrapingSamplingJSON({
-          //   jsonURL:
-          //     "https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/sampling.json",
-          // });
-          // await this.fitting.loadDrapingSamplingJSON({ jsonURL: "http://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/sampling.json" });
+
+          await this.fitting.drapingUsingZcrp({
+            zcrpURL:
+              "https://files.clo-set.com/public/fitting/5021883564f647b2813d57c7cd60b66c/1/0/0/P0_162_52.zcrp",
+          });
+
           await this.fitting.loadDrapingData({
             rootPath:
               "https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/0/",
@@ -277,6 +278,7 @@ export default class ClosetViewer {
             weight: weight,
             mapMatMesh: this.zrest.matMeshMap,
           });
+
           // await this.fitting.getDrapingData(
           //   `https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/0/P0_${height}_${weight}.zcrp`,
           //   this.zrest.matMeshMap
@@ -290,6 +292,7 @@ export default class ClosetViewer {
     };
     // TEST
 
+    // test();
     this.updateRenderer(1);
   }
 
@@ -582,7 +585,7 @@ export default class ClosetViewer {
         await this.changeColorway(colorwayIndex);
       }
 
-      this.zrest.addToScene(object);
+      this.zrest.addThreeContainerUniquely(object);
       // this.scene.add(object);
       // this.object3D = object;
       this.zrest.zoomToObjects(loadedCamera, this.scene);

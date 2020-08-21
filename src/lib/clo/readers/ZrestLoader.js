@@ -24,32 +24,33 @@ import { safeDeallocation } from "@/lib/clo/readers/MemoryUtils";
 import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
 import { getFilename } from "@/lib/clo/readers/FileLoader";
 
-const zrestProperty = {
-  version: -1,
-  drawMode: {
-    wireframe: {
-      pattern: false,
-      // button: false
-    },
-  },
-  colorwayIndex: -1,
-  colorwaySize: 0,
-  bDisassembled: false,
+const zrestProperty = {};
+// const zrestProperty = {
+//   version: -1,
+//   drawMode: {
+//     wireframe: {
+//       pattern: false,
+//       // button: false
+//     },
+//   },
+//   colorwayIndex: -1,
+//   colorwaySize: 0,
+//   bDisassembled: false,
 
-  // global variable
-  nameToTextureMap: new Map(),
-  loadedCamera: {
-    ltow: new THREE.Matrix4(),
-    bLoaded: false,
-  },
-  renderCamera: null,
+//   // global variable
+//   nameToTextureMap: new Map(),
+//   loadedCamera: {
+//     ltow: new THREE.Matrix4(),
+//     bLoaded: false,
+//   },
+//   renderCamera: null,
 
-  // zElement
-  rootMap: new Map(),
-  seamPuckeringNormalMap: null,
-  listMapTextureMatMeshId: null,
-  mapMatMeshIndex: new Map(),
-};
+//   // zElement
+//   rootMap: new Map(),
+//   seamPuckeringNormalMap: null,
+//   listMapTextureMatMeshId: null,
+//   mapMatMeshIndex: new Map(),
+// };
 
 let _fileReaderSyncSupport = false;
 const _syncDetectionScript =
@@ -68,7 +69,7 @@ export default class ZRestLoader {
     this.rootObject.name = "object3D";
 
     // ZREST property
-    this.zProperty = zrestProperty;
+    this.zProperty = this.initZrestProperty();
     this.zProperty.drawMode = this.getParsedDrawMode(drawMode);
     this.zProperty.renderCamera = camera;
 
@@ -133,6 +134,47 @@ export default class ZRestLoader {
   //   });
   // };
 
+  initZrestProperty = () => {
+    const zProperty = {
+      version: -1,
+      drawMode: {
+        wireframe: {
+          pattern: false,
+          // button: false
+        },
+      },
+      colorwayIndex: -1,
+      colorwaySize: 0,
+      bDisassembled: false,
+
+      // global variable
+      nameToTextureMap: new Map(),
+      loadedCamera: {
+        ltow: new THREE.Matrix4(),
+        bLoaded: false,
+      },
+      renderCamera: null,
+
+      // zElement
+      rootMap: new Map(),
+      seamPuckeringNormalMap: null,
+      listMapTextureMatMeshId: null,
+      mapMatMeshIndex: new Map(),
+    };
+
+    // console.log("@initZrestProperty");
+    // console.warn(this.camera);
+    for (const key in zProperty) {
+      zrestProperty[key] = zProperty[key]; // copies each property to the objCopy object
+    }
+    if (this.camera)
+      zrestProperty.renderCamera = Object.assign({}, this.camera);
+
+    // console.warn(zrestProperty);
+
+    return zrestProperty;
+  };
+
   // TODO: Write more code very carefully
   clear = () => {
     for (const matMesh of this.zProperty.matMeshMap.values()) {
@@ -148,6 +190,8 @@ export default class ZRestLoader {
       );
     }
 
+    this.zProperty = this.initZrestProperty();
+    // console.log(this.initZproperty);
     this.clearMaps();
   };
 
@@ -208,27 +252,36 @@ export default class ZRestLoader {
     }
   };
 
-  addToScene(container, containerName = "object3D") {
+  addThreeContainerUniquely(
+    container,
+    containerName = "object3D",
+    parentContainerName
+  ) {
     if (container.name !== containerName) {
-      //return;
       container.name = containerName;
     }
+
+    const foundContainer = this.scene.children.filter(
+      (obj) => obj.name === parentContainerName
+    );
+    const parent = foundContainer.length > 0 ? foundContainer[0] : this.scene;
+
     let objIndex = -1;
-    for (let i = 0; i < this.scene.children.length; ++i) {
-      if (this.scene.children[i].name === containerName) {
-        this.clearThree(this.scene.children[i]);
-        this.scene.children[i].remove(...this.scene.children[i].children);
+    for (let i = 0; i < parent.children.length; ++i) {
+      if (parent.children[i].name === containerName) {
+        this.clearThree(parent.children[i]);
+        parent.children[i].remove(...parent.children[i].children);
         objIndex = i;
       }
     }
 
     if (objIndex >= 0) {
-      this.scene.children[objIndex] = container;
+      parent.children[objIndex] = container;
     } else {
-      this.scene.add(container);
+      parent.add(container);
     }
 
-    this.object3D = container;
+    // this.object3D = container;
   }
 
   clearThree = (obj) => {
@@ -301,13 +354,10 @@ export default class ZRestLoader {
     const dataView = new DataView(data);
     const header = readHeader(dataView, headerOffset);
 
+    this.rootObject = new THREE.Object3D();
+    this.rootObject.name = "object3D";
     const object3D = this.rootObject;
-    // const object3D = new THREE.Object3D();
-    // const object3D = new THREE.LOD();
-    // object3D.name = "object3D";
-    // object3D.name = "fittingContainer";
 
-    // const reader = new FileReader();
     const contentBlob = blob.slice(
       header.FileContentPos,
       header.FileContentPos + header.FileContentSize
@@ -345,12 +395,9 @@ export default class ZRestLoader {
       return await this.parseRestContents(object3D, restContent, zip);
     };
 
-    console.log("*** re1");
+    await onLoad;
     const contentsData = await readFileAsync(contentBlob);
-    // console.log(contentsData);
     const rootMap = await unzipRest(contentsData);
-    // console.log(rootMap);
-    console.log("*** re2");
     return rootMap;
   };
 
@@ -433,11 +480,11 @@ export default class ZRestLoader {
     // Build list for pattern measurement
     this.listPatternMeasure = rootMap.get("listPatternMeasure");
 
-    console.log("==========================");
-    console.log("zrest load complete");
-    console.log(this.cameraPosition);
-    console.log(this.zProperty.loadedCamera);
-    console.log("==========================");
+    // console.log("==========================");
+    // console.log("zrest load complete");
+    // console.log(this.cameraPosition);
+    // console.log(this.zProperty.loadedCamera);
+    // console.log("==========================");
 
     // if (this.zProperty.loadedCamera) {
     //   this.camera.position.copy(this.zProperty.loadedCamera);
