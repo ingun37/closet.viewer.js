@@ -203,35 +203,71 @@ export default class ClosetViewer {
       return new Promise((resolve) => setTimeout(resolve, ms));
     };
 
-    console.log("++ loadResizableAvatar");
-    await this.fitting.loadResizableAvatar({
-      avatarURL:
-        "https://files.clo-set.com/public/fitting/avatar/0/Thomas.zrest",
-      sizingURL: "https://files.clo-set.com/public/fitting/avatar/0/Sizing.zip",
-      accURL:
-        "https://files.clo-set.com/public/fitting/avatar/0/Thomas.Acc.map",
-    });
-    console.log("-- loadResizableAvatar");
+    const correctlyWorking = async () => {
+      console.log("++ loadResizableAvatar");
+      await this.fitting.loadResizableAvatar({
+        avatarURL:
+          "https://files.clo-set.com/public/fitting/avatar/0/Thomas.zrest",
+        sizingURL:
+          "https://files.clo-set.com/public/fitting/avatar/0/Sizing.zip",
+        accURL:
+          "https://files.clo-set.com/public/fitting/avatar/0/Thomas.Acc.map",
+      });
+      console.log("-- loadResizableAvatar");
 
-    console.log("++ resizeAvatarWithAcc");
-    await this.fitting.resizeAvatarWithAcc({
-      height: 180,
-      weight: 90,
-      bodyShape: 0,
-    });
-    console.log("-- resizeAvatarWithAcc");
+      console.log("++ resizeAvatarWithAcc");
+      await this.fitting.resizeAvatarWithAcc({
+        height: 180,
+        weight: 90,
+        bodyShape: 0,
+      });
+      console.log("-- resizeAvatarWithAcc");
 
-    await this.fitting.loadGarmentData({
-      garmentURL:
-        "https://files.clo-set.com/public/fitting/5021883564f647b2813d57c7cd60b66c/1/0/0/garment.zrest",
-      samplingURL:
-        "https://files.clo-set.com/public/fitting/5021883564f647b2813d57c7cd60b66c/1/0/sampling.json",
-    });
+      await this.fitting.loadGarmentData({
+        garmentURL:
+          "https://files.clo-set.com/public/fitting/5021883564f647b2813d57c7cd60b66c/1/0/0/garment.zrest",
+        samplingURL:
+          "https://files.clo-set.com/public/fitting/5021883564f647b2813d57c7cd60b66c/1/0/sampling.json",
+      });
 
-    await this.fitting.drapingUsingZcrpURL({
-      zcrpURL:
-        "https://files.clo-set.com/public/fitting/5021883564f647b2813d57c7cd60b66c/1/0/0/P0_162_52.zcrp",
-    });
+      await this.fitting.drapingUsingZcrpURL({
+        zcrpURL:
+          "https://files.clo-set.com/public/fitting/5021883564f647b2813d57c7cd60b66c/1/0/0/P0_162_52.zcrp",
+      });
+    };
+
+    const notWorking = async () => {
+      console.log("++ loadResizableAvatar");
+      await this.fitting.loadResizableAvatar({
+        avatarURL:
+          "https://files.clo-set.com/public/fitting/avatar/3/Isla.zrest",
+        sizingURL:
+          "https://files.clo-set.com/public/fitting/avatar/3/Sizing.zip",
+        accURL:
+          "https://files.clo-set.com/public/fitting/avatar/3/Isla.Acc.map",
+      });
+      console.log("-- loadResizableAvatar");
+
+      console.log("++ resizeAvatarWithAcc");
+      await this.fitting.resizeAvatarWithAcc({
+        height: 130,
+        weight: 44,
+        bodyShape: 3,
+      });
+      console.log("-- resizeAvatarWithAcc");
+
+      // await this.fitting.loadGarmentData({
+      //   garmentURL:
+      //     "https://files.clo-set.com/public/fitting/6589407053fb4b88b844f191e3566a4b/1/3/0/garment.zrest",
+      //   samplingURL:
+      //     "https://files.clo-set.com/public/fitting/6589407053fb4b88b844f191e3566a4b/1/3/sampling.json",
+      // });
+
+      // await this.fitting.drapingUsingZcrpURL({
+      //   zcrpURL:
+      //     "https://files.clo-set.com/public/fitting/6589407053fb4b88b844f191e3566a4b/1/3/0/P0_130_44.zcrp",
+      // });
+    };
 
     const test = async () => {
       const samplingConfiguration = await this.fitting.garment.loadSamplingJson(
@@ -290,7 +326,9 @@ export default class ClosetViewer {
         }
       }
     };
-    // TEST
+
+    notWorking();
+    // correctlyWorking();
 
     // test();
     this.updateRenderer(1);

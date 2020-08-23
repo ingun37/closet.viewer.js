@@ -96,11 +96,10 @@ export default class ResizableBody {
       tableSize.waist,
       tableSize.hip
     );
+
     tableSize.chest = changedSize.chest;
     tableSize.waist = changedSize.waist;
     tableSize.hip = changedSize.hip;
-    // console.log(changedSize);
-    // console.log(tableSize);
 
     if (chest < 0) chest = tableSize.chest;
     if (waist < 0) waist = tableSize.waist;
@@ -140,9 +139,6 @@ export default class ResizableBody {
     for (let i = 0; i < this.mBaseVertex.length; ++i) {
       returnVertex[i] = new THREE.Vector3();
     }
-
-    // console.warn(this.mBaseVertex);
-    // console.warn(returnVertex);
 
     for (let i = 0; i < this.mBaseVertex.length; i++) {
       returnVertex[i].copy(this.mBaseVertex[i]);
@@ -305,6 +301,7 @@ export default class ResizableBody {
       console.error(
         "ERROR: No data found. height: " + height + ", weight: " + weight
       );
+      console.log(this.mHeightWeightTo5SizesMap);
       return;
     }
     // const arrSize = this.mHeightWeightTo5SizesMap

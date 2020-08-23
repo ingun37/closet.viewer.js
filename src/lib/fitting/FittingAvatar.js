@@ -102,6 +102,8 @@ export default class FittingAvatar {
     // TODO: CHECK THIS OUT
     // console.warn(computed);
     const v = [];
+
+    console.log(computed);
     computed.forEach((vector) => {
       if (!vector.x || !vector.y || !vector.z) {
         console.warn(vector);

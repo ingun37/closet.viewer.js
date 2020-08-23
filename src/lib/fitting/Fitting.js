@@ -112,6 +112,11 @@ export default class Fitting {
     armLength = -1,
     legLength = -1,
   }) {
+    console.log({
+      height,
+      weight,
+      bodyShape,
+    });
     await this.resizeAvatar({
       height,
       weight,
@@ -122,7 +127,7 @@ export default class Fitting {
       armLength,
       legLength,
     });
-    await this.resizeAccessory();
+    // await this.resizeAccessory();
   }
 
   async resizeAvatar({
