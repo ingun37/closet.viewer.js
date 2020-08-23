@@ -28,7 +28,10 @@ export default class FittingSkinControllerManager {
 
       // console.log("\t\t" + partName + " =+ " + vertex.length / 3);
       // const vertex = matMesh.userData.originalPos;
-      combinedVertex.push(...vertex);
+      // console.log(vertex);
+
+      vertex.forEach((v) => combinedVertex.push(v));
+      // combinedVertex.push(...vertex);
     });
 
     return combinedVertex;
@@ -48,25 +51,18 @@ export default class FittingSkinControllerManager {
 
   putVertexOnMatMeshByPartName = (partName, partRenderPos) => {
     // prettier-ignore
-    // const initWorldMatrix = new THREE.Matrix4().set(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-    // console.warn(initWorldMatrix);
     const combinedVertex = this.getVertexOnMatMeshByPartName(partName);
     if (partRenderPos.length != combinedVertex.length) {
       console.warn("FAILED: " + partName);
+      console.log(partRenderPos);
+      console.log(combinedVertex);
       return;
     }
-    // console.log(vertex);
-    // console.log(combinedVertex);
-    // console.log(this.mapSCMatMeshID.get(partName));
 
     let lastIndex = 0;
     const retListMatMesh = [];
     this.mapSCMatMeshID.get(partName).forEach((matMeshId) => {
       const matMesh = this.mapMatMesh.get(matMeshId);
-      // matMesh.matrixAutoUpdate = false;
-      // matMesh.matrixWorld.copy(initWorldMatrix);
-      // matMesh.matrixWorldNeedsUpdate = true;
-      // console.log(matMesh);
       retListMatMesh.push(matMesh);
 
       const vertexArr = matMesh.geometry.attributes.position.array;
