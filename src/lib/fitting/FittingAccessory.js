@@ -58,7 +58,19 @@ export default class FittingAccessory {
 
   clear(object3D) {
     if (!object3D) return;
+
+    // Clear every children on fitting accessory container
     object3D.children.forEach((child) => (child = null));
+
+    // TODO: Please improve this code later
+    // NOTE: Prevent duplicated object3D on 'fittingContainter'
+    const parent = object3D.parent;
+    for (let i = 0; i < parent.children.length; ++i) {
+      if (parent.children[i].name === "fittingAccessoryContainer") {
+        parent.children.splice(i, 1);
+        i--;
+      }
+    }
   }
 
   resize() {
@@ -152,19 +164,10 @@ export default class FittingAccessory {
         console.log(id);
         const mesh = this.parseSkinControllerUsingABG(sc);
 
-        // TODO: FIX THIS
         if (mesh) {
-          // console.log(mesh);
-          // this.scManager.putVertexOnMatMeshByPartName(
-          //   id,
-          //   v
-          // mesh.userData.originalPos
-          //mesh.geometry.attributes.position.array
-          // );
           mapSkinMesh.set(id, mesh);
         }
       }
-      // else console.warn(id);
     }
     // console.warn(this.mapSkinMesh);
     return mapSkinMesh;
