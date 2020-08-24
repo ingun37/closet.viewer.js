@@ -147,11 +147,6 @@ export default class FittingAccessory {
     for (const entries of mapSkinController) {
       const id = entries[0];
       const sc = entries[1];
-      // const mapMesh = entries[1].get("mapMesh");
-      // const mesh = this.buildMeshUsingMapMesh(mapMesh);
-      // this.mapSkinMesh.set(id, mesh);
-      // this.mapSkinMesh.set(id, mapMesh);
-      // console.log(this.buildMeshUsingMapMesh(mapMesh));
 
       if (id !== "body" && id !== "body_Shape") {
         console.log(id);

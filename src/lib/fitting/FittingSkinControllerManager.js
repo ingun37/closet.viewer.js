@@ -30,6 +30,7 @@ export default class FittingSkinControllerManager {
       // const vertex = matMesh.userData.originalPos;
       // console.log(vertex);
 
+      // console.log(partName + ": " + vertex.length);
       vertex.forEach((v) => combinedVertex.push(v));
       // combinedVertex.push(...vertex);
     });
@@ -37,25 +38,27 @@ export default class FittingSkinControllerManager {
     return combinedVertex;
   };
 
-  getInvMatrixWorld = (partName) => {
-    const matMeshId = this.mapSCMatMeshID.get(partName)[0];
-    const matMesh = this.mapMatMesh.get(matMeshId);
-    const matrixWorld = matMesh.matrixWorld;
-    // console.log(matrixWorld);
-    // const invMatrixWorld = new THREE.Matrix4().getInverse(matrixWorld);
-    // console.log(invMatrixWorld);
+  // getInvMatrixWorld = (partName) => {
+  //   const matMeshId = this.mapSCMatMeshID.get(partName)[0];
+  //   const matMesh = this.mapMatMesh.get(matMeshId);
+  //   const matrixWorld = matMesh.matrixWorld;
+  //   // console.log(matrixWorld);
+  //   // const invMatrixWorld = new THREE.Matrix4().getInverse(matrixWorld);
+  //   // console.log(invMatrixWorld);
 
-    // return invMatrixWorld;
-    return matrixWorld;
-  };
+  //   // return invMatrixWorld;
+  //   return matrixWorld;
+  // };
 
   putVertexOnMatMeshByPartName = (partName, partRenderPos) => {
     // prettier-ignore
     const combinedVertex = this.getVertexOnMatMeshByPartName(partName);
+    console.log(partRenderPos.length + " ===== " + combinedVertex.length);
     if (partRenderPos.length != combinedVertex.length) {
       console.warn("FAILED: " + partName);
-      console.log(partRenderPos);
-      console.log(combinedVertex);
+      // console.log(partRenderPos.length + " != " + combinedVertex.length);
+      // console.log(partRenderPos);
+      // console.log(combinedVertex);
       return;
     }
 
@@ -72,6 +75,7 @@ export default class FittingSkinControllerManager {
       const slicedVertexArr = new Float32Array(
         partRenderPos.slice(lastIndex, lastIndex + vertexSize)
       );
+
       // TODO: Find better way
       for (let j = 0; j < vertexArr.length; ++j) {
         vertexArr[j] = slicedVertexArr[j];
@@ -93,6 +97,4 @@ export default class FittingSkinControllerManager {
     }
     return true;
   };
-
-  // getMesh(matMeshID) {}
 }

@@ -164,8 +164,8 @@ export default class FittingAvatar {
 
   setAvatarInfo(listSkinController) {
     const bodySkinController = this.findBodySkinController(listSkinController);
-    // console.log("bodySkin is");
-    // console.log(bodySkinController);
+    console.log("bodySkin is");
+    console.log(bodySkinController);
     this.bodySkinController = bodySkinController;
 
     const mapMesh = bodySkinController.get("mapMesh");
@@ -177,10 +177,8 @@ export default class FittingAvatar {
     // TODO: Set this function correctly
     // this.garment.setBody(this.bodyVertexPos, this.bodyVertexIndex);
 
-    //this.accessory.init
-
     // NOTE: For test only
-    // this.buildMeshUsingMapMesh(mapMesh);
+    // this.avatar.buildMeshUsingMapMesh(mapMesh);
   }
 
   // TODO: Refactor this module

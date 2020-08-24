@@ -134,6 +134,7 @@ export default class ResizableBody {
   };
 
   computeResizingWithFeatureValues = (featureValues) => {
+    console.log("mBaseVertex.length: " + this.mBaseVertex.length);
     const returnVertex = new Array(this.mBaseVertex.length);
 
     for (let i = 0; i < this.mBaseVertex.length; ++i) {

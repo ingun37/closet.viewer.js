@@ -251,7 +251,7 @@ export default class ClosetViewer {
       console.log("++ resizeAvatarWithAcc");
       await this.fitting.resizeAvatarWithAcc({
         height: 130,
-        weight: 44,
+        weight: 20,
         bodyShape: 3,
       });
       console.log("-- resizeAvatarWithAcc");
@@ -716,58 +716,6 @@ export default class ClosetViewer {
     }
     return false;
   }
-
-  // async loadZrestForFitting({
-  //   url: url,
-  //   funcOnProgress: onProgress,
-  //   funcOnLoad: onLoad,
-  //   isAvatar: isAvatar = false,
-  // }) {
-  //   const scene = this.scene;
-
-  //   const progress = function (xhr) {
-  //     if (xhr.lengthComputable) {
-  //       const percentComplete = (xhr.loaded / xhr.total) * 100;
-  //       const percent = Math.round(percentComplete, 2);
-  //       if (onProgress) onProgress(percent);
-  //     }
-  //   };
-
-  //   const error = function (xhr) {};
-
-  //   // const loaded = () => {};
-  //   const loaded = async (object, loadedCamera, data) => {
-  //     if (isAvatar) this.zrest.addToScene(object, "fittingAvatar");
-  //     else this.zrest.addToScene(object, "fittingGarment");
-  //     // this.addToScene(object);
-
-  //     if (onLoad) onLoad(this);
-
-  //     this.zrest.zoomToObjects(loadedCamera, this.scene);
-  //     if (!isAvatar) this.updateRenderer();
-  //     // else this.setAllAvatarVisible(false);
-  //     // this.updateRenderer();
-
-  //     return scene;
-  //   };
-
-  //   if (this.zrest !== undefined) {
-  //     this.zrest.clearMaps();
-  //     this.zrest = null;
-  //   }
-
-  //   this.zrest = new ZRestLoader({
-  //     scene: this.scene,
-  //     camera: this.camera,
-  //     controls: this.controls,
-  //     cameraPosition: this.cameraPosition,
-  //   });
-
-  //   const dataArr = await this.zrest.loadOnly(url, progress);
-  //   await this.zrest.parseAsync(dataArr, loaded);
-
-  //   return this.zrest;
-  // }
 
   loadSeparatedZrest = async (zrestJSON, onProgress, colorwayIndex) => {
     const rest = zrestJSON.rest;
