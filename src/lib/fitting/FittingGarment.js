@@ -6,17 +6,28 @@ import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
 import { readMap, readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 import { getGarmentFileName } from "@/lib/clo/utils/UtilFunctions";
 import { computeBarycentric } from "./FittingBarycentricCoord";
+import FittingTrims from "./FittingTrims";
 
 export default class FittingGarment {
   constructor() {
     this.listBarycentricCoord = [];
     // this.samplingJSON = null;
     FittingGarment.prototype.samplingJSON = null;
+
+    // TODO: Consider getting the address, not the value.
     this.bodyVertexIndex = [];
     this.bodyVertexPos = [];
   }
 
-  setBody(bodyVertexPos, bodyVertexIndex) {
+  // TODO: rootMap is huge. Find out better way.
+  init({bodyVertexPos, bodyVertexIndex, zrest}) {
+    //mapBarycentricPrintTexture
+    console.log({bodyVertexPos, bodyVertexIndex, zrest})
+    this.setBody(bodyVertexPos, bodyVertexIndex);
+    this.trims = new FittingTrims(zrest);
+  }
+
+  setBody = (bodyVertexPos, bodyVertexIndex) => {
     this.bodyVertexPos = bodyVertexPos;
     this.bodyVertexIndex = bodyVertexIndex;
   }
@@ -39,10 +50,8 @@ export default class FittingGarment {
       return filenameWithoutToken;
     };
 
-    console.log(url);
     const loadedData = await loadFile(url);
     if (!loadedData) return;
-    console.log(loadedData);
 
     const crpFilename = getFilename(url).replace(".zcrp", ".crp");
     const unzippedData = await unZip(loadedData, crpFilename);
@@ -79,7 +88,6 @@ export default class FittingGarment {
   }
 
   draping({ listBarycentricCoord, mapMatMesh }) {
-    console.log({ listBarycentricCoord, mapMatMesh });
     if (!listBarycentricCoord) {
       console.warn("Build barycentric coordinate failed.");
       return;

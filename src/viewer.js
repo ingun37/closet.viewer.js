@@ -327,10 +327,44 @@ export default class ClosetViewer {
       }
     };
 
-    notWorking();
-    // correctlyWorking();
+    const trims = async () => {
+      console.log("++ loadResizableAvatar");
+      await this.fitting.loadResizableAvatar({
+        avatarURL:
+          "https://files.clo-set.com/public/fitting/avatar/0/Thomas.zrest",
+        sizingURL:
+          "https://files.clo-set.com/public/fitting/avatar/0/Sizing.zip",
+        accURL:
+          "https://files.clo-set.com/public/fitting/avatar/0/Thomas.Acc.map",
+      });
+      console.log("-- loadResizableAvatar");
 
+      console.log("++ resizeAvatarWithAcc");
+      await this.fitting.resizeAvatarWithAcc({
+        height: 177,
+        weight: 83,
+        bodyShape: 0,
+      });
+      console.log("-- resizeAvatarWithAcc");
+
+      await this.fitting.loadGarmentData({
+        garmentURL:
+          "./trims/garment.zrest",
+        samplingURL:
+          "https://files.clo-set.com/public/fitting/5021883564f647b2813d57c7cd60b66c/1/0/sampling.json",
+      });
+
+      await this.fitting.drapingUsingZcrpURL({
+        zcrpURL:
+          "./trims/P0_177_83.zcrp",
+      });
+    };
+
+    // notWorking();
+    // correctlyWorking();
     // test();
+
+    trims();
     this.updateRenderer(1);
   }
 

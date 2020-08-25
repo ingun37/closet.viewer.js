@@ -2,7 +2,7 @@ import * as THREE from "@/lib/threejs/three";
 import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 import FittingGarment from "./FittingGarment";
 import FittingAvatar from "./FittingAvatar";
-import ResizableBody from "./FittingResizableBody";
+// import ResizableBody from "./FittingResizableBody";
 import { loadZrestForFitting, processAvatarSizingFile } from "./FittingIO";
 import { computeBarycentric } from "./FittingBarycentricCoord";
 import FittingSkinControllerManager from "./FittingSkinControllerManager";
@@ -52,18 +52,7 @@ export default class Fitting {
         mapMatMesh,
       });
     };
-    // this.loadDrapingData = ({ rootPath, height, weight }) => {
-    //   const mapMatMesh = this.zrest.matMeshMap;
-    //   console.log(mapMatMesh);
-    //   return this.garment.loadDrapingData({
-    //     rootPath,
-    //     height,
-    //     weight,
-    //     mapMatMesh: mapMatMesh,
-    //   });
-    // };
     this.loadDrapingDataFromURL = this.garment.loadDrapingDataFromURL;
-    // this.draping = this.garment.draping;
   }
 
   async loadResizableAvatar({ avatarURL, sizingURL, accURL }) {
@@ -112,11 +101,11 @@ export default class Fitting {
     armLength = -1,
     legLength = -1,
   }) {
-    console.log({
-      height,
-      weight,
-      bodyShape,
-    });
+    // console.log({
+    //   height,
+    //   weight,
+    //   bodyShape,
+    // });
     await this.resizeAvatar({
       height,
       weight,
@@ -162,10 +151,18 @@ export default class Fitting {
     console.log("+ loadGarment");
     await this.loadGarment({ url: garmentURL, onProgress: null, onLoad: null });
     console.log("- loadGarment");
-    this.garment.setBody(
-      this.avatar.bodyVertexPos,
-      this.avatar.bodyVertexIndex
-    );
+
+    this.garment.init({
+      bodyVertexIndex: this.avatar.bodyVertexIndex,
+      bodyVertexPos: this.avatar.bodyVertexPos,
+      zrest: this.zrest,
+      // rootMap: this.zrest.zProperty.rootMap,
+    });
+
+    // this.garment.setBody(
+    //   this.avatar.bodyVertexPos,
+    //   this.avatar.bodyVertexIndex
+    // );
     // console.log(this.avatar.bodyVertexPos, this.avatar.bodyVertexIndex);
     //this.avatar.get
     console.log("+ loadSamplingJson");
@@ -173,14 +170,6 @@ export default class Fitting {
       jsonURL: samplingURL,
     });
     console.log("- loadSamplingJson");
-    // await loadZrestForFitting({
-    //   url: garmentURL,
-    //   //   // url:
-    //   //   //   "https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/0/garment.zrest",
-    //   //   // funcOnProgress: onProgress,
-    //   funcOnLoad: null,
-    //   isAvatar: false,
-    // });
   }
 
   async loadGarment({ url, onProgress, onLoad }) {
