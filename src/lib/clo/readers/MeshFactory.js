@@ -47,13 +47,13 @@ export default class MeshFactory {
 
   buildRest = (rootMap, loadedCamera) => {
     const parseMapColorWay = () => {
-      const mapColorways = rootMap.get("mapColorWay");
-      if (mapColorways !== undefined) {
+      const mapColorway = rootMap.get("mapColorWay");
+      if (mapColorway !== undefined) {
         // NOTE: CLO SW에서 선택한 기본 colorIndex(로 예상됨)
-        this.zProperty.colorwayIndex = mapColorways.get(
+        this.zProperty.colorwayIndex = mapColorway.get(
           "uiCurrentCoordinationIndex"
         );
-        this.colorwaySize = mapColorways.get("listColorway").length;
+        this.colorwaySize = mapColorway.get("listColorway").length;
         this.zProperty.colorwaySize = this.colorwaySize;
       }
     };
@@ -61,8 +61,11 @@ export default class MeshFactory {
     const parseListMaterial = () => {
       if (zrestVersion < 4) return;
 
+      // NOTE: parseListMaterial function must only be called once per file load.
+      // Clear list; 
+      this.materialList = [];
+
       const listMaterial = rootMap.get("listMaterial");
-      this.zProperty.materialList = listMaterial;
       if (listMaterial === undefined) {
         console.error("listMaterial missing.");
         return;
@@ -72,7 +75,6 @@ export default class MeshFactory {
         const material = this.setMaterial(listMaterial[j]);
         this.materialList.push(material);
       }
-
       console.log("parseListMaterial done");
     };
 
@@ -87,7 +89,6 @@ export default class MeshFactory {
 
       for (let i = 0; i < listMatMesh.length; ++i) {
         const matMesh = this.setMatMesh(listMatMesh[i]);
-        // console.log(matMesh);
 
         if (zrestVersion > 4) {
           const renderFace = listMatMesh[i].get("enRenderFace");
