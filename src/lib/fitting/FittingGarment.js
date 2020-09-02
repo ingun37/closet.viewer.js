@@ -6,7 +6,7 @@ import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
 import { readMap, readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 import { getGarmentFileName } from "@/lib/clo/utils/UtilFunctions";
 import { computeBarycentric } from "./FittingBarycentricCoord";
-import FittingTrims from "./FittingTrims";
+import FittingSupplements from "./supplements/FittingSupplements";
 
 export default class FittingGarment {
   constructor() {
@@ -24,7 +24,7 @@ export default class FittingGarment {
     //mapBarycentricPrintTexture
     console.log({bodyVertexPos, bodyVertexIndex, zrest})
     this.setBody(bodyVertexPos, bodyVertexIndex);
-    this.trims = new FittingTrims(zrest);
+    this.supplements = new FittingSupplements(zrest);
   }
 
   setBody = (bodyVertexPos, bodyVertexIndex) => {
@@ -124,10 +124,6 @@ export default class FittingGarment {
         const uv = matMesh.userData.originalUv;
         const uv2 = uv;
 
-        // console.log(index);
-        // console.log(uv);
-        // console.log(uv2);
-
         const calculatedCoord = computeBarycentric({
           listABG: listABG,
           listTriangleIndex: listTriangleIndex,
@@ -158,7 +154,14 @@ export default class FittingGarment {
         );
 
         matMesh.geometry = bufferGeometry;
+        matMesh.material.needsUpdate = true;
       });
     });
   }
+
+  async resizingSupplement(supplementsURL, mapMatMesh) {
+    // TODO: Rename this module after testing
+    await this.supplements.test(supplementsURL, mapMatMesh);
+  }
+
 }

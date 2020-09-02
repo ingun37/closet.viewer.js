@@ -53,12 +53,9 @@ export default class FittingSkinControllerManager {
   putVertexOnMatMeshByPartName = (partName, partRenderPos) => {
     // prettier-ignore
     const combinedVertex = this.getVertexOnMatMeshByPartName(partName);
-    console.log(partRenderPos.length + " ===== " + combinedVertex.length);
     if (partRenderPos.length != combinedVertex.length) {
       console.warn("FAILED: " + partName);
-      // console.log(partRenderPos.length + " != " + combinedVertex.length);
-      // console.log(partRenderPos);
-      // console.log(combinedVertex);
+      console.log(partRenderPos.length + " != " + combinedVertex.length);
       return;
     }
 

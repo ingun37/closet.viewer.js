@@ -2,7 +2,7 @@ import * as THREE from "@/lib/threejs/three";
 import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 import FittingSkinControllerManager from "@/lib/fitting/FittingSkinControllerManager";
 import ResizableBody from "@/lib/fitting/FittingResizableBody";
-import Accessory from "@/lib/fitting/FittingAccessory";
+// import Accessory from "@/lib/fitting/FittingAccessory";
 import FittingAccessory from "@/lib/fitting/FittingAccessory";
 
 export default class FittingAvatar {
@@ -18,11 +18,8 @@ export default class FittingAvatar {
     // this.mapSkinController = new Map();
 
     this.avatarContainer = null;
-    // this.accessoryContainer = null;
 
     this.accessory = null;
-
-    // this.scManager = new FittingSkinControllerManager(this.zrest);
     this.resizableBody = null;
     this.scManager = null;
 
@@ -99,11 +96,10 @@ export default class FittingAvatar {
       legLength
     );
 
-    // TODO: CHECK THIS OUT
-    // console.warn(computed);
-    const v = [];
+    // console.log(computed);
 
-    console.log(computed);
+    // TODO: CHECK THIS OUT
+    const v = [];
     computed.forEach((vector) => {
       if (!vector.x || !vector.y || !vector.z) {
         console.warn(vector);
@@ -208,6 +204,7 @@ export default class FittingAvatar {
   }
 
   findBodySkinController(listSkinController) {
+    // NOTE: Assumed that the largest skin controller is the body controller (according to the CLO S/W algorithm).
     let largestSC = null;
     let largestLength = 0;
     listSkinController.forEach((sc) => {

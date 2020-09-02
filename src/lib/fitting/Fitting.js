@@ -18,19 +18,18 @@ export default class Fitting {
 
     // this.mapTriangleIdx = new Map();
 
-    this.listPositions = [];
-    this.listAvatarMesh = [];
-    this.listAvatarMeshIdx = [];
-    this.bodySkinController = null;
-    this.bodyVertexIndex = [];
-    this.bodyVertexPos = [];
+    // this.listPositions = [];
+    // this.listAvatarMesh = [];
+    // this.listAvatarMeshIdx = [];
+    // this.bodySkinController = null;
+    // this.bodyVertexIndex = [];
+    // this.bodyVertexPos = [];
 
     this.processAvatarSizingFile = processAvatarSizingFile;
     this.getSizes = () => {
       return null;
     };
 
-    this.resizableBody = null;
     this.avatarId = 0;
     this.avatarSkinType = 0;
 
@@ -190,5 +189,10 @@ export default class Fitting {
     const listBarycentricCoord = this.garment.listBarycentricCoord;
     const mapMatMesh = this.zrest.matMeshMap;
     this.garment.draping({ listBarycentricCoord, mapMatMesh });
+  }
+
+  async resizingSupplementsUsingURL(supplementsURL) {
+    const mapMatMesh = this.zrest.matMeshMap;
+    await this.garment.resizingSupplement(supplementsURL, mapMatMesh);
   }
 }

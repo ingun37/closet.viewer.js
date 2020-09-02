@@ -12,9 +12,9 @@ export function computeBarycentric({
     const triIndex = listTriangleIndex[i];
 
     const abg = new THREE.Vector3();
-    abg.x = listABG[i * 3];
-    abg.y = listABG[i * 3 + 1];
-    abg.z = listABG[i * 3 + 2];
+    abg.x = listABG[i * 3]; // alpha
+    abg.y = listABG[i * 3 + 1]; // beta
+    abg.z = listABG[i * 3 + 2]; // gamma
 
     // FIXME: Check this out
     if (1) {
