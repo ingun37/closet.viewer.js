@@ -146,82 +146,84 @@
       </div>
 
       <div class="ui styled accordion" style="width: 90%;">
-          <div class="title">
-            <i class="dropdown icon"></i>
-            DEBUG CONSOLE
-          </div>
-          <div class="content">
-              <button type="button" onclick="test()" data-on="false" id="test" class="ui button">Launch test code</button>
-            <div class="accordion">
-              <div class="title">
-                <i class="dropdown icon"></i>
-                Tech pack
-              </div>
-              <div class="content">
-                <p class="transition hidden">
-                  <button type="button" onclick="loadTechPack()" data-on="false" id="loadTechPackMarker" class="ui button">Load TechPackMarker</button>
-                  <button type="button" onclick="loadStyleLine()" data-on="false" id="loadStyleLine" class="ui button">Load StyleLine</button>
-                  <h4 class="ui header">Insert output.json URL</h4>
-                  <div class="ui action input">
-                    <input style="width: 350px;" id="jsonURL" type="text" placeholder="output.json URL ...">
-                    <button onclick="loadOutputJson()" class="ui button">Load</button>
-                  </div>
-                </p>
-              </div>
-
-              <div class="title">
-                  <i class="dropdown icon"></i>
-                  Patterns
-              </div>
-              <div class="content">
-                <p class="transition hidden">
-                  <button type="button" onclick="loadPatterns()" data-on="false" class="ui button">Load patterns</button>
-                  <button type="button" onclick="loadFabrics()" data-on="false" class="ui button">Load fabrics</button>
- 
-                  <div class="accordion">
-                    <div class="title">
-                        <i class="dropdown icon"></i>
-                        Pattern
-                    </div>
-                    <div class="content">
-                      <p class="transition hidden" id="patternIdx">
-                    </div>
-
-                    <div class="title">
-                        <i class="dropdown icon"></i>
-                        Fabric
-                    </div>
-                    <div class="content">
-                      <p class="transition hidden" id="fabricIdx">
-                    </div>
-                  </div>
-                </p>
-              </div>
-
-              <div class="title">
-                <i class="dropdown icon"></i>
-                Visibility
-              </div>
-              <div class="content">
-                <p class="transition hidden">
-                  <button type="button" onclick="setVisibleAllGarment()" data-on="false" id="setGarment"
-                    class="ui button">Garment Visible
-                  </button>
-                  <button type="button" onclick="setVisibleAllAvatar()" data-on="false" id="setAvatar"
-                    class="ui button">Avatar Visible
-                  </button>
-                  <button type="button" onclick="setVisibleAnnotation()" data-on="false" id="setAnnotation"
-                    class="ui button">Annotation Visible
-                  </button>
-                  <button type="button" onclick="setVisibleTechPackMarkers()" data-on="false" id="setTechPackMarker"
-                    class="ui button">TechPackMarker Visible
-                  </button>
-                </p>
-              </div>
-                    
+        <div class="title">
+          <i class="dropdown icon"></i>
+          DEBUG CONSOLE
+        </div>
+        <div class="content">
+          <button type="button" onclick="test()" data-on="false" id="test" class="ui button">Launch test code</button>
+          <div class="accordion">
+            <div class="title">
+              <i class="dropdown icon"></i>
+              Tech pack
             </div>
+            <div class="content">
+              <p class="transition hidden">
+                <button type="button" onclick="loadTechPack()" data-on="false" id="loadTechPackMarker"
+                  class="ui button">Load TechPackMarker</button>
+                <button type="button" onclick="loadStyleLine()" data-on="false" id="loadStyleLine"
+                  class="ui button">Load StyleLine</button>
+              <h4 class="ui header">Insert output.json URL</h4>
+              <div class="ui action input">
+                <input style="width: 350px;" id="jsonURL" type="text" placeholder="output.json URL ...">
+                <button onclick="loadOutputJson()" class="ui button">Load</button>
+              </div>
+              </p>
+            </div>
+
+            <div class="title">
+              <i class="dropdown icon"></i>
+              Patterns
+            </div>
+            <div class="content">
+              <p class="transition hidden">
+                <button type="button" onclick="loadMatMesh()" data-on="false" class="ui button">Load matMeshes</button>
+                <button type="button" onclick="loadFabrics()" data-on="false" class="ui button">Load fabrics</button>
+
+              <div class="accordion">
+                <div class="title">
+                  <i class="dropdown icon"></i>
+                  MatMesh
+                </div>
+                <div class="content">
+                  <p class="transition hidden" id="matMeshID">
+                </div>
+
+                <div class="title">
+                  <i class="dropdown icon"></i>
+                  Fabric
+                </div>
+                <div class="content">
+                  <p class="transition hidden" id="fabricIdx">
+                </div>
+              </div>
+              </p>
+            </div>
+
+            <div class="title">
+              <i class="dropdown icon"></i>
+              Visibility
+            </div>
+            <div class="content">
+              <p class="transition hidden">
+                <button type="button" onclick="setVisibleAllGarment()" data-on="false" id="setGarment"
+                  class="ui button">Garment Visible
+                </button>
+                <button type="button" onclick="setVisibleAllAvatar()" data-on="false" id="setAvatar"
+                  class="ui button">Avatar Visible
+                </button>
+                <button type="button" onclick="setVisibleAnnotation()" data-on="false" id="setAnnotation"
+                  class="ui button">Annotation Visible
+                </button>
+                <button type="button" onclick="setVisibleTechPackMarkers()" data-on="false" id="setTechPackMarker"
+                  class="ui button">TechPackMarker Visible
+                </button>
+              </p>
+            </div>
+
           </div>
         </div>
+      </div>
 
       <div class="ui grid" style="min-height: 500px;">
         <div class="field">
@@ -520,17 +522,14 @@
     function printButtons(array, elementId, funcName) {
       document.getElementById(elementId).innerHTML = "";
       for (let i = 0; i < array.length; ++i) {
-        document.getElementById(elementId).innerHTML += "<button type='button' onclick='" + funcName + "(" + i + ")' class='mini ui button'>" + i + "</button>";
+        document.getElementById(elementId).innerHTML += "<button type='button' onclick='" + funcName + "(" + array[i] + ")' class='mini ui button'>" + array[i] + "</button>";
       }
     }
 
-    let patternList = [];
-    function loadPatterns() {
-      if (closet.viewer.techPack && closet.viewer.zrest) {
-        patternList = closet.viewer.techPack.extractPatternListFromMatMeshList(closet.viewer.zrest.matMeshList);
-      }
-
-      printButtons(patternList, 'patternIdx', 'setPatternVisible');
+    let matMeshMap = new Map;
+    function loadMatMesh() {
+      matMeshMap = closet.viewer.zrest.matMeshMap;
+      printButtons([...matMeshMap.keys()], 'matMeshID', 'setMatMeshVisible');
     }
 
     function loadFabrics() {
@@ -545,16 +544,8 @@
       printButtons(jsonTrimList, 'trimIdx', 'setTrimVisible');
     }
 
-    function setPatternVisible(patternIdx, subIdx) {
-      if (patternIdx < 0 || patternIdx > patternList.length) return;
-
-      if (subIdx !== undefined && subIdx >= 0 && subIdx < 3) {
-        patternList[patternIdx][subIdx].visible = !patternList[patternIdx][subIdx].visible;
-      } else {
-        for (let i = 0; i < 3; ++i) {
-          patternList[patternIdx][i].visible = !patternList[patternIdx][i].visible;
-        }
-      }
+    function setMatMeshVisible(matMeshID, subIdx) {
+      matMeshMap.get(matMeshID).visible = !matMeshMap.get(matMeshID).visible;
       closet.viewer.updateRenderer();
     }
 
@@ -591,14 +582,15 @@
       // load('./test/trim.zrest');
       // loadOutputJson('./test/trim.json');
       load('./test/polo_set_zpac.zrest');
-      loadOutputJson('./test/polo_set_zpac.json');    }
+      loadOutputJson('./test/polo_set_zpac.json');
+    }
 
     function testTransparentBug() {
       load('shadow.zrest');
-      setTimeout(function() {
+      setTimeout(function () {
         closet.viewer.loadTechPack();
       }, 2000);
-      setTimeout(function() {
+      setTimeout(function () {
         closet.viewer.setAllPatternVisible(false);
         closet.viewer.setPatternVisible(6, true);
       }, 3000);
