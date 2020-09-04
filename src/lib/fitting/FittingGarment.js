@@ -70,6 +70,11 @@ export default class FittingGarment {
     // return this.draping({ listBarycentricCoord, mapMatMesh });
   }
 
+
+  getGarmentFileName = ({ height, weight}) => {
+    return getGarmentFileName(height, weight, this.samplingJSON);
+  }
+
   async loadDrapingData({ rootPath, height, weight, mapMatMesh }) {
     const zcrpName = getGarmentFileName(height, weight, this.samplingJSON);
     // const zcrpURL = rootPath + `P0_${height}_${weight}.zcrp`;

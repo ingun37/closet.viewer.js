@@ -37,6 +37,7 @@ export default class Fitting {
     this.avatar = null;
 
     this.garment = new FittingGarment();
+    this.getZcrpFilename = this.garment.getGarmentFileName;
     this.loadZcrp = this.garment.loadZcrp;
     this.loadDrapingSamplingJSON = ({
       rootPath,
