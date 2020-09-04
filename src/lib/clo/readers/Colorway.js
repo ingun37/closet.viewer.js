@@ -18,7 +18,7 @@ export default class Colorway {
     if (this.zProperty.bDisassembled) {
       await this.changeColorwayForSeparatedZRest();
     } else {
-      await this.changeColorwayForUnitedZRest({ jsZip: jsZip });
+      await this.changeColorwayForUnifiedZRest({ jsZip: jsZip });
     }
     return true;
   };
@@ -36,9 +36,9 @@ export default class Colorway {
       return false;
     }
 
-    const isUnitedZRest = !this.zProperty.bDisassembled;
+    const isUnifiedZRest = !this.zProperty.bDisassembled;
     const hasJSZip = jsZip !== undefined && jsZip !== null;
-    if (isUnitedZRest && !hasJSZip) {
+    if (isUnifiedZRest && !hasJSZip) {
       console.warn("jsZip missing");
       return false;
     }
@@ -46,8 +46,8 @@ export default class Colorway {
     return true;
   };
 
-  changeColorwayForUnitedZRest = async ({ jsZip: jsZip }) => {
-    this.clear();
+  changeColorwayForUnifiedZRest = async ({ jsZip: jsZip }) => {
+    this.clear(); // TODO: Not sure this function should be called
 
     const matMeshMap = this.zProperty.matMeshMap;
     for (const matMesh of matMeshMap.values()) {
@@ -64,7 +64,7 @@ export default class Colorway {
 
   changeColorwayForSeparatedZRest = async () => {
     const materialInformationMap = this.matInfoMap;
-    console.log(materialInformationMap);
+    // console.warn(materialInformationMap);
 
     for (const entries of this.zProperty.matMeshMap.entries()) {
       const matMeshId = entries[0];

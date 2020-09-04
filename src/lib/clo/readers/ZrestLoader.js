@@ -94,7 +94,7 @@ export default class ZRestLoader {
     this.colorway = new Colorway({
       zProperty: this.zProperty,
       matInfoMap: this.materialInformationMap,
-      clearFunc: this.clear,
+      clearFunc: this.clearMaps,
     });
 
     this.wireframe = new Wireframe(this.matMeshMap);
@@ -200,6 +200,7 @@ export default class ZRestLoader {
     // this.zProperty.seamPuckeringNormalMap = null;
     this.zProperty.nameToTextureMap.clear();
     this.listPatternMeasure = [];
+    // this.materialInformationMap.clear();
   };
 
   loadOnly = (url, onProgress) => {
