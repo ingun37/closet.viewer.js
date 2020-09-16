@@ -1,6 +1,6 @@
 /* eslint-disable require-jsdoc */
 import * as THREE from "@/lib/threejs/three";
-
+import { drawCircleOnContext } from "./";
 function makeTextSprite(
   message,
   {
@@ -49,7 +49,7 @@ function makeTextSprite(
 
   context.lineWidth = borderThickness;
 
-  circle(
+  drawCircleOnContext(
     context,
     canvas.width / 2,
     canvas.height / 2,
@@ -92,12 +92,6 @@ function makeTextSprite(
  *                   Specifies whether the drawing should be counterclockwise or clockwise.
  *                   False is default, and indicates clockwise, while true indicates counter-clockwise.
  */
-function circle(ctx, x, y, r, sAngle, eAngle, counterclockwise) {
-  ctx.beginPath();
-  ctx.arc(x, y, r, sAngle, eAngle, counterclockwise);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-}
+
 
 export { makeTextSprite }; // from makeTextSprite;

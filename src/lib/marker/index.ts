@@ -27,3 +27,15 @@ export class Marker {
         this.cameraQuaternion.copy(_cameraQuaternion)
     }
 }
+
+export function drawCircleOnContext(
+    ctx: CanvasRenderingContext2D,
+    x: number, y: number, r: number,
+    sAngle: number, eAngle: number,
+    counterclockwise: boolean) {
+        ctx.beginPath();
+        ctx.arc(x, y, r, sAngle, eAngle, counterclockwise);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+}
