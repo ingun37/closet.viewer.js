@@ -1,34 +1,6 @@
 /* eslint-disable require-jsdoc */
 import * as THREE from "@/lib/threejs/three";
 
-function Marker(
-  pointerPosition,
-  normal,
-  cameraPosition,
-  cameraTarget,
-  cameraQuaternion,
-  message,
-  sprite
-) {
-  this.pointerPos = new THREE.Vector3();
-  this.pointerPos.copy(pointerPosition);
-
-  this.faceNormal = new THREE.Vector3();
-  this.faceNormal.copy(normal);
-
-  this.cameraPos = new THREE.Vector3();
-  this.cameraPos.copy(cameraPosition);
-
-  this.cameraTarget = new THREE.Vector3();
-  this.cameraTarget.copy(cameraTarget);
-
-  this.cameraQuaternion = new THREE.Quaternion();
-  this.cameraQuaternion.copy(cameraQuaternion);
-
-  this.message = message;
-  this.sprite = sprite;
-}
-
 function makeTextSprite(
   message,
   {
@@ -128,4 +100,4 @@ function circle(ctx, x, y, r, sAngle, eAngle, counterclockwise) {
   ctx.stroke();
 }
 
-export { Marker, makeTextSprite }; // from makeTextSprite;
+export { makeTextSprite }; // from makeTextSprite;
