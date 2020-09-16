@@ -1,6 +1,8 @@
+import * as THREE from "../threejs/three";
+
 class FlashAnnotation {
-  listFlashSprite = [];
-  timerId = null;
+  listFlashSprite:THREE.Object3D[] = [];
+  timerId:NodeJS.Timeout | null = null;
   previousFrameBlinked = false;
   flashFrequency = 500;
   flashDuration = 10000;
@@ -11,16 +13,15 @@ class FlashAnnotation {
   colorOrg = 1;
   colorSelected = 0.5;
 
-  constructor(container, funcUpdateRenderer) {
-    this.container = container;
-    this.updateRenderer = funcUpdateRenderer.bind(this);
+  constructor(
+    public container:THREE.Object3D, 
+    public updateRenderer:()=>void) {
   }
-  set = (listAnnotationName, bFlash = true) => {
+  set = (listAnnotationName:string[], bFlash = true) => {
     if (!bFlash) {
       this.remove(listAnnotationName);
       return;
     }
-
     listAnnotationName.forEach((name) => {
       const sprite = this.getSprite(name);
       if (sprite && this.hasSprite(sprite)) {
@@ -36,12 +37,16 @@ class FlashAnnotation {
     }, this.flashDuration);
   };
 
-  remove = (listAnnotationName) => {
+  remove = (listAnnotationName:string[]) => {
     listAnnotationName.forEach((name) => {
       const sprite = this.getSprite(name);
       this.listFlashSprite
         .filter((item) => item == sprite)
-        .forEach((sprite) => (sprite.material.color.r = this.colorOrg));
+        .forEach((sprite) => {
+          if (sprite instanceof THREE.Sprite) {
+            sprite.material.color.r = this.colorOrg;
+          }
+        });
       this.listFlashSprite = this.listFlashSprite.filter(
         (item) => item !== sprite
       );
@@ -79,17 +84,19 @@ class FlashAnnotation {
     this.previousFrameBlinked = !this.previousFrameBlinked;
   };
 
-  setColor = (r) => {
+  setColor = (r:number) => {
     this.listFlashSprite.forEach((sprite) => {
-      sprite.material.color.r = r;
+      if (sprite instanceof THREE.Sprite) {
+        sprite.material.color.r = r;
+      }
     });
   };
 
-  getSprite = (name) => {
+  getSprite = (name:string) => {
     return this.container.getObjectByName("annotation_" + name);
   };
 
-  hasSprite = (sprite) => {
+  hasSprite = (sprite:THREE.Object3D) => {
     return this.listFlashSprite.indexOf(sprite);
   };
 }
