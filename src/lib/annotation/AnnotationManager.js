@@ -1,7 +1,7 @@
 /* eslint-disable require-jsdoc */
 import * as THREE from "@/lib/threejs/three";
 import { TweenMax } from "gsap/TweenMax";
-import { makeTextSprite } from "@/lib/marker/Marker";
+import { makeTextSprite } from "../marker";
 import { Marker } from "../marker";
 import FlashAnnotation from "./FlashAnnotation";
 

@@ -1,7 +1,6 @@
 /* eslint-disable require-jsdoc */
 import * as THREE from "@/lib/threejs/three";
-import { makeTextSprite } from "@/lib/marker/Marker";
-import { Marker } from "./";
+import { Marker, makeTextSprite } from "./";
 
 const pointerScaleVector = new THREE.Vector3();
 const pointerScaleFactor = 100;
