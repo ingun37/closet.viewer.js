@@ -51,11 +51,11 @@ export function makeTextSprite(
       fillStyle,
       name
     }: {
-        fontface: string,
-        fontsize:number,
-        borderThickness:number,
-        borderColor: { r: number, g: number, b: number, a: number},
-        backgroundColor: { r: number, g: number, b: number, a: number },
+        fontface?: string,
+        fontsize?:number,
+        borderThickness?:number,
+        borderColor?: { r: number, g: number, b: number, a: number},
+        backgroundColor?: { r: number, g: number, b: number, a: number },
         fillStyle:string,
         name:string
     }
@@ -129,3 +129,4 @@ export function makeTextSprite(
     return sprite;
   }
   
+  export {MarkerManager} from "./MarkerManager"

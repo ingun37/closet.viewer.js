@@ -1,15 +1,27 @@
 /* eslint-disable require-jsdoc */
-import * as THREE from "@/lib/threejs/three";
-import { Marker, makeTextSprite } from "./";
+import * as THREE from "../threejs/three";
+import { Marker, makeTextSprite } from "./index";
 
 const pointerScaleVector = new THREE.Vector3();
 const pointerScaleFactor = 100;
 
 // TODO: Index and message are ambiguous and used mixed up. Have to fix.
 
-class MarkerManager {
-  constructor(markerName, { scene, camera, renderer, controls }) {
-    this.markerName = markerName;
+export class MarkerManager {
+  scene:any;
+  camera:any;
+  renderer:any;
+  controls:any;
+  markerMap:Map<number, Marker>;
+  geometryList:THREE.Sprite[];
+  bActivate:boolean;
+  isActivated():boolean {
+      return this.bActivate
+  }
+  container:THREE.Object3D;
+  constructor(
+      public markerName:string,
+      { scene, camera, renderer, controls }:{scene:any, camera:any, renderer:any, controls:any}) {
 
     this.scene = scene;
     this.camera = camera;
@@ -18,22 +30,6 @@ class MarkerManager {
 
     this.markerMap = new Map();
     this.geometryList = []; // Geometry information for three.js
-    this.refreshGeometryList = this.refreshGeometryList.bind(this);
-
-    this.add = this.add.bind(this);
-    this.removeAll = this.removeAll.bind(this);
-
-    this.activate = this.activate.bind(this);
-    this.deactivate = this.deactivate.bind(this);
-
-    this.checkIntersect = this.checkIntersect.bind(this);
-    this.setVisibleByMessage = this.setVisibleByMessage.bind(this);
-
-    this.bActivate = false;
-    this.isActivated = () => {
-      return this.bActivate;
-    };
-
     this.init();
   }
 
@@ -61,7 +57,21 @@ class MarkerManager {
     }
   }
 
-  add(index, { pointerPos, faceNormal, cameraPos, cameraTarget, cameraQuaternion, message }, isVisible = true) {
+  add(index: number,
+    { pointerPos,
+      faceNormal,
+      cameraPos,
+      cameraTarget,
+      cameraQuaternion,
+      message }: {
+        pointerPos: THREE.Vector3,
+        faceNormal: THREE.Vector3,
+        cameraPos: THREE.Vector3,
+        cameraTarget: THREE.Vector3,
+        cameraQuaternion: THREE.Quaternion,
+        message: string
+      }
+    , isVisible = true) {
     // pointer 좌표만 들고있다가 render 할때마다 만드는건 개 비효율이겠지? 그냥 그때 그때 계속 추가하자.
     const params = {
       fontsize: 48,
@@ -86,7 +96,19 @@ class MarkerManager {
     return sprite.id;
   }
 
-  push({ pointerPos, faceNormal, cameraPos, cameraTarget, cameraQuaternion, message }, isVisible = true) {
+  push({ pointerPos,
+    faceNormal,
+    cameraPos,
+    cameraTarget,
+    cameraQuaternion,
+    message }: {
+      pointerPos: THREE.Vector3,
+      faceNormal: THREE.Vector3,
+      cameraPos: THREE.Vector3,
+      cameraTarget: THREE.Vector3,
+      cameraQuaternion: THREE.Quaternion,
+      message: string
+    }, isVisible = true) {
     this.add(
       this.markerMap.size + 1,
       {
@@ -101,14 +123,14 @@ class MarkerManager {
     );
   }
 
-  setVisible(index, bVisible) {
+  setVisible(index:number, bVisible:boolean) {
     const marker = this.markerMap.get(index + 1);
     if (marker) {
       marker.sprite.visible = bVisible;
     }
   }
 
-  setVisibleByMessage(message, bVisible) {
+  setVisibleByMessage(message:string, bVisible:boolean) {
     this.markerMap.forEach(marker => {
       if (marker.message == message) {
         console.log("marker.massage: " + message);
@@ -118,7 +140,7 @@ class MarkerManager {
     });
   }
 
-  setVisibleForAll(bVisible) {
+  setVisibleForAll(bVisible:boolean) {
     this.markerMap.forEach(marker => {
       if (!marker.sprite) {
         return;
@@ -136,7 +158,7 @@ class MarkerManager {
     });
   }
 
-  checkIntersect(mousePosition, raycaster) {
+  checkIntersect(mousePosition:{x:number, y:number}, raycaster:any) {
     if (this.markerMap.size <= 0) {
       return;
     }
@@ -166,5 +188,3 @@ class MarkerManager {
     this.bActivate = false;
   }
 }
-
-export default MarkerManager;

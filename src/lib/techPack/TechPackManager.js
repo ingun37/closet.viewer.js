@@ -3,7 +3,7 @@ import * as THREE from "@/lib/threejs/three";
 // import {Marker, makeTextSprite} from '@/lib/marker/Marker';
 import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
 import { StyleLine } from "@/lib/techPack/StyleLine";
-import MarkerManager from "@/lib/marker/MarkerManager";
+import {MarkerManager} from "../marker";
 import { Measurement } from "./Measurement";
 
 const config = {

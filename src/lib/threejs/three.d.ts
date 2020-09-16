@@ -5,12 +5,37 @@ declare class Vector3 {
     constructor();
     copy(from:Vector3):void;
     set(x:number, y:number, z:number):void;
+    subVectors ( a : Vector3, b : Vector3 ) : this
+    length():number;
+    
+    public get x() : number
+    public get y() : number
+    public get z() : number
+    
 }
 declare class Quaternion {
     constructor();
     copy(from:Quaternion):void;
 }
-declare class Sprite {
+declare class Object3D {
+    public set name(v : string);
+    
+    public get position() : Vector3;
+    
+    public get visible() : boolean;
+    
+    public set visible(v : boolean)
+    
+    constructor();
+    add ( object : Object3D ) : this
+    
+    public get id() : number;
+    
+    public get children() : Object3D[];
+    getObjectByName ( name : String ) : Object3D
+    remove ( object : Object3D ) : this
+}
+declare class Sprite extends Object3D{
     constructor(materiail:SpriteMaterial);
     public get scale() : Vector3;
     
@@ -26,4 +51,5 @@ declare class Texture {
 declare class SpriteMaterial {
     constructor({map, depthTest}:{map:Texture, depthTest:boolean})
 }
-export {Vector3, Quaternion, Sprite, Texture, SpriteMaterial}
+
+export {Vector3, Quaternion, Sprite, Texture, SpriteMaterial, Object3D}
