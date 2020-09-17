@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/clovirtualfashion/closet.viewer.js#readme",
   "dependencies": {
+    "@types/gsap": "^1.20.2",
+    "@types/three": "^0.89.0",
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.5",
     "babel-polyfill": "^6.26.0",
