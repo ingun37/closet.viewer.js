@@ -40,7 +40,6 @@ declare class Sprite extends Object3D{
     public get scale() : Vector3;
     
     public set name(v : string);
-    material : SpriteMaterial;
     
 }
 declare class Texture {
@@ -51,15 +50,6 @@ declare class Texture {
 }
 declare class SpriteMaterial {
     constructor({map, depthTest}:{map:Texture, depthTest:boolean})
-    
-    public get color() : Color;
-    
-}
-declare class Color {
-    public get r() : number
-    
-    public set r(v : number) ;
-    
 }
 
 export {Vector3, Quaternion, Sprite, Texture, SpriteMaterial, Object3D}
