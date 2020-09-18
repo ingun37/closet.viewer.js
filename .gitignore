@@ -3,3 +3,4 @@ node_modules
 /src/lib/threejs/
 dist/
 dist/!index.html
+.DS_Store

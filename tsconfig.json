@@ -11,7 +11,12 @@
     "outDir": "./dist/"
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "graphic-test/**/*"
+    // The actual production-level inclusion is decided by webpack.config.js.
+    // Here, only for development-level inclusion.
+    // production 레벨에서 실제로 포함되는 .ts 파일은 webpack.config.js 에서 결정됨
+    // 여기는 개발할때만 포함되는것들
   ],
   "exclude": [
     "node_modules",
