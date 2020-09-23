@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        #target {
+            width: 512;
+            height: 512;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="target"></div>
+    <script type='text/javascript' src='../../../dist/closet.viewer.js'></script>
+    <script>
+        closet.viewer.init({
+            element: 'target',
+            width: 512,
+            height: 512,
+            stats: true
+        });
+        closet.viewer.loadZrestUrl('https://s3.clo3d.com/zpac/denim.zrest', function(x){}, function(x){
+            var k = document.createElement("div");
+            k.id = "finish";
+            document.body.appendChild(k);
+        })
+
+    </script>
+</body>
