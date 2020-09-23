@@ -6,23 +6,8 @@ function resolve(dir) {
 }
 
 module.exports = {
-  entry: {
-    'main': [
-      'babel-polyfill',
-      './src/index.js',
-    ],
-  },
-  output: {
-    filename: './closet.viewer.js',
-    libraryTarget: 'umd',
-  },
   module: {
     rules: [
-      {
-        test: /\.js$/,
-        loader: 'babel-loader',
-        include: resolve('src'),
-      },
       {
         test: /\.(png|jpg|gif)$/,
         use: [
