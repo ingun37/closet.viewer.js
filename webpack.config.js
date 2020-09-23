@@ -21,8 +21,7 @@ module.exports = {
       {
         test: /\.ts?$/,
         use: 'ts-loader',
-        include: resolve('src'),
-        exclude: [/\.spec\.ts$/]
+        include: resolve('src')
       },
       {
         test: /\.js$/,
