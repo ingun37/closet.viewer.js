@@ -1,4 +1,5 @@
 import { Builder, By, Key, until, WebDriver } from "selenium-webdriver";
+import { Options as ChromeOpt } from "selenium-webdriver/chrome";
 import fs from "fs";
 import URL from "url";
 import PATH from "path"
@@ -10,7 +11,8 @@ const casesPath = PATH.join(__dirname, 'cases')
 describe('graphic', async () => {
     var driver:WebDriver;
     beforeAll(async ()=>{
-        driver = await new Builder().forBrowser('chrome').build();
+        // viewer takes up 512x512. Set bigger than that.
+        driver = await new Builder().forBrowser('chrome').setChromeOptions(new ChromeOpt().headless().windowSize({width: 1024, height: 1024})).build();
     })
     afterAll(async ()=>{
         await driver.quit();
