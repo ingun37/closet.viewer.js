@@ -1,4 +1,4 @@
-import { Builder, By, Key, until } from "selenium-webdriver";
+import { Builder, By, Key, until, WebDriver } from "selenium-webdriver";
 import fs from "fs";
 import URL from "url";
 import PATH from "path"
@@ -7,7 +7,14 @@ import leven from "leven";
 
 const casesPath = PATH.join(__dirname, 'cases')
 
-describe('graphic', () => {
+describe('graphic', async () => {
+    var driver:WebDriver;
+    beforeAll(async ()=>{
+        driver = await new Builder().forBrowser('chrome').build();
+    })
+    afterAll(async ()=>{
+        await driver.quit();
+    })
     fs.readdirSync(casesPath).map(x => PATH.join(casesPath, x)).filter(x => fs.statSync(x).isDirectory()).forEach(casePath => {
 
         const htmlFilePath = PATH.join(casePath, 'scenario.html');
@@ -21,7 +28,7 @@ describe('graphic', () => {
         if (htmlExists && expectExists) {
             test(`${PATH.basename(casePath)} renders as expected`, async () => {
                 const htmlFileURL = URL.pathToFileURL(htmlFilePath);
-                const pngBase64 = await readFrameBuffer(htmlFileURL);
+                const pngBase64 = await readFrameBuffer(driver,htmlFileURL);
                 const sampleImgPath = PATH.join(casePath, "result.png");
                 fs.writeFileSync(sampleImgPath, pngBase64, { encoding: 'base64' });
                 const difference = await calculateDifference(sampleImgPath, expectPath);
@@ -32,19 +39,13 @@ describe('graphic', () => {
 })
 
 
-async function readFrameBuffer(htmlFileURL: URL) {
-    let driver = await new Builder().forBrowser('chrome').build();
-    try {
-        // Navigate to Url
-        await driver.get(htmlFileURL.toString());
-        await driver.wait(until.elementLocated(By.id("finish")), 5000);
-        const target = await driver.wait(until.elementLocated(By.css('canvas')), 5000);
-        const pngBase64 = await target.takeScreenshot();
-        return pngBase64;
-    }
-    finally {
-        await driver.quit();
-    }
+async function readFrameBuffer(driver:WebDriver, htmlFileURL: URL) {
+    // Navigate to Url
+    await driver.get(htmlFileURL.toString());
+    await driver.wait(until.elementLocated(By.id("finish")), 5000);
+    const target = await driver.wait(until.elementLocated(By.css('canvas')), 5000);
+    const pngBase64 = await target.takeScreenshot();
+    return pngBase64;
 }
 
 async function calculateDifference(sampleImagePath: string, expectedImagePath: string) {
