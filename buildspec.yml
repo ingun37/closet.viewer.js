@@ -1,0 +1,19 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 12
+  pre_build:
+    commands:
+      - npm i
+  build:
+    commands:
+      - npm run build
+      - npm t -- --config jest.ci.config.js
+reports:
+  jest_reports:
+    files:
+      - report.xml
+    file-format: JUNITXML
+    base-directory: test-reports
