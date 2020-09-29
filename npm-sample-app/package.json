@@ -9,7 +9,7 @@
   "author": "Ingun Jon",
   "license": "ISC",
   "dependencies": {
-    "closet-viewer": "^1.1.17"
+    "closet-viewer": "^1.1.19"
   },
   "devDependencies": {
     "webpack": "^4.44.2",
