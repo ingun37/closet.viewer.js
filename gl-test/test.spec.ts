@@ -41,6 +41,9 @@ describe.each(testCases)("graphic", (casePath:string) => {
             fs.writeFileSync(sampleImgPath, pngBase64, { encoding: 'base64' });
             const difference = await calculateDifference(sampleImgPath, expectPath);
             expect(difference).toBeLessThan(1);
+
+            const metrics = await page.metrics();
+            console.log(metrics)
         })
     }
 })
