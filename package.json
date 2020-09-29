@@ -5,8 +5,8 @@
   "main": "dist/closet.viewer.js",
   "scripts": {
     "develop": "webpack-dev-server --mode development --hot --open --inline",
-    "build-cdn": "cross-env NODE_ENV=production webpack --mode production --hide-modules --config webpack-config-override/cdn.js",
-    "build-npm": "cross-env NODE_ENV=production webpack --mode production --hide-modules --config webpack-config-override/npm.js"
+    "build-cdn": "cross-env NODE_ENV=production webpack --mode production --hide-modules --config webpack.config.cdn.js",
+    "build-npm": "cross-env NODE_ENV=production webpack --mode production --hide-modules --config webpack.config.npm.js"
   },
   "repository": "git+https://github.com/clovirtualfashion/closet.viewer.js.git",
   "author": "CLO",
@@ -37,6 +37,7 @@
     "eslint-plugin-prettier": "^3.1.2",
     "exports-loader": "^0.7.0",
     "imports-loader": "^0.8.0",
+    "merge": "^1.2.1",
     "mixin-deep": "^2.0.1",
     "prettier": "^2.0.2",
     "prettier-eslint": "^9.0.1",

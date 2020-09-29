@@ -7,18 +7,25 @@ function resolve(dir) {
 
 module.exports = {
   module: {
-    rules: [
-      {
-        test: /\.(png|jpg|gif)$/,
-        use: [
-          {
-            loader: 'url-loader',
-            options: {
-              limit: 900000,
-            },
+    rules: [{
+      test: /\.js$/,
+      loader: 'babel-loader',
+      include: resolve('src'),
+      options: {
+        presets: ["env", "es2017", "stage-2"]
+      }
+    },
+    {
+      test: /\.(png|jpg|gif)$/,
+      use: [
+        {
+          loader: 'url-loader',
+          options: {
+            limit: 900000,
           },
-        ],
-      },
+        },
+      ],
+    },
     ],
   },
   plugins: [
