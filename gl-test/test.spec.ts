@@ -14,7 +14,9 @@ const testCases = fs.readdirSync(casesPath).map(x => PATH.join(casesPath, x)).fi
 
 var browser: puppeteer.Browser;
 beforeAll(async () => {
+    console.log('launching browser...');
     browser = await puppeteer.launch();
+    console.log('browser', browser);
 })
 afterAll(async () => {
     await browser.close();
