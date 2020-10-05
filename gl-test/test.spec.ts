@@ -44,6 +44,7 @@ describe.each(testCases)("graphic", (casePath:string) => {
 
             const metrics = await page.metrics();
             console.log(metrics)
+            await page.close();
         })
     }
 })
