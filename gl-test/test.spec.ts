@@ -20,6 +20,7 @@ beforeAll(async () => {
     console.log('browser', browser);
 })
 afterAll(async () => {
+    console.log("wtf");
     await browser.close();
 })
 
