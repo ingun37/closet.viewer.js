@@ -13,6 +13,7 @@ const casesPath = PATH.join(__dirname, 'cases')
 const testCases = fs.readdirSync(casesPath).map(x => PATH.join(casesPath, x)).filter(x => fs.statSync(x).isDirectory())
 
 var browser: puppeteer.Browser;
+console.log("aoeuaoeu");
 beforeAll(async () => {
     console.log('launching browser...');
     browser = await puppeteer.launch();
