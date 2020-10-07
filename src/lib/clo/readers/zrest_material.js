@@ -1,6 +1,6 @@
 /* eslint-disable require-jsdoc */
 "use strict";
-import * as THREE from "@/lib/threejs/three";
+import * as THREE from "three";
 
 import { envDiffuseMap, envSpecularMap } from "@/lib/clo/file/EnvMapReader";
 import { loadTexture } from "@/lib/clo/readers/zrest_texture";
@@ -53,6 +53,7 @@ export async function makeMaterial({
       m.vertexShader = vertexShader;
       m.fragmentShader = fragmentShader;
     } else {
+      // m.glslVersion = THREE.GLSL3
       m.vertexShader = pbrVertexShader;
       m.fragmentShader = pbrFragmentShader;
 
@@ -241,7 +242,7 @@ export async function makeMaterial({
 
           const rotMatrix = new THREE.Matrix4();
           rotMatrix.identity();
-          rotMatrix.makeRotationZ(-THREE.Math.degToRad(zRestTexture.angle));
+          rotMatrix.makeRotationZ(-THREE.MathUtils.degToRad(zRestTexture.angle));
 
           const transMatrix = new THREE.Matrix4();
           transMatrix.identity();
@@ -316,7 +317,7 @@ export async function makeMaterial({
         const transformed = property.colorwayObjectTextureTransformation;
         const grot = new THREE.Matrix4();
         grot.identity();
-        grot.makeRotationZ(-THREE.Math.degToRad(transformed[colorwayIndex].angle));
+        grot.makeRotationZ(-THREE.MathUtils.degToRad(transformed[colorwayIndex].angle));
 
         const gtra = new THREE.Matrix4();
         gtra.identity();

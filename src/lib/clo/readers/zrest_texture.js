@@ -1,6 +1,6 @@
 /* eslint-disable require-jsdoc */
 "use strict";
-import * as THREE from "@/lib/threejs/three";
+import * as THREE from "three";
 
 export async function loadTexture(zip, textureFileName) {
   const file = zip.file(textureFileName);

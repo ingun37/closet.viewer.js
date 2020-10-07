@@ -1,6 +1,9 @@
 // normal map 을 위해 다음 extension 필요함 -> 아니다 three.js 에서는 ShaderMateiral.extensions.derivative = true 로 해 주면 된다. 다음과 같이 하면 warning만 생길 뿐
 //#extension GL_OES_standard_derivatives : enable
-
+#include <common>
+#include <packing>
+#include <shadowmap_pars_fragment>
+#include <lights_pars_begin>
 uniform bool m_bUseMetalnessRoughnessPBR;
 uniform float m_Metalness;
 uniform float m_Glossiness;
@@ -43,19 +46,7 @@ uniform float materialOpacity;
 uniform float normalMapIntensityInPercentage;
 
 // 다음 불러줘야 한다. three.js 버전 업 후에 #include <lights_pars_begin> 로 대체하면 됨
-#if NUM_DIR_LIGHTS > 0
-struct DirectionalLight {
-    vec3 direction;
-    vec3 color;
 
-    int shadow;
-    float shadowBias;
-    float shadowRadius;
-    vec2 shadowMapSize;
-};
-
-uniform DirectionalLight directionalLights[ NUM_DIR_LIGHTS ];
-#endif
 
 varying vec3 vNormal;
 varying vec3 posAtEye;
@@ -63,8 +54,7 @@ varying vec2 vUV;
 varying vec2 vUV2;
 
 #define M_PI 3.1415926535897932384626433832795
-#include <packing>
-#include <shadowmap_pars_fragment>
+
 #include <shadowmask_pars_fragment>
 
 mat3 cotangent_frame( vec3 N, vec3 p, vec2 uv )
@@ -359,19 +349,28 @@ void main( void )
     float faceIntensity = 1.0;
 
     vec3 diffuseEnvColor = m_EnvironmentLightIntensity * RGBEToVec3(textureCube(sDiffuseEnvironmentMap, worldR));
+
     diffuse.rgb += faceIntensity * diffuseColor * diffuseEnvColor.rgb; // ambient 효과 내기 위해 일부러 backface도 라이팅되게 한다.
+
 
     // specular environment light
     // max_mip_level = 7 로 하드코딩.
     float mipLevel = 7.0 - glossinessSquare * 7.0;
             
-    #ifdef GL_EXT_shader_texture_lod
-    vec3 specularEnvColor = m_EnvironmentLightIntensity * RGBEToVec3(textureCubeLodEXT(sSpecularEnvironmentMap, worldR, mipLevel));           
-    #else
+    // ingun
+    // Availability: This extension is only available to WebGL1 contexts. In WebGL2, the functionality of this extension is available on the WebGL2 context by default. It requires GLSL #version 300 es.
+    // #ifdef GL_EXT_shader_texture_lod
+
+
+
+    vec3 specularEnvColor = m_EnvironmentLightIntensity * RGBEToVec3(textureCubeLodEXT(sSpecularEnvironmentMap, worldR, mipLevel));     
+
+    // #else
     
     // 지원 안될 경우는 다음과 같이 glsl 120 만 지원하는 pc 버전 코드와 동일한 결과 나오게 하기
-    vec3 specularEnvColor = diffuseEnvColor;
-    #endif
+    // vec3 specularEnvColor = diffuseEnvColor;
+    // #endif
+
 
     // 이 조건 없으면 back face에 대해 Fresnel 값이 최대치로 나오므로 이 조건 넣어줘야 한다. FresnelSchlick 함수 안에서 max 사용해도 안됨
     // dot(N,E) 대신 gl_FrontFacing으로 검사하자. 안그러면 노말맵 있는 material의 경우 앞면인데도 불구하고 normal은 뒤로 돌아가서 fresnel 적용안되어서 새까맣게 나오는 경우 발생한다.

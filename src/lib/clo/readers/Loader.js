@@ -1,5 +1,5 @@
 "use strict";
-import * as THREE from "@/lib/threejs/three";
+import * as THREE from "three";
 import JSZip from "@/lib/jszip/dist/jszip";
 import { readMap } from "@/lib/clo/file/KeyValueMapReader";
 import { loadTexture } from "@/lib/clo/readers/zrest_texture";

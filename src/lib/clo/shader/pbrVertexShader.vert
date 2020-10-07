@@ -1,4 +1,8 @@
-#include    <shadowmap_pars_vertex>
+#include <shadowmap_pars_vertex>
+
+
+#include <common>
+
 attribute vec2 uv2;
 uniform mat4 gRotMatrix;
 uniform mat4 gTransMatrix;
@@ -37,7 +41,14 @@ void main(void)
     vUV = (transform * vec4(uv.st, 0.0, 1.0)).xy;
     vUV2 = uv2.st;
 
-    #include <begin_vertex>
-    #include <worldpos_vertex>
-    #include <shadowmap_vertex>
+
+#include <begin_vertex>
+
+#include <worldpos_vertex>
+#include <beginnormal_vertex>
+#include <defaultnormal_vertex>
+
+#include <shadowmap_vertex>
+
+
 }
