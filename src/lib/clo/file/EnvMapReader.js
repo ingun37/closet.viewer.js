@@ -1,12 +1,11 @@
 import * as THREE from '@/lib/threejs/three'
-
+import { FlatShading } from '../../threejs/three';
+var dataUriToBuffer = require('data-uri-to-buffer');
 
 let envDiffuseMap;
 let envSpecularMap;
 
-
-
-
+var PNG = require("pngjs").PNG;
 
 function getImages(arr) {
     const fileArr = []
@@ -15,6 +14,12 @@ function getImages(arr) {
     }
     return fileArr
 }
+function getTexture(file) {
+    const data = getImages([file])[0];
+    return PNG.sync.read(dataUriToBuffer(data));
+}
+
+const genPNGName = (level)=>(face)=>`Environment_m0${level}_c0${face}.png`
 
 // environment map setting
 let envMapLoader = new THREE.CubeTextureLoader();
@@ -41,103 +46,14 @@ envSpecularMap = envMapLoader.load(getImages(['Environment_m00_c00.png', 'Enviro
     for (let face = 0; face < 6; face++)
         specularMap.images[face].mipmaps = new Array(8);
 
-    let subLoader = new THREE.CubeTextureLoader();
-    subLoader.load(getImages([
-        'Environment_m00_c00.png',
-        'Environment_m00_c01.png',
-        'Environment_m00_c02.png',
-        'Environment_m00_c03.png',
-        'Environment_m00_c04.png',
-        'Environment_m00_c05.png'
-    ]), function (texture) {
-        for (let face = 0; face < 6; face++) {
-            specularMap.images[face].mipmaps[0] = texture.images[face];
-        }
-    });
-    subLoader.load(getImages([
-        'Environment_m01_c00.png',
-        'Environment_m01_c01.png',
-        'Environment_m01_c02.png',
-        'Environment_m01_c03.png',
-        'Environment_m01_c04.png',
-        'Environment_m01_c05.png'
-    ]), function (texture) {
-        for (let face = 0; face < 6; face++) {
-            specularMap.images[face].mipmaps[1] = texture.images[face];
-        }
-    });
-    subLoader.load(getImages([
-        'Environment_m02_c00.png',
-        'Environment_m02_c01.png',
-        'Environment_m02_c02.png',
-        'Environment_m02_c03.png',
-        'Environment_m02_c04.png',
-        'Environment_m02_c05.png'
-    ]), function (texture) {
-        for (let face = 0; face < 6; face++) {
-            specularMap.images[face].mipmaps[2] = texture.images[face];
-        }
-    });
-    subLoader.load(getImages([
-        'Environment_m03_c00.png',
-        'Environment_m03_c01.png',
-        'Environment_m03_c02.png',
-        'Environment_m03_c03.png',
-        'Environment_m03_c04.png',
-        'Environment_m03_c05.png'
-    ]), function (texture) {
-        for (let face = 0; face < 6; face++) {
-            specularMap.images[face].mipmaps[3] = texture.images[face];
-        }
-    });
-    subLoader.load(getImages([
-        'Environment_m04_c00.png',
-        'Environment_m04_c01.png',
-        'Environment_m04_c02.png',
-        'Environment_m04_c03.png',
-        'Environment_m04_c04.png',
-        'Environment_m04_c05.png'
-    ]), function (texture) {
-        for (let face = 0; face < 6; face++) {
-            specularMap.images[face].mipmaps[4] = texture.images[face];
-        }
-    });
-    subLoader.load(getImages([
-        'Environment_m05_c00.png',
-        'Environment_m05_c01.png',
-        'Environment_m05_c02.png',
-        'Environment_m05_c03.png',
-        'Environment_m05_c04.png',
-        'Environment_m05_c05.png'
-    ]), function (texture) {
-        for (let face = 0; face < 6; face++) {
-            specularMap.images[face].mipmaps[5] = texture.images[face];
-        }
-    });
-    subLoader.load(getImages([
-        'Environment_m06_c00.png',
-        'Environment_m06_c01.png',
-        'Environment_m06_c02.png',
-        'Environment_m06_c03.png',
-        'Environment_m06_c04.png',
-        'Environment_m06_c05.png'
-    ]), function (texture) {
-        for (let face = 0; face < 6; face++) {
-            specularMap.images[face].mipmaps[6] = texture.images[face];
-        }
-    });
-    subLoader.load(getImages([
-        'Environment_m07_c00.png',
-        'Environment_m07_c01.png',
-        'Environment_m07_c02.png',
-        'Environment_m07_c03.png',
-        'Environment_m07_c04.png',
-        'Environment_m07_c05.png'
-    ]), function (texture) {
-        for (let face = 0; face < 6; face++) {
-            specularMap.images[face].mipmaps[7] = texture.images[face];
-        }
-    });
+
+    [0,1,2,3,4,5,6,7].forEach(level=>{
+        [0,1,2,3,4,5].forEach(face=>{
+            const tex = getTexture(genPNGName(level)(face));
+            specularMap.images[face].mipmaps[level] = tex;
+        })
+    })
+
 
 });
 

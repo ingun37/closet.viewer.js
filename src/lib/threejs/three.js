@@ -18782,11 +18782,8 @@
 									}
 
 								} else {
-								    // modified by Jaden
-                                    if(mipmap.data !== undefined)
-                                        state.texImage2D(_gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, j, glFormat, mipmap.width, mipmap.height, 0, glFormat, glType, mipmap.data);
-                                    else
-                                        state.texImage2D(_gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, j, glFormat, glFormat, glType, mipmap);
+
+									state.texImage2D( _gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, j, glFormat, mipmap.width, mipmap.height, 0, glFormat, glType, mipmap.data );
 
 								}
 
@@ -19017,11 +19014,8 @@
 						}
 
 					} else {
-                        // modified by Jaden
-                        if(mipmap.data !== undefined)
-                            state.texImage2D(_gl.TEXTURE_2D, i, glFormat, mipmap.width, mipmap.height, 0, glFormat, glType, mipmap.data);
-                        else
-                            state.texImage2D(_gl.TEXTURE_2D, i, glFormat, glFormat, glType, mipmap);                            
+
+						state.texImage2D( _gl.TEXTURE_2D, i, glFormat, mipmap.width, mipmap.height, 0, glFormat, glType, mipmap.data );
 
 					}
 
@@ -26074,15 +26068,15 @@
 			1, - 1, - 1, 1, - 1, 1,
 			1, 1, - 1, 1, 1, 1,
 
-			// (0, ±1/?, ±?)
+			// (0, ±1/φ, ±φ)
 			 0, - r, - t, 0, - r, t,
 			 0, r, - t, 0, r, t,
 
-			// (±1/?, ±?, 0)
+			// (±1/φ, ±φ, 0)
 			- r, - t, 0, - r, t, 0,
 			 r, - t, 0, r, t, 0,
 
-			// (±?, 0, ±1/?)
+			// (±φ, 0, ±1/φ)
 			- t, 0, - r, t, 0, - r,
 			- t, 0, r, t, 0, r
 		];
