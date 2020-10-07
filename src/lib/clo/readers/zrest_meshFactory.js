@@ -1,6 +1,7 @@
 /* eslint-disable require-jsdoc */
 "use strict";
-import * as THREE from "@/lib/threejs/three";
+import { Vector3 } from "three/src/math/Vector3";
+
 
 import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 import { RENDER_FACE_TYPE } from "@/lib/clo/readers/predefined";
@@ -201,10 +202,10 @@ const setMaterial = source => {
   material.bTransparent = source.get("bTransparent");
   material.bPerfectTransparent = source.get("bPerfectTransparent");
 
-  material.ambient = new THREE.Vector3(source.get("v4Ambient").x, source.get("v4Ambient").y, source.get("v4Ambient").z);
-  material.diffuse = new THREE.Vector3(source.get("v4Diffuse").x, source.get("v4Diffuse").y, source.get("v4Diffuse").z);
-  material.specular = new THREE.Vector3(source.get("v4Specular").x, source.get("v4Specular").y, source.get("v4Specular").z);
-  material.emission = new THREE.Vector3(source.get("v4Emission").x, source.get("v4Emission").y, source.get("v4Emission").z);
+  material.ambient = new Vector3(source.get("v4Ambient").x, source.get("v4Ambient").y, source.get("v4Ambient").z);
+  material.diffuse = new Vector3(source.get("v4Diffuse").x, source.get("v4Diffuse").y, source.get("v4Diffuse").z);
+  material.specular = new Vector3(source.get("v4Specular").x, source.get("v4Specular").y, source.get("v4Specular").z);
+  material.emission = new Vector3(source.get("v4Emission").x, source.get("v4Emission").y, source.get("v4Emission").z);
   material.shininess = source.get("fShininess");
   material.alpha = source.get("v4Diffuse").w;
 
@@ -220,11 +221,11 @@ const setMaterial = source => {
     material.normalMapIntensityInPercentage = source.get("iNormalIntensityInPercentage");
   }
 
-  material.base = new THREE.Vector3(source.get("v3BaseColor").x, source.get("v3BaseColor").y, source.get("v3BaseColor").z);
+  material.base = new Vector3(source.get("v3BaseColor").x, source.get("v3BaseColor").y, source.get("v3BaseColor").z);
 
   material.blendFuncSrc = source.get("uiBlendFuncSrc");
   material.blendFuncDst = source.get("uiBlendFuncDst");
-  material.blendColor = new THREE.Vector3(source.get("v4BlendColor").x, source.get("v4BlendColor").y, source.get("v4BlendColor").z);
+  material.blendColor = new Vector3(source.get("v4BlendColor").x, source.get("v4BlendColor").y, source.get("v4BlendColor").z);
 
   material.opaqueMode = source.get("enOpaqueMode");
   material.ambientIntensity = source.get("fAmbientIntensity");
@@ -278,9 +279,9 @@ const setMaterial = source => {
   // 다음(v3ReflectionColor)은 사용되고 있지 않은 코드같다..
   const reflectionColor = source.get("v3ReflectionColor");
   if (reflectionColor !== undefined && reflectionColor !== null) {
-    material.reflectionColor = new THREE.Vector3(source.get("v3ReflectionColor").x, source.get("v3ReflectionColor").y, source.get("v3ReflectionColor").z);
+    material.reflectionColor = new Vector3(source.get("v3ReflectionColor").x, source.get("v3ReflectionColor").y, source.get("v3ReflectionColor").z);
   } else {
-    material.reflectionColor = new THREE.Vector3(0.04, 0.04, 0.04);
+    material.reflectionColor = new Vector3(0.04, 0.04, 0.04);
   } // 실제로는 사용되지 않는 값이지만 초기화하자
 
   // silk satin 의 specular color(여기서는 reflection color) 적용하기. 여기 바뀌면 CLO에서도 바꿔 줘야 한다.
@@ -294,7 +295,7 @@ const setMaterial = source => {
     material.base.y = 0.8 * material.base.y;
     material.base.z = 0.8 * material.base.z;
   } else {
-    material.reflectionColor = new THREE.Vector3(0.04, 0.04, 0.04);
+    material.reflectionColor = new Vector3(0.04, 0.04, 0.04);
   } // linear 0.04 에 해당하는 sRGB 값 59 리턴 -> linear 값이 사용된다.
 
   const tex = source.get("listTexture");

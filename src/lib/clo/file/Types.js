@@ -112,20 +112,20 @@ function getWrapMode(wrapMode){
 	switch(wrapMode)
 	{
 		case 10497://WrapMode::REPEAT
-			mode = THREE.RepeatWrapping;
+			mode = RepeatWrapping;
 			break;
 		case 33648://WrapMode::MIRRORED_REPEAT
-			mode = THREE.MirroredRepeatWrapping;
+			mode = MirroredRepeatWrapping;
 			break;
 		case 10496://WrapMode::CLAMP
-			mode = THREE.ClampToEdgeWrapping;
+			mode = ClampToEdgeWrapping;
 			break;
 		case 33069://WrapMode::CLAMP_TO_BORDER  ** Not Support in WebGL.
 			console.log("CLAMP_TO_BORDER is not support in WebGL.");
-			mode = THREE.ClampToEdgeWrapping;
+			mode = ClampToEdgeWrapping;
 			break;
 		default:
-			mode = THREE.RepeatWrapping;
+			mode = RepeatWrapping;
 	}
 	return mode;
 }

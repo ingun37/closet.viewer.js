@@ -1,11 +1,28 @@
 /* eslint-disable require-jsdoc */
 "use strict";
-import * as THREE from "@/lib/threejs/three";
+
+import { BufferAttribute } from "three/src/core/BufferAttribute";
+import { BufferGeometry } from "three/src/core/BufferGeometry";
+import { Geometry } from "three/src/core/Geometry";
+import { Line } from "three/src/objects/Line";
+import { LineBasicMaterial } from "three/src/materials/LineBasicMaterial";
+import { Matrix4 } from "three/src/math/Matrix4";
+import { Mesh } from "three/src/objects/Mesh";
+import { Vector3 } from "three/src/math/Vector3";
+
+import { Object3D } from "three/src/core/Object3D";
+
+
+
+
+
+
 
 import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 
 import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
 import { makeMaterial } from "@/lib/clo/readers/zrest_material";
+import { DRACOLoader } from "../CloDracoLoader/CloDRACOLoader";
 
 export default function MatMeshManager({
   matMeshMap: matMeshMap,
@@ -26,6 +43,9 @@ export default function MatMeshManager({
   this.matShapeMap = new Map();
 }
 
+const dracoLoader = new DRACOLoader();
+dracoLoader.setDecoderPath("https://www.gstatic.com/draco/v1/decoders/");
+dracoLoader.preload();
 MatMeshManager.prototype = {
   constructor: MatMeshManager,
 
@@ -34,7 +54,7 @@ MatMeshManager.prototype = {
     this.camera = loadedCamera;
     this.colorwayIndex = colorwayIndex;
 
-    let tf = new THREE.Object3D();
+    let tf = new Object3D();
 
     const listChildrenTransformer3D = map.get("listChildrenTransformer3D");
     if (listChildrenTransformer3D) {
@@ -54,7 +74,7 @@ MatMeshManager.prototype = {
     }
     if (zrestLoader.aborted) return;
 
-    const mat4 = new THREE.Matrix4().identity();
+    const mat4 = new Matrix4().identity();
     if (map.get("m4Matrix")) {
       const localMatrix = map.get("m4Matrix");
       mat4.set(
@@ -76,7 +96,7 @@ MatMeshManager.prototype = {
         localMatrix.a33
       );
     }
-    tf.applyMatrix(mat4);
+    tf.applyMatrix4(mat4);
 
     const listMatShape = map.get("listMatShape");
 
@@ -140,19 +160,19 @@ MatMeshManager.prototype = {
 
         /**
          * NOTE:
-         * THREE.Geometry 를 사용하면 실제 메쉬의 메모리보다 10배 가까운 메모리를 사용하게 된다.
+         * Geometry 를 사용하면 실제 메쉬의 메모리보다 10배 가까운 메모리를 사용하게 된다.
          * 왜 그정도인지는 모르겠지만.. 그래서 BufferGeometry 사용한다.
          * Jaden 2017.06.08
          */
-        const bufferGeometry = new THREE.BufferGeometry();
+        const bufferGeometry = new BufferGeometry();
 
         /**
          * NOTE:
          * dracoGeometry의 해당 mesh에 의해 사용된 vertex들로만 새로운 메쉬를 만들기 위해 changeVertexIndex 만든다.
          * 값은 새로운 메쉬에서의 vertexIndex. 초기값은 -1.
          */
-        const changeVertexIndex = new Int32Array(dracoGeometry.vertices.length / 3);
-        for (let j = 0; j < dracoGeometry.vertices.length / 3; j++) {
+        const changeVertexIndex = new Int32Array(dracoGeometry.attributes.position.array.length / 3);
+        for (let j = 0; j < dracoGeometry.attributes.position.array.length / 3; j++) {
           changeVertexIndex[j] = -1;
         }
 
@@ -160,34 +180,33 @@ MatMeshManager.prototype = {
         const normalAttrib = [];
         const uvAttrib = [];
         const uv2Attrib = [];
-
         let count = 0;
         for (let j = 0; j < indexSize; j++) {
-          const index = dracoGeometry.indices[indexOffset + j];
+          const index = dracoGeometry.index.array[indexOffset + j];
           if (changeVertexIndex[index] === -1) {
             // 방문되지 않은 녀석들만 새로운 mesh vertex 로 추가한다.
             changeVertexIndex[index] = count;
             count++;
 
-            const threePos = new THREE.Vector3(dracoGeometry.vertices[index * 3], dracoGeometry.vertices[index * 3 + 1], dracoGeometry.vertices[index * 3 + 2]);
+            const threePos = new Vector3(dracoGeometry.attributes.position.array[index * 3], dracoGeometry.attributes.position.array[index * 3 + 1], dracoGeometry.attributes.position.array[index * 3 + 2]);
             // threePos.applyMatrix4(m4);
 
             posAttrib.push(threePos.x);
             posAttrib.push(threePos.y);
             posAttrib.push(threePos.z);
 
-            if (dracoGeometry.useNormal) {
-              normalAttrib.push(dracoGeometry.normals[index * 3]);
-              normalAttrib.push(dracoGeometry.normals[index * 3 + 1]);
-              normalAttrib.push(dracoGeometry.normals[index * 3 + 2]);
+            if (dracoGeometry.attributes.normal !== undefined) {
+              normalAttrib.push(dracoGeometry.attributes.normal.array[index * 3]);
+              normalAttrib.push(dracoGeometry.attributes.normal.array[index * 3 + 1]);
+              normalAttrib.push(dracoGeometry.attributes.normal.array[index * 3 + 2]);
             }
 
-            uvAttrib.push(dracoGeometry.uvs[index * 2]);
-            uvAttrib.push(dracoGeometry.uvs[index * 2 + 1]);
+            uvAttrib.push(dracoGeometry.attributes.uv.array[index * 2]);
+            uvAttrib.push(dracoGeometry.attributes.uv.array[index * 2 + 1]);
 
-            if (dracoGeometry.numUVs >= 2) {
-              uv2Attrib.push(dracoGeometry.uv2s[index * 2]);
-              uv2Attrib.push(dracoGeometry.uv2s[index * 2 + 1]);
+            if (dracoGeometry.attributes.uv2 !== undefined) {
+              uv2Attrib.push(dracoGeometry.attributes.uv2.array[index * 2]);
+              uv2Attrib.push(dracoGeometry.attributes.uv2.array[index * 2 + 1]);
             }
           }
         }
@@ -195,16 +214,15 @@ MatMeshManager.prototype = {
         if (m === 0) {
           frontVertexCount = count;
         }
+        bufferGeometry.setAttribute("position", new BufferAttribute(new Float32Array(posAttrib), 3));
 
-        bufferGeometry.addAttribute("position", new THREE.BufferAttribute(new Float32Array(posAttrib), 3));
-
-        if (dracoGeometry.useNormal) {
-          bufferGeometry.addAttribute("normal", new THREE.BufferAttribute(new Float32Array(normalAttrib), 3));
+        if (dracoGeometry.attributes.normal !== undefined) {
+          bufferGeometry.setAttribute("normal", new BufferAttribute(new Float32Array(normalAttrib), 3));
         }
 
-        bufferGeometry.addAttribute("uv", new THREE.BufferAttribute(new Float32Array(uvAttrib), 2));
-        if (dracoGeometry.numUVs >= 2) {
-          bufferGeometry.addAttribute("uv2", new THREE.BufferAttribute(new Float32Array(uv2Attrib), 2));
+        bufferGeometry.setAttribute("uv", new BufferAttribute(new Float32Array(uvAttrib), 2));
+        if (dracoGeometry.attributes.uv2 !== undefined) {
+          bufferGeometry.setAttribute("uv2", new BufferAttribute(new Float32Array(uv2Attrib), 2));
         }
 
         // Set Indices
@@ -212,26 +230,27 @@ MatMeshManager.prototype = {
 
         if (zrestVersion > 4) {
           for (let k = 0; k < indexSize; k++) {
-            const index = dracoGeometry.indices[indexOffset + k];
+            const index = dracoGeometry.index.array[indexOffset + k];
             indexAttrib.push(changeVertexIndex[index]);
           }
 
           indexOffset += indexSize;
         } else {
           for (let j = indexSize / 3 - 1; j >= 0; j--) {
-            indexAttrib.push(changeVertexIndex[dracoGeometry.indices[indexOffset + j * 3]]);
-            indexAttrib.push(changeVertexIndex[dracoGeometry.indices[indexOffset + j * 3 + 1]]);
-            indexAttrib.push(changeVertexIndex[dracoGeometry.indices[indexOffset + j * 3 + 2]]);
+            indexAttrib.push(changeVertexIndex[dracoGeometry.index.array[indexOffset + j * 3]]);
+            indexAttrib.push(changeVertexIndex[dracoGeometry.index.array[indexOffset + j * 3 + 1]]);
+            indexAttrib.push(changeVertexIndex[dracoGeometry.index.array[indexOffset + j * 3 + 2]]);
           }
         }
-        bufferGeometry.setIndex(new THREE.BufferAttribute(new Uint32Array(indexAttrib), 1));
+        bufferGeometry.setIndex(new BufferAttribute(new Uint32Array(indexAttrib), 1));
 
-        if (!dracoGeometry.useNormal) {
+        if (dracoGeometry.attributes.normal === undefined) {
           bufferGeometry.computeFaceNormals();
           bufferGeometry.computeVertexNormals();
         }
+
         if (zrestLoader.aborted) return;
-        const bUseSeamPuckeringNormalMap = dracoGeometry.numUVs >= 2;
+        const bUseSeamPuckeringNormalMap = bufferGeometry.attributes.uv2 !== undefined;
 
         const material = await makeMaterial({
           jsZip: zip,
@@ -248,7 +267,7 @@ MatMeshManager.prototype = {
         if (zrestLoader.aborted) return;
         if (!material) return;
 
-        const threeMesh = new THREE.Mesh(bufferGeometry, material);
+        const threeMesh = new Mesh(bufferGeometry, material);
         const matMeshType = listMatMeshIDOnIndexedMesh[m].get("enType");
         // 여기서 center, normal, bounding sphere radius,
 
@@ -274,8 +293,8 @@ MatMeshManager.prototype = {
           }
         }
 
-        const center = new THREE.Vector3(-1, -1, -1);
-        const normal = new THREE.Vector3(-1, -1, -1);
+        const center = new Vector3(-1, -1, -1);
+        const normal = new Vector3(-1, -1, -1);
         const boundingSphereRadius = 0.0;
 
         // 여기도 version 가지고 나누는게 나을까? center랑 이런거 데이터가 없을텐데.
@@ -315,10 +334,10 @@ MatMeshManager.prototype = {
 
         if (zrestVersion > 4) {
           // marker 만들자.
-          const cameraPos = new THREE.Vector3();
+          const cameraPos = new Vector3();
           cameraPos.copy(center);
 
-          const distanceVector = new THREE.Vector3();
+          const distanceVector = new Vector3();
           distanceVector.copy(normal);
           distanceVector.normalize();
 
@@ -329,6 +348,7 @@ MatMeshManager.prototype = {
       }
     };
 
+    
     const getDracoGeometry = async qsDracoFileName => {
       // Draco Compression
       const dracoMeshFilename = readByteArray("String", qsDracoFileName);
@@ -337,12 +357,9 @@ MatMeshManager.prototype = {
         return false;
       }
 
-      const drcArrayBuffer = await zip.file(dracoMeshFilename).async("arrayBuffer");
+      const arrayBuffer = await zip.file(dracoMeshFilename).async("arraybuffer");
 
-      const dracoLoader = new THREE.DRACOLoader();
-      // dracoLoader.setVerbosity(bLog);
-
-      return dracoLoader.decodeDracoFile(drcArrayBuffer);
+      return dracoLoader.decodeArraybufferAsync(arrayBuffer);
     };
 
     const buildStyleLines = (dracoGeometry, patternIdx, listLine) => {
@@ -350,42 +367,42 @@ MatMeshManager.prototype = {
         return;
       }
 
-      const styleLineMaterial = new THREE.LineBasicMaterial({
+      const styleLineMaterial = new LineBasicMaterial({
         color: 0xfffe00
       });
       const currentStyleLineSet = new Set();
 
       for (let k = 0; k < listLine.length; ++k) {
-        const frontStyleLineGeometry = new THREE.Geometry();
-        const backStyleLineGeometry = new THREE.Geometry();
+        const frontStyleLineGeometry = new Geometry();
+        const backStyleLineGeometry = new Geometry();
 
         const listMeshPointIndex = listLine[k].get("listMeshPointIndex");
         if (listMeshPointIndex !== undefined && listMeshPointIndex !== null) {
           for (let h = 0; h < listMeshPointIndex.length; ++h) {
             let vIndex = listMeshPointIndex[h].get("uiMeshPointIndex");
             if (vIndex !== undefined && vIndex !== null) {
-              const frontStyleLinePos = new THREE.Vector3();
-              frontStyleLinePos.x = dracoGeometry.vertices[vIndex * 3];
-              frontStyleLinePos.y = dracoGeometry.vertices[vIndex * 3 + 1];
-              frontStyleLinePos.z = dracoGeometry.vertices[vIndex * 3 + 2];
+              const frontStyleLinePos = new Vector3();
+              frontStyleLinePos.x = dracoGeometry.attributes.position.array[vIndex * 3];
+              frontStyleLinePos.y = dracoGeometry.attributes.position.array[vIndex * 3 + 1];
+              frontStyleLinePos.z = dracoGeometry.attributes.position.array[vIndex * 3 + 2];
               frontStyleLineGeometry.vertices.push(frontStyleLinePos);
 
-              const backStyleLinePos = new THREE.Vector3();
+              const backStyleLinePos = new Vector3();
               vIndex += frontVertexCount;
-              backStyleLinePos.x = dracoGeometry.vertices[vIndex * 3];
-              backStyleLinePos.y = dracoGeometry.vertices[vIndex * 3 + 1];
-              backStyleLinePos.z = dracoGeometry.vertices[vIndex * 3 + 2];
+              backStyleLinePos.x = dracoGeometry.attributes.position.array[vIndex * 3];
+              backStyleLinePos.y = dracoGeometry.attributes.position.array[vIndex * 3 + 1];
+              backStyleLinePos.z = dracoGeometry.attributes.position.array[vIndex * 3 + 2];
             }
           }
 
           frontStyleLineGeometry.computeFaceNormals();
           frontStyleLineGeometry.computeVertexNormals();
-          const frontStyleLine = new THREE.Line(frontStyleLineGeometry, styleLineMaterial);
+          const frontStyleLine = new Line(frontStyleLineGeometry, styleLineMaterial);
           currentStyleLineSet.add(frontStyleLine);
 
           backStyleLineGeometry.computeFaceNormals();
           backStyleLineGeometry.computeVertexNormals();
-          const backStyleLine = new THREE.Line(backStyleLineGeometry, styleLineMaterial);
+          const backStyleLine = new Line(backStyleLineGeometry, styleLineMaterial);
           currentStyleLineSet.add(backStyleLine);
         }
 

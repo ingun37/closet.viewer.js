@@ -1,16 +1,20 @@
 /* eslint-disable require-jsdoc */
-import * as THREE from "@/lib/threejs/three";
+
+import { Object3D } from "three/src/core/Object3D";
+import { Quaternion } from "three/src/math/Quaternion";
+import { Raycaster } from "three/src/core/Raycaster";
+import { Vector3 } from "three/src/math/Vector3";
 import { TweenMax } from "gsap/TweenMax";
 import { Marker, makeTextSprite } from "@/lib/marker/Marker";
 import FlashAnnotation from "./FlashAnnotation";
 
-const pointerScaleVector = new THREE.Vector3();
+const pointerScaleVector = new Vector3();
 const pointerScaleFactor = 65;
 
 // variables for animation between annotation markers
 let tween;
-const startQuaternion = new THREE.Quaternion();
-const endQuaternion = new THREE.Quaternion();
+const startQuaternion = new Quaternion();
+const endQuaternion = new Quaternion();
 
 class AnnotationManager {
   constructor({ scene, camera, renderer, controls, updateRenderer, setter }) {
@@ -26,7 +30,7 @@ class AnnotationManager {
     this.annotationPointerList = [];
     this.isCreateAnnotation = false;
 
-    this.annotationContainer = new THREE.Object3D();
+    this.annotationContainer = new Object3D();
     this.annotationContainer.name = "annotationContainer";
     this.scene.add(this.annotationContainer);
 
@@ -42,7 +46,7 @@ class AnnotationManager {
     this.mousePosition = {};
 
     // raycaster for picking
-    this.raycaster = new THREE.Raycaster();
+    this.raycaster = new Raycaster();
 
     this.getAnnotationList = this.getAnnotationList.bind(this);
     this.setAnnotationList = this.setAnnotationList.bind(this);
@@ -289,10 +293,10 @@ class AnnotationManager {
     this.raycaster.setFromCamera(mouse, this.camera);
 
     // 여기서 평면에다 다시 쏴야 함.
-    const pointerPos = new THREE.Vector3();
+    const pointerPos = new Vector3();
     pointerPos.copy(this.computePointerPosition(mouse));
 
-    const cameraDirection = new THREE.Vector3();
+    const cameraDirection = new Vector3();
     cameraDirection.copy(this.getCameraDirection());
 
     return {
@@ -340,10 +344,10 @@ class AnnotationManager {
     const onUpdate = () => {
       // camera quaternion update
       // eslint-disable-next-line prefer-const
-      let q = new THREE.Quaternion();
+      let q = new Quaternion();
       // eslint-disable-next-line prefer-const
       let t = tween.progress();
-      THREE.Quaternion.slerp(startQuaternion, endQuaternion, q, t);
+      Quaternion.slerp(startQuaternion, endQuaternion, q, t);
       q.normalize();
 
       this.camera.quaternion.copy(q);
@@ -368,7 +372,7 @@ class AnnotationManager {
       endQuaternion.copy(annotationItem.cameraQuaternion);
       endQuaternion.normalize();
 
-      const target = new THREE.Vector3();
+      const target = new Vector3();
       target.copy(annotationItem.cameraTarget);
 
       tween = TweenMax.to(this.camera.position, 0.8, {
@@ -408,12 +412,12 @@ class AnnotationManager {
   }
 
   getCameraDirection() {
-    const directionVector = new THREE.Vector3();
+    const directionVector = new Vector3();
     directionVector.x = this.controls.target.x - this.camera.position.x;
     directionVector.y = this.controls.target.y - this.camera.position.y;
     directionVector.z = this.controls.target.z - this.camera.position.z;
 
-    const normalizedCameraDirVector = new THREE.Vector3();
+    const normalizedCameraDirVector = new Vector3();
     normalizedCameraDirVector.copy(directionVector.normalize());
 
     return normalizedCameraDirVector;
@@ -424,17 +428,17 @@ class AnnotationManager {
     this.camera.updateProjectionMatrix();
 
     // 1. 카메라 포지션 - center 포지션 dot product 카메라 디렉션의 반대 방향
-    const cameraPos = new THREE.Vector3();
+    const cameraPos = new Vector3();
     cameraPos.copy(this.camera.position);
 
     //
-    const centerPos = new THREE.Vector3(0.0, 0.0, 0.0);
+    const centerPos = new Vector3(0.0, 0.0, 0.0);
     centerPos.copy(this.zrest.getObjectsCenter(this.scene));
 
-    const cameraDirection = new THREE.Vector3();
+    const cameraDirection = new Vector3();
     cameraDirection.copy(this.getCameraDirection());
 
-    const cameraToCenter = new THREE.Vector3();
+    const cameraToCenter = new Vector3();
     cameraToCenter.x = centerPos.x - cameraPos.x;
     cameraToCenter.y = centerPos.y - cameraPos.y;
     cameraToCenter.z = centerPos.z - cameraPos.z;
@@ -442,7 +446,7 @@ class AnnotationManager {
     const distance = Math.abs(cameraDirection.dot(cameraToCenter));
     // var transformVector = cameraDirection.multiplyScalar(distance);
 
-    const intersectPos = new THREE.Vector3();
+    const intersectPos = new Vector3();
 
     // 1. camera와 평면까지의 distance 구하기
     // 2. distance plane의 width, hight 계산
@@ -450,14 +454,14 @@ class AnnotationManager {
     const height = distance * Math.tan(rad) * 2;
     const width = this.camera.aspect * height;
 
-    const localPos = new THREE.Vector3(
+    const localPos = new Vector3(
       width * 0.5 * mouse.x,
       height * 0.5 * mouse.y,
       -distance
     );
     this.camera.updateMatrixWorld();
 
-    const worldPos = new THREE.Vector3();
+    const worldPos = new Vector3();
     worldPos.copy(localPos);
     worldPos.applyMatrix4(this.camera.matrixWorld);
     intersectPos.copy(worldPos);

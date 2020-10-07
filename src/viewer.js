@@ -3,24 +3,28 @@ import ZRestLoader, {
   dataWorkerFunction,
   checkFileReaderSyncSupport,
 } from "@/lib/clo/readers/ZrestLoader";
-import * as THREE from "@/lib/threejs/three";
-import "@/lib/threejs/OrbitControls";
-import "@/lib/draco/DRACOLoader";
+
+import { DirectionalLight } from "three/src/lights/DirectionalLight";
+import { PerspectiveCamera } from "three/src/cameras/PerspectiveCamera";
+import { Scene } from "three/src/scenes/Scene";
+import { ShaderMaterial} from "three/src/materials/ShaderMaterial";
+import { TextureLoader } from "three/src/loaders/TextureLoader";
+import { Vector3 } from "three/src/math/Vector3";
+import { WebGLRenderer } from "three/src/renderers/WebGLRenderer";
+import { OrbitControls } from "./lib/clo/CloDracoLoader/OrbitControls";
 
 import AnnotationManager from "@/lib/annotation/AnnotationManager";
 import TechPackManager from "@/lib/techPack/TechPackManager";
 
-import RendererStats from "@xailabs/three-renderer-stats";
 import screenfull from "screenfull";
 import MobileDetect from "mobile-detect";
 
 import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
-import "@/lib/threejs/BufferGeometryUtils";
+import { VSMShadowMap } from "three/src/constants";
 
 let windowHalfX = window.innerWidth / 2;
 let windowHalfY = window.innerHeight / 2;
 
-let rendererStats = null;
 
 checkFileReaderSyncSupport();
 
@@ -30,7 +34,6 @@ const camMatrixPushOrder = [0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14];
 
 let requestId = null;
 
-if (!PRODUCTION) rendererStats = new RendererStats();
 
 export default class ClosetViewer {
   constructor() {
@@ -94,7 +97,7 @@ export default class ClosetViewer {
     windowHalfY = h / 2;
 
     // create webgl renderer
-    this.renderer = new THREE.WebGLRenderer({
+    this.renderer = new WebGLRenderer({
       antialias: true,
       preserveDrawingBuffer: true,
       alpha: true,
@@ -104,8 +107,8 @@ export default class ClosetViewer {
     this.renderer.setSize(w, h);
     this.renderer.sortObjects = false; // 투명 object 제대로 렌더링하려면 자동 sort 꺼야 한다
     this.renderer.shadowMap.enabled = true;
-    // NOTE: THREE.PCFSoftShadowMap causes performance problem on Android;
-    this.renderer.shadowMap.type = THREE.VSMShadowMap;
+    // NOTE: PCFSoftShadowMap causes performance problem on Android;
+    this.renderer.shadowMap.type = VSMShadowMap;
 
     this.setter.appendChild(this.renderer.domElement);
 
@@ -114,11 +117,11 @@ export default class ClosetViewer {
     this.camera.position.set(0, cameraHeight, cameraDistance);
 
     // create camera controller
-    this.controls = new THREE.OrbitControls(
+    this.controls = new OrbitControls(
       this.camera,
       this.renderer.domElement
     );
-    this.controls.target = new THREE.Vector3(0, cameraHeight, 0);
+    this.controls.target = new Vector3(0, cameraHeight, 0);
     this.controls.update();
     this.controls.addEventListener("change", () => {
       if (this.updateCamera) {
@@ -132,19 +135,19 @@ export default class ClosetViewer {
     });
 
     // create scenegraph
-    this.scene = new THREE.Scene();
+    this.scene = new Scene();
 
     /*
      * 이제 version 3 이후 파일에 대해서는 shader에서 light 설정을 hard coding해서 사용한다.
      * 하지만 version 2 이하 파일을 위해 여기에서도 설정한다.
      * by Jaden
      */
-    const DirLight0 = new THREE.DirectionalLight(0xd2d2d2);
+    const DirLight0 = new DirectionalLight(0xd2d2d2);
     DirLight0.position.set(0, 0, 1).normalize();
     DirLight0.castShadow = false;
     // specular1 : 464646
 
-    const DirLight1 = new THREE.DirectionalLight(0x6e6e6e);
+    const DirLight1 = new DirectionalLight(0x6e6e6e);
     DirLight1.position.set(1500, 3000, 1500);
     DirLight1.castShadow = this.mobileDetect.os() === "iOS" ? false : true;
 
@@ -161,7 +164,7 @@ export default class ClosetViewer {
     // specular2 : 3c3c3c
 
     /*
-     * scene.add(new THREE.AmbientLight(0x8c8c8c));
+     * scene.add(new AmbientLight(0x8c8c8c));
      * amibent light은 추가하지 않고 shader에서 하드코딩으로 처리한다.
      * CLO와 three.js 의 light 구조가 다르므로 이렇게 하자.
      * by Jaden
@@ -170,7 +173,7 @@ export default class ClosetViewer {
     this.scene.add(DirLight0);
     this.scene.add(DirLight1);
 
-    const textureLoader = new THREE.TextureLoader();
+    const textureLoader = new TextureLoader();
     const texture = textureLoader.load(
       require("@/lib/clo/background/img_3dwindow_bg_Designer.png")
     );
@@ -208,15 +211,9 @@ export default class ClosetViewer {
       const near = 100;
       const far = 100000;
 
-      return new THREE.PerspectiveCamera(fov, aspect, near, far);
+      return new PerspectiveCamera(fov, aspect, near, far);
     }
 
-    if (!PRODUCTION && this.stats) {
-      rendererStats.domElement.style.position = "absolute";
-      rendererStats.domElement.style.left = "-100px";
-      rendererStats.domElement.style.top = "0px";
-      this.setter.appendChild(rendererStats.domElement);
-    }
 
     this.updateRenderer(1);
   }
@@ -426,7 +423,6 @@ export default class ClosetViewer {
     this.renderer.clear();
     this.renderer.render(this.scene, this.camera); // draw object
 
-    if (!PRODUCTION) rendererStats.update(this.renderer);
   }
 
   updateRenderer(t = 100) {
@@ -621,7 +617,7 @@ export default class ClosetViewer {
     for (const matMesh of matMeshMap.values()) {
       this.safeDeallocation(
         matMesh.material,
-        THREE.ShaderMaterial,
+        ShaderMaterial,
         function () {
           // console.log("success deallocation");
         },

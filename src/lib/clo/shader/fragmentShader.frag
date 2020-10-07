@@ -22,24 +22,9 @@
     uniform mat4 matSpecular;
     uniform mat4 matNormal;
     uniform mat4 matTransparent;
+    #include <common>
+#include <lights_pars_begin>
 
-    #if NUM_DIR_LIGHTS > 0
-    //uniform vec3 directionalLightColor[NUM_DIR_LIGHTS];
-    //uniform vec3 directionalLightDirection[NUM_DIR_LIGHTS];
-
-    struct DirectionalLight {
-    vec3 direction;
-    vec3 color;
-
-    int shadow;
-    float shadowBias;
-    float shadowRadius;
-    vec2 shadowMapSize;
-    };
-
-    uniform DirectionalLight directionalLights[ NUM_DIR_LIGHTS ];
-
-    #endif
 
     varying vec2 vUV;
     varying vec3 vNormal;

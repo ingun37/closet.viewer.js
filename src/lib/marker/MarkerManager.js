@@ -1,8 +1,11 @@
 /* eslint-disable require-jsdoc */
-import * as THREE from "@/lib/threejs/three";
+import {Vector3} from "three/src/math/Vector3";
+import {Object3D} from "three/src/core/Object3D";
+
+
 import { Marker, makeTextSprite } from "@/lib/marker/Marker";
 
-const pointerScaleVector = new THREE.Vector3();
+const pointerScaleVector = new Vector3();
 const pointerScaleFactor = 100;
 
 // TODO: Index and message are ambiguous and used mixed up. Have to fix.
@@ -38,7 +41,7 @@ class MarkerManager {
   }
 
   init() {
-    this.container = new THREE.Object3D();
+    this.container = new Object3D();
     this.container.name = this.markerName + "Container";
 
     this.activate();

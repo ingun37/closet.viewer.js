@@ -1,5 +1,11 @@
 /* eslint-disable require-jsdoc */
-import * as THREE from "@/lib/threejs/three";
+
+import {Object3D} from "three/src/core/Object3D";
+import {Raycaster} from "three/src/core/Raycaster";
+import {Vector3} from "three/src/math/Vector3";
+
+
+
 // import {Marker, makeTextSprite} from '@/lib/marker/Marker';
 import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
 import { StyleLine } from "@/lib/techPack/StyleLine";
@@ -11,8 +17,8 @@ const config = {
   defaultMarkerOpacity: 1.0,
   meshTransparentOpacity: 0.1,
   meshDefaultOpacity: 1.0,
-  meshHighlightColor: new THREE.Vector3(1, 1, 0),
-  meshDefaultColor: new THREE.Vector3(1, 1, 1),
+  meshHighlightColor: new Vector3(1, 1, 0),
+  meshDefaultColor: new Vector3(1, 1, 1),
   boundingBoxThreshold: 15.0,
   INF: 999999
 };
@@ -36,7 +42,7 @@ class TechPackManager {
     this.opacityValueMap = new Map();
     this.baseColorMap = new Map();
 
-    this.raycaster = new THREE.Raycaster(); // FIXME: Is this necessary?
+    this.raycaster = new Raycaster(); // FIXME: Is this necessary?
 
     this.load = this.load.bind(this);
 
@@ -78,11 +84,11 @@ class TechPackManager {
     this.markerManagers = [this.patternMarker, this.fabricMarker, this.trimMarker];
 
     // Init the container for style line
-    this.styleLineContainer = new THREE.Object3D();
+    this.styleLineContainer = new Object3D();
     this.styleLineContainer.name = "styleLineContainer";
     this.scene.add(this.styleLineContainer);
 
-    this.measureContainer = new THREE.Object3D();
+    this.measureContainer = new Object3D();
     this.measureContainer.name = "measureContainer";
     this.scene.add(this.measureContainer);
   }

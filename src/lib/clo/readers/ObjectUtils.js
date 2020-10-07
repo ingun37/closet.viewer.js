@@ -1,25 +1,26 @@
 "use strict";
-import * as THREE from "@/lib/threejs/three";
+import { Vector3 } from "three/src/math/Vector3";
+import { Box3 } from "three/src/math/Box3";
 
 export function getObjectsCenter(threeJSScene) {
-  const box = new THREE.Box3();
+  const box = new Box3();
   box.expandByObject(threeJSScene);
-  const center = new THREE.Vector3(0.5 * (box.min.x + box.max.x), 0.5 * (box.min.y + box.max.y), 0.5 * (box.min.z + box.max.z));
+  const center = new Vector3(0.5 * (box.min.x + box.max.x), 0.5 * (box.min.y + box.max.y), 0.5 * (box.min.z + box.max.z));
 
   return center;
 }
 
 export function zoomToObjects(loadedCamera, scene) {
   // scene 의 모든 geometry 방문하면서 bounding cube 계산해서 전체 scene bounding cube 계산
-  const center = new THREE.Vector3();
+  const center = new Vector3();
   center.copy(this.getObjectsCenter(scene));
 
   if (loadedCamera.bLoaded) {
-    this.camera.position.copy(new THREE.Vector3(loadedCamera.ltow.elements[12], loadedCamera.ltow.elements[13], loadedCamera.ltow.elements[14]));
+    this.camera.position.copy(new Vector3(loadedCamera.ltow.elements[12], loadedCamera.ltow.elements[13], loadedCamera.ltow.elements[14]));
 
-    const xAxis = new THREE.Vector3();
-    const yAxis = new THREE.Vector3();
-    const zAxis = new THREE.Vector3();
+    const xAxis = new Vector3();
+    const yAxis = new Vector3();
+    const zAxis = new Vector3();
     loadedCamera.ltow.extractBasis(xAxis, yAxis, zAxis);
 
     zAxis.negate();
@@ -44,7 +45,7 @@ export function zoomToObjects(loadedCamera, scene) {
     zAxis.add(this.camera.position);
     this.controls.target.copy(zAxis);
   } else {
-    const box = new THREE.Box3();
+    const box = new Box3();
     box.expandByObject(scene);
 
     // trim이나 이상한 점 하나가 너무 동떨어진 경우에는 정해진 center 바라보게 하자

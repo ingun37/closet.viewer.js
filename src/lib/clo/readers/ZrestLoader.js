@@ -2,7 +2,14 @@
 "use strict";
 
 /* eslint-disable require-jsdoc */
-import * as THREE from "@/lib/threejs/three";
+import {Object3D} from "three/src/core/Object3D";
+import {Matrix4} from "three/src/math/Matrix4";
+import {FileLoader} from "three/src/loaders/FileLoader";
+import {DefaultLoadingManager} from "three/src/loaders/LoadingManager";
+
+
+
+
 import JSZip from "@/lib/jszip/dist/jszip";
 import { readHeader } from "@/lib/clo/file/FileHeader";
 import { readMap } from "@/lib/clo/file/KeyValueMapReader";
@@ -39,7 +46,7 @@ export default class ZRestLoader {
     this.controls = controls;
     this.cameraPosition = cameraPosition;
     this.manager =
-      manager !== undefined ? manager : THREE.DefaultLoadingManager;
+      manager !== undefined ? manager : DefaultLoadingManager;
 
     // ZREST property
     this.zProperty = zrestProperty;
@@ -100,7 +107,7 @@ export default class ZRestLoader {
   };
 
   load = (url, onLoad, onProgress, onError) => {
-    const loader = new THREE.FileLoader(this.manager);
+    const loader = new FileLoader(this.manager);
     loader.setResponseType("arraybuffer");
     this.req = loader.load(
       url,
@@ -215,8 +222,8 @@ export default class ZRestLoader {
   };
 
   readZrestFromBlobForWeb = (blob, header) => {
-    const object3D = new THREE.Object3D();
-    // const object3D = new THREE.LOD();
+    const object3D = new Object3D();
+    // const object3D = new LOD();
     object3D.name = "object3D";
 
     const reader = new FileReader();
@@ -278,7 +285,7 @@ export default class ZRestLoader {
             );
 
             const loadedCamera = {
-              ltow: new THREE.Matrix4(),
+              ltow: new Matrix4(),
               bLoaded: false,
             };
 

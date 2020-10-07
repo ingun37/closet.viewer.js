@@ -1,6 +1,7 @@
 /* eslint-disable require-jsdoc */
 "use strict";
-import * as THREE from "@/lib/threejs/three";
+import { TextureLoader } from "three/src/loaders/TextureLoader";
+
 
 export async function loadTexture(zip, textureFileName) {
   const file = zip.file(textureFileName);
@@ -14,7 +15,7 @@ export async function loadTexture(zip, textureFileName) {
   const url = URL.createObjectURL(blob);
 
   return new Promise((resolve, reject) => {
-    const loader = new THREE.TextureLoader();
+    const loader = new TextureLoader();
     return loader.load(url, texture => {
       URL.revokeObjectURL(url);
       resolve(texture);
