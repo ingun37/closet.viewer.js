@@ -6,7 +6,7 @@ import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 
 import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
 import { makeMaterial } from "@/lib/clo/readers/zrest_material";
-
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 export default function MatMeshManager({
   matMeshMap: matMeshMap,
   matShapeMap: matShapeMap,
@@ -339,7 +339,7 @@ MatMeshManager.prototype = {
 
       const drcArrayBuffer = await zip.file(dracoMeshFilename).async("arrayBuffer");
 
-      const dracoLoader = new THREE.DRACOLoader();
+      const dracoLoader = new DRACOLoader();
       // dracoLoader.setVerbosity(bLog);
 
       return dracoLoader.decodeDracoFile(drcArrayBuffer);

@@ -4,8 +4,7 @@ import ZRestLoader, {
   checkFileReaderSyncSupport,
 } from "@/lib/clo/readers/ZrestLoader";
 import * as THREE from "three";
-import "@/lib/threejs/OrbitControls";
-import "@/lib/draco/DRACOLoader";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 import AnnotationManager from "@/lib/annotation/AnnotationManager";
 import TechPackManager from "@/lib/techPack/TechPackManager";
@@ -114,7 +113,7 @@ export default class ClosetViewer {
     this.camera.position.set(0, cameraHeight, cameraDistance);
 
     // create camera controller
-    this.controls = new THREE.OrbitControls(
+    this.controls = new OrbitControls(
       this.camera,
       this.renderer.domElement
     );
