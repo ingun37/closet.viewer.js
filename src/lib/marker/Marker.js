@@ -1,5 +1,5 @@
 /* eslint-disable require-jsdoc */
-import * as THREE from "@/lib/threejs/three";
+import * as THREE from "three";
 
 function Marker(
   pointerPosition,

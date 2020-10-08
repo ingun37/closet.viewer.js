@@ -3,7 +3,7 @@ import ZRestLoader, {
   dataWorkerFunction,
   checkFileReaderSyncSupport,
 } from "@/lib/clo/readers/ZrestLoader";
-import * as THREE from "@/lib/threejs/three";
+import * as THREE from "three";
 import "@/lib/threejs/OrbitControls";
 import "@/lib/draco/DRACOLoader";
 
