@@ -14,7 +14,7 @@ import screenfull from "screenfull";
 import MobileDetect from "mobile-detect";
 
 import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
-import "@/lib/threejs/BufferGeometryUtils";
+import { BufferGeometryUtils } from "three/examples/jsm/utils/BufferGeometryUtils";
 
 let windowHalfX = window.innerWidth / 2;
 let windowHalfY = window.innerHeight / 2;

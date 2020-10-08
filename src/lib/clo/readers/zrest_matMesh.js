@@ -337,12 +337,13 @@ MatMeshManager.prototype = {
         return false;
       }
 
-      const drcArrayBuffer = await zip.file(dracoMeshFilename).async("arrayBuffer");
+      const drcBase64 = await zip.file(dracoMeshFilename).async("base64");
+      const drcDataURL = "data:;base64," + drcBase64;
 
       const dracoLoader = new DRACOLoader();
       // dracoLoader.setVerbosity(bLog);
 
-      return dracoLoader.decodeDracoFile(drcArrayBuffer);
+      return dracoLoader.loadAsync(drcDataURL)
     };
 
     const buildStyleLines = (dracoGeometry, patternIdx, listLine) => {

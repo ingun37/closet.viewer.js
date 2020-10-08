@@ -1,5 +1,5 @@
-import * as THREE from '@/lib/threejs/three'
-import { FlatShading } from '../../threejs/three';
+import * as THREE from 'three'
+import { FlatShading } from 'three';
 var dataUriToBuffer = require('data-uri-to-buffer');
 
 let envDiffuseMap;
