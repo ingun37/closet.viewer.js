@@ -43,18 +43,8 @@ uniform float materialOpacity;
 uniform float normalMapIntensityInPercentage;
 
 // 다음 불러줘야 한다. three.js 버전 업 후에 #include <lights_pars_begin> 로 대체하면 됨
-#if NUM_DIR_LIGHTS > 0
-struct DirectionalLight {
-    vec3 direction;
-    vec3 color;
-
-    int shadow;
-    float shadowBias;
-    float shadowRadius;
-};
-
-uniform DirectionalLight directionalLights[ NUM_DIR_LIGHTS ];
-#endif
+#include <common>
+#include <lights_pars_begin>
 
 varying vec3 vNormal;
 varying vec3 posAtEye;
@@ -65,6 +55,8 @@ varying vec2 vUV2;
 #include <packing>
 #include <shadowmap_pars_fragment>
 #include <shadowmask_pars_fragment>
+
+layout(location = 0) out vec4 fragColor;
 
 mat3 cotangent_frame( vec3 N, vec3 p, vec2 uv )
 {
@@ -266,7 +258,7 @@ vec3 RGBEToVec3(vec4 rgbe)
     return rgbe.rgb * exp2( rgbe.a * 255.0 - 128.0 );
 }
 
-void main( void )
+void main()
 {
     // 모든 라이트에 대해 phong shading 계산하기.
     vec4 diffuse = vec4(0.0);
@@ -422,7 +414,7 @@ void main( void )
         specular.rgb += faceIntensity * shadowIntensity * FresnelSchlick(specularColor, dotLH, 1.0) * ((specularPower + 2.0) / 8.0) * pow(dotNH, specularPower) * dotNL * lightColor;
     }
 
-    gl_FragColor.rgb = diffuse.rgb + specular.rgb;
+    fragColor.rgb = diffuse.rgb + specular.rgb;
 
     /*if (bUseAmbientOcclusion)
     {
@@ -432,6 +424,6 @@ void main( void )
 
     // tone mapping 해 줘야 HDR (shader가 output하는 linear RGB space color) 이미지를 사실적으로 보여줄 수 있다.
     // 안에서 감마 코렉션(linear -> sRGB) 도 수행한다
-    gl_FragColor.rgb = Tonemapping(gl_FragColor.rgb);
-    gl_FragColor.a = materialOpacity * texAlpha;
+    fragColor.rgb = Tonemapping(fragColor.rgb);
+    fragColor.a = materialOpacity * texAlpha;
 }
