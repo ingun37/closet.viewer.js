@@ -230,11 +230,12 @@ MatMeshManager.prototype = {
         //   }
         // }
         // bufferGeometry.setIndex(new THREE.BufferAttribute(new Uint32Array(indexAttrib), 1));
-
-        if (!'normal' in bufferGeometry.attributes) {
+        if (bufferGeometry.attributes.normal === undefined) {
           bufferGeometry.computeFaceNormals();
           bufferGeometry.computeVertexNormals();
+        } else {
         }
+
         if (zrestLoader.aborted) return;
         const bUseSeamPuckeringNormalMap = 'uv2' in bufferGeometry.attributes;
 
