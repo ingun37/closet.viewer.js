@@ -241,7 +241,7 @@ export async function makeMaterial({
 
           const rotMatrix = new THREE.Matrix4();
           rotMatrix.identity();
-          rotMatrix.makeRotationZ(-THREE.Math.degToRad(zRestTexture.angle));
+          rotMatrix.makeRotationZ(-THREE.MathUtils.degToRad(zRestTexture.angle));
 
           const transMatrix = new THREE.Matrix4();
           transMatrix.identity();
@@ -316,7 +316,7 @@ export async function makeMaterial({
         const transformed = property.colorwayObjectTextureTransformation;
         const grot = new THREE.Matrix4();
         grot.identity();
-        grot.makeRotationZ(-THREE.Math.degToRad(transformed[colorwayIndex].angle));
+        grot.makeRotationZ(-THREE.MathUtils.degToRad(transformed[colorwayIndex].angle));
 
         const gtra = new THREE.Matrix4();
         gtra.identity();
