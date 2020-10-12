@@ -56,7 +56,7 @@ varying vec2 vUV2;
 #include <shadowmap_pars_fragment>
 #include <shadowmask_pars_fragment>
 
-layout(location = 0) out vec4 fragColor;
+// layout(location = 0) out vec4 fragColor;
 
 mat3 cotangent_frame( vec3 N, vec3 p, vec2 uv )
 {
@@ -414,7 +414,7 @@ void main()
         specular.rgb += faceIntensity * shadowIntensity * FresnelSchlick(specularColor, dotLH, 1.0) * ((specularPower + 2.0) / 8.0) * pow(dotNH, specularPower) * dotNL * lightColor;
     }
 
-    fragColor.rgb = diffuse.rgb + specular.rgb;
+    gl_FragColor.rgb = diffuse.rgb + specular.rgb;
 
     /*if (bUseAmbientOcclusion)
     {
@@ -424,6 +424,6 @@ void main()
 
     // tone mapping 해 줘야 HDR (shader가 output하는 linear RGB space color) 이미지를 사실적으로 보여줄 수 있다.
     // 안에서 감마 코렉션(linear -> sRGB) 도 수행한다
-    fragColor.rgb = Tonemapping(fragColor.rgb);
-    fragColor.a = materialOpacity * texAlpha;
+    gl_FragColor.rgb = Tonemapping(gl_FragColor.rgb);
+    gl_FragColor.a = materialOpacity * texAlpha;
 }

@@ -53,7 +53,7 @@ export async function makeMaterial({
       m.vertexShader = vertexShader;
       m.fragmentShader = fragmentShader;
     } else {
-      m.glslVersion = THREE.GLSL3
+      // m.glslVersion = THREE.GLSL3
       m.vertexShader = pbrVertexShader;
       m.fragmentShader = pbrFragmentShader;
 
