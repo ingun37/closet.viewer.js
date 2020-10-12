@@ -51,7 +51,6 @@ struct DirectionalLight {
     int shadow;
     float shadowBias;
     float shadowRadius;
-    vec2 shadowMapSize;
 };
 
 uniform DirectionalLight directionalLights[ NUM_DIR_LIGHTS ];
