@@ -543,7 +543,6 @@ DRACOLoader.DRACOWorker = function () {
 			}
 		}
 
-		console.log(dracoGeometry.num_attributes() , reservedIds);
 		if (uv2id != -1 && reservedIds.findIndex(x=>x==uv2id) == -1, reservedIds.length < dracoGeometry.num_attributes()) {
 			const attribute = decoder.GetAttribute( dracoGeometry, uv2id );
 			geometry.attributes.push( decodeAttribute( draco, decoder, dracoGeometry, "uv2", self[attributeTypes.uv], attribute ) );

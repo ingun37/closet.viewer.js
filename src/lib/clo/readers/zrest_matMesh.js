@@ -161,7 +161,6 @@ MatMeshManager.prototype = {
         const normalAttrib = [];
         const uvAttrib = [];
         const uv2Attrib = [];
-        console.log(dracoGeometry);
         let count = 0;
         for (let j = 0; j < indexSize; j++) {
           const index = dracoGeometry.index.array[indexOffset + j];
