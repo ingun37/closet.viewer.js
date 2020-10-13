@@ -32,7 +32,7 @@ export async function makeMaterial({
 
   const attachShader = (drawMode, version) => {
     const m = new THREE.ShaderMaterial({
-      uniforms: THREE.UniformsUtils.merge([UniformsLib["lights"], uniforms]),
+      uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib["lights"], uniforms]),
       vertexShader: null,
       fragmentShader: null,
       side: rFace, // double side로 하면 zfighting이 생각보다 심해진다. 나중에 이문제 해결 필요
