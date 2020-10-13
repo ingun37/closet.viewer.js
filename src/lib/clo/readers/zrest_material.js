@@ -11,7 +11,7 @@ import vertexShader from "raw-loader!@/lib/clo/shader/vertexShader.vert";
 import pbrVertexShader from "raw-loader!@/lib/clo/shader/pbrVertexShader.vert";
 
 import { TEXTURE_TYPE, RENDER_FACE_TYPE } from "@/lib/clo/readers/predefined";
-
+import { UniformsLib } from "../r89-legacy/UniformsLib";
 export async function makeMaterial({
   jsZip: zip,
   matProperty: property,
@@ -32,7 +32,7 @@ export async function makeMaterial({
 
   const attachShader = (drawMode, version) => {
     const m = new THREE.ShaderMaterial({
-      uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib["lights"], uniforms]),
+      uniforms: THREE.UniformsUtils.merge([UniformsLib["lights"], uniforms]),
       vertexShader: null,
       fragmentShader: null,
       side: rFace, // double side로 하면 zfighting이 생각보다 심해진다. 나중에 이문제 해결 필요
