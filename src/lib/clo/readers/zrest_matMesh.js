@@ -6,7 +6,7 @@ import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 
 import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
 import { makeMaterial } from "@/lib/clo/readers/zrest_material";
-import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
+import { DRACOLoader } from "../CloDracoLoader/CloDRACOLoader";
 import {  } from "draco3d/draco_decoder_nodejs";
 export default function MatMeshManager({
   matMeshMap: matMeshMap,
