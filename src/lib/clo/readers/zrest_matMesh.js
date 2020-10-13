@@ -197,12 +197,12 @@ MatMeshManager.prototype = {
         }
         bufferGeometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(posAttrib), 3));
 
-        if (dracoGeometry.useNormal) {
+        if (dracoGeometry.attributes.normal !== undefined) {
           bufferGeometry.setAttribute("normal", new THREE.BufferAttribute(new Float32Array(normalAttrib), 3));
         }
 
         bufferGeometry.setAttribute("uv", new THREE.BufferAttribute(new Float32Array(uvAttrib), 2));
-        if (dracoGeometry.numUVs >= 2) {
+        if (dracoGeometry.attributes.uv2 !== undefined) {
           bufferGeometry.setAttribute("uv2", new THREE.BufferAttribute(new Float32Array(uv2Attrib), 2));
         }
 
@@ -225,7 +225,7 @@ MatMeshManager.prototype = {
         }
         bufferGeometry.setIndex(new THREE.BufferAttribute(new Uint32Array(indexAttrib), 1));
 
-        if (!dracoGeometry.useNormal) {
+        if (dracoGeometry.attributes.normal === undefined) {
           bufferGeometry.computeFaceNormals();
           bufferGeometry.computeVertexNormals();
         }
