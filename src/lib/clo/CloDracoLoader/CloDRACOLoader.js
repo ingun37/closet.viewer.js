@@ -507,9 +507,11 @@ DRACOLoader.DRACOWorker = function () {
 
 		var geometry = { index: null, attributes: [] };
 
+		var uv2id = -1;
+		var reservedIds = [];
+
 		// Gather all vertex attributes.
 		for ( var attributeName in attributeIDs ) {
-
 			var attributeType = self[ attributeTypes[ attributeName ] ];
 
 			var attribute;
@@ -533,9 +535,18 @@ DRACOLoader.DRACOWorker = function () {
 				attribute = decoder.GetAttribute( dracoGeometry, attributeID );
 
 			}
-
+			reservedIds.push(attributeID);
 			geometry.attributes.push( decodeAttribute( draco, decoder, dracoGeometry, attributeName, attributeType, attribute ) );
 
+			if (attributeName == "uv") {
+				uv2id = attributeID + 1;
+			}
+		}
+
+		console.log(dracoGeometry.num_attributes() , reservedIds);
+		if (uv2id != -1 && reservedIds.findIndex(x=>x==uv2id) == -1, reservedIds.length < dracoGeometry.num_attributes()) {
+			const attribute = decoder.GetAttribute( dracoGeometry, uv2id );
+			geometry.attributes.push( decodeAttribute( draco, decoder, dracoGeometry, "uv2", self[attributeTypes.uv], attribute ) );
 		}
 
 		// Add index.
