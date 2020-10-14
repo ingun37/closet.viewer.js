@@ -31,6 +31,7 @@ envDiffuseMap = envMapLoader.load(getImages([
     'Environment_c04.png',
     'Environment_c05.png'
 ]));
+envDiffuseMap.format = THREE.RGBEFormat;
 envDiffuseMap.generateMipmaps = false; // 이것만 부르면 텍스처가 새까맣게 나오네. 아래 nearestFilter 적용 안되서
 envDiffuseMap.magFilter = THREE.NearestFilter;
 envDiffuseMap.minFilter = THREE.NearestFilter;
