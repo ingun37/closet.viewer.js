@@ -330,7 +330,7 @@ MatMeshManager.prototype = {
     };
 
     const dracoLoader = new DRACOLoader();
-
+    dracoLoader.setDecoderPath("https://www.gstatic.com/draco/v1/decoders/")
     const getDracoGeometry = async qsDracoFileName => {
       // Draco Compression
       const dracoMeshFilename = readByteArray("String", qsDracoFileName);
