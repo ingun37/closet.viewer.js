@@ -40,7 +40,7 @@ envSpecularMap = envMapLoader.load(getImages(['Environment_m00_c00.png', 'Enviro
 
     specularMap.generateMipmaps = false;
     specularMap.magFilter = THREE.LinearFilter;
-    specularMap.minFilter = THREE.LinearMipMapLinearFilter;
+    specularMap.minFilter = THREE.LinearMipmapLinearFilter;
     specularMap.isCompressedTexture = true;
 
     for (let face = 0; face < 6; face++)
