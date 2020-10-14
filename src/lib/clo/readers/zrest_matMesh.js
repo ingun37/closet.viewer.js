@@ -27,6 +27,9 @@ export default function MatMeshManager({
   this.matShapeMap = new Map();
 }
 
+const dracoLoader = new DRACOLoader();
+dracoLoader.setDecoderPath("https://www.gstatic.com/draco/v1/decoders/");
+
 MatMeshManager.prototype = {
   constructor: MatMeshManager,
 
@@ -329,8 +332,7 @@ MatMeshManager.prototype = {
       }
     };
 
-    const dracoLoader = new DRACOLoader();
-    dracoLoader.setDecoderPath("https://www.gstatic.com/draco/v1/decoders/")
+    
     const getDracoGeometry = async qsDracoFileName => {
       // Draco Compression
       const dracoMeshFilename = readByteArray("String", qsDracoFileName);
