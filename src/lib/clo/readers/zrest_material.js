@@ -11,7 +11,7 @@ import vertexShader from "raw-loader!@/lib/clo/shader/vertexShader.vert";
 import pbrVertexShader from "raw-loader!@/lib/clo/shader/pbrVertexShader.vert";
 
 import { TEXTURE_TYPE, RENDER_FACE_TYPE } from "@/lib/clo/readers/predefined";
-import { UniformsLib } from "../r89-legacy/UniformsLib";
+
 export async function makeMaterial({
   jsZip: zip,
   matProperty: property,
