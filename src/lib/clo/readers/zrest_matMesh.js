@@ -7,7 +7,7 @@ import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
 import { makeMaterial } from "@/lib/clo/readers/zrest_material";
 import { DRACOLoader } from "../CloDracoLoader/CloDRACOLoader";
-import {  } from "draco3d/draco_decoder_nodejs";
+
 export default function MatMeshManager({
   matMeshMap: matMeshMap,
   matShapeMap: matShapeMap,
@@ -341,12 +341,9 @@ MatMeshManager.prototype = {
         return false;
       }
 
-      const drcBase64 = await zip.file(dracoMeshFilename).async("base64");
-      const drcDataURL = "data:;base64," + drcBase64;
+      const arrayBuffer = await zip.file(dracoMeshFilename).async("arraybuffer");
 
-      // dracoLoader.setVerbosity(bLog);
-
-      return dracoLoader.loadAsync(drcDataURL)
+      return dracoLoader.decodeArraybufferAsync(arrayBuffer);
     };
 
     const buildStyleLines = (dracoGeometry, patternIdx, listLine) => {

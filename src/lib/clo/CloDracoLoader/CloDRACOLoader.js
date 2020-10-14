@@ -108,6 +108,19 @@ DRACOLoader.prototype = Object.assign( Object.create( Loader.prototype ), {
 
 	},
 
+	/** CLO domain specific api (ingun) */
+	decodeArraybufferAsync: function ( buffer ) {
+
+		var taskConfig = {
+			attributeIDs: this.defaultAttributeIDs,
+			attributeTypes: this.defaultAttributeTypes,
+			useUniqueIDs: false
+		};
+
+		return this.decodeGeometry( buffer, taskConfig );
+
+	},
+
 	/** @deprecated Kept for backward-compatibility with previous DRACOLoader versions. */
 	decodeDracoFile: function ( buffer, callback, attributeIDs, attributeTypes ) {
 
