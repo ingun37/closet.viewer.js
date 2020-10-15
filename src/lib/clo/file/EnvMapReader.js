@@ -1,4 +1,5 @@
-import * as THREE from 'three'
+import {CubeTextureLoader, LinearFilter, LinearMipmapLinearFilter, NearestFilter, RGBEFormat} from "three";
+
 import { FlatShading } from 'three';
 
 function getImages(arr) {
@@ -12,7 +13,7 @@ function getImages(arr) {
 const genPNGName = (level)=>(face)=>`Environment_m0${level}_c0${face}.png`
 
 // environment map setting
-let envMapLoader = new THREE.CubeTextureLoader();
+let envMapLoader = new CubeTextureLoader();
 let envDiffuseMap = envMapLoader.load(getImages([
     'Environment_c00.png',
     'Environment_c01.png',
@@ -21,10 +22,10 @@ let envDiffuseMap = envMapLoader.load(getImages([
     'Environment_c04.png',
     'Environment_c05.png'
 ]), function (map) {
-    map.format = THREE.RGBEFormat;
+    map.format = RGBEFormat;
     map.generateMipmaps = false; // 이것만 부르면 텍스처가 새까맣게 나오네. 아래 nearestFilter 적용 안되서
-    map.magFilter = THREE.NearestFilter;
-    map.minFilter = THREE.NearestFilter;
+    map.magFilter = NearestFilter;
+    map.minFilter = NearestFilter;
 });
 
 
@@ -41,10 +42,10 @@ var specularCubes = [0,1,2,3,4,5,6,7].map(level=>{
 var envSpecularMap = specularCubes.shift();
 envSpecularMap.mipmaps = specularCubes;
 envSpecularMap.generateMipmaps = false;
-envSpecularMap.magFilter = THREE.LinearFilter;
-envSpecularMap.minFilter = THREE.LinearMipmapLinearFilter;
+envSpecularMap.magFilter = LinearFilter;
+envSpecularMap.minFilter = LinearMipmapLinearFilter;
 // map.isCompressedTexture = true;
-envSpecularMap.format = THREE.RGBEFormat;
+envSpecularMap.format = RGBEFormat;
 export {
     envDiffuseMap,
     envSpecularMap

@@ -1,6 +1,7 @@
 /* eslint-disable require-jsdoc */
 "use strict";
-import * as THREE from "three";
+import {BackSide, DoubleSide, FrontSide, GLSL3, MathUtils, Matrix4, RepeatWrapping, ShaderMaterial, UniformsLib, UniformsUtils} from "three";
+
 
 import { envDiffuseMap, envSpecularMap } from "@/lib/clo/file/EnvMapReader";
 import { loadTexture } from "@/lib/clo/readers/zrest_texture";
@@ -31,8 +32,8 @@ export async function makeMaterial({
   const uniforms = getUniforms(version, loadedCamera, colorwayIndex);
 
   const attachShader = (drawMode, version) => {
-    const m = new THREE.ShaderMaterial({
-      uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib["lights"], uniforms]),
+    const m = new ShaderMaterial({
+      uniforms: UniformsUtils.merge([UniformsLib["lights"], uniforms]),
       vertexShader: null,
       fragmentShader: null,
       side: rFace, // double side로 하면 zfighting이 생각보다 심해진다. 나중에 이문제 해결 필요
@@ -53,7 +54,7 @@ export async function makeMaterial({
       m.vertexShader = vertexShader;
       m.fragmentShader = fragmentShader;
     } else {
-      // m.glslVersion = THREE.GLSL3
+      // m.glslVersion = GLSL3
       m.vertexShader = pbrVertexShader;
       m.fragmentShader = pbrFragmentShader;
 
@@ -80,13 +81,13 @@ export async function makeMaterial({
     // 기본값은 두께보기의상이 기본이므로 front로 하자.
     // double 이 아닌 front로 하면 아바타 헤어 투명도가 CLO와 다르게 나오는 문제가 생기긴 하지만
     if (renderFace === undefined) {
-      return THREE.FrontSide;
+      return FrontSide;
     } else if (renderFace === RENDER_FACE_TYPE.MV_DOUBLE_FACE) {
-      return THREE.DoubleSide;
+      return DoubleSide;
     } else if (renderFace === RENDER_FACE_TYPE.MV_FRONT_FACE) {
-      return THREE.FrontSide;
+      return FrontSide;
     } else {
-      return THREE.BackSide;
+      return BackSide;
     }
   }
 
@@ -100,7 +101,7 @@ export async function makeMaterial({
     const buildFValue = _value => buildTypeValue("f", _value);
     const buildV3Value = _value => buildTypeValue("v3", _value);
 
-    const identityMatrix = buildTypeValue("m4", new THREE.Matrix4().identity());
+    const identityMatrix = buildTypeValue("m4", new Matrix4().identity());
     const tNull = buildTypeValue("t", null);
     const iZero = buildTypeValue("i", 0);
 
@@ -229,8 +230,8 @@ export async function makeMaterial({
           }
 
           // wrap type 외에는 기본값을 그대로 사용하면 된다.
-          texture.wrapS = THREE.RepeatWrapping;
-          texture.wrapT = THREE.RepeatWrapping;
+          texture.wrapS = RepeatWrapping;
+          texture.wrapT = RepeatWrapping;
 
           /**
            * TODO:
@@ -240,19 +241,19 @@ export async function makeMaterial({
            */
           texture.anisotropy = 16;
 
-          const rotMatrix = new THREE.Matrix4();
+          const rotMatrix = new Matrix4();
           rotMatrix.identity();
-          rotMatrix.makeRotationZ(-THREE.MathUtils.degToRad(zRestTexture.angle));
+          rotMatrix.makeRotationZ(-MathUtils.degToRad(zRestTexture.angle));
 
-          const transMatrix = new THREE.Matrix4();
+          const transMatrix = new Matrix4();
           transMatrix.identity();
           transMatrix.makeTranslation(-zRestTexture.translate.x, -zRestTexture.translate.y, 0.0);
 
-          const scaleMatrix = new THREE.Matrix4();
+          const scaleMatrix = new Matrix4();
           scaleMatrix.identity();
           scaleMatrix.makeScale(1.0 / zRestTexture.scale.x, 1.0 / zRestTexture.scale.y, 1.0);
 
-          const transform = new THREE.Matrix4();
+          const transform = new Matrix4();
           transform.identity();
           transform.multiply(scaleMatrix);
           transform.multiply(rotMatrix);
@@ -315,11 +316,11 @@ export async function makeMaterial({
     if (bHasTexture) {
       if (property.colorwayObjectTextureTransformation.length > 0) {
         const transformed = property.colorwayObjectTextureTransformation;
-        const grot = new THREE.Matrix4();
+        const grot = new Matrix4();
         grot.identity();
-        grot.makeRotationZ(-THREE.MathUtils.degToRad(transformed[colorwayIndex].angle));
+        grot.makeRotationZ(-MathUtils.degToRad(transformed[colorwayIndex].angle));
 
-        const gtra = new THREE.Matrix4();
+        const gtra = new Matrix4();
         gtra.identity();
 
         gtra.makeTranslation(-transformed[colorwayIndex].translate.x, -transformed[colorwayIndex].translate.y, 0.0);

@@ -3,7 +3,8 @@ import ZRestLoader, {
   dataWorkerFunction,
   checkFileReaderSyncSupport,
 } from "@/lib/clo/readers/ZrestLoader";
-import * as THREE from "three";
+import {AmbientLight, DirectionalLight, PCFSoftShadowMap, PerspectiveCamera, Scene, ShaderMaterial, TextureLoader, VSMShadowMap, Vector3, WebGLRenderer} from "three";
+
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 import AnnotationManager from "@/lib/annotation/AnnotationManager";
@@ -93,7 +94,7 @@ export default class ClosetViewer {
     windowHalfY = h / 2;
 
     // create webgl renderer
-    this.renderer = new THREE.WebGLRenderer({
+    this.renderer = new WebGLRenderer({
       antialias: true,
       preserveDrawingBuffer: true,
       alpha: true,
@@ -103,8 +104,8 @@ export default class ClosetViewer {
     this.renderer.setSize(w, h);
     this.renderer.sortObjects = false; // 투명 object 제대로 렌더링하려면 자동 sort 꺼야 한다
     this.renderer.shadowMap.enabled = true;
-    // NOTE: THREE.PCFSoftShadowMap causes performance problem on Android;
-    this.renderer.shadowMap.type = THREE.VSMShadowMap;
+    // NOTE: PCFSoftShadowMap causes performance problem on Android;
+    this.renderer.shadowMap.type = VSMShadowMap;
 
     this.setter.appendChild(this.renderer.domElement);
 
@@ -117,7 +118,7 @@ export default class ClosetViewer {
       this.camera,
       this.renderer.domElement
     );
-    this.controls.target = new THREE.Vector3(0, cameraHeight, 0);
+    this.controls.target = new Vector3(0, cameraHeight, 0);
     this.controls.update();
     this.controls.addEventListener("change", () => {
       if (this.updateCamera) {
@@ -131,19 +132,19 @@ export default class ClosetViewer {
     });
 
     // create scenegraph
-    this.scene = new THREE.Scene();
+    this.scene = new Scene();
 
     /*
      * 이제 version 3 이후 파일에 대해서는 shader에서 light 설정을 hard coding해서 사용한다.
      * 하지만 version 2 이하 파일을 위해 여기에서도 설정한다.
      * by Jaden
      */
-    const DirLight0 = new THREE.DirectionalLight(0xd2d2d2);
+    const DirLight0 = new DirectionalLight(0xd2d2d2);
     DirLight0.position.set(0, 0, 1).normalize();
     DirLight0.castShadow = false;
     // specular1 : 464646
 
-    const DirLight1 = new THREE.DirectionalLight(0x6e6e6e);
+    const DirLight1 = new DirectionalLight(0x6e6e6e);
     DirLight1.position.set(1500, 3000, 1500);
     DirLight1.castShadow = this.mobileDetect.os() === "iOS" ? false : true;
 
@@ -160,7 +161,7 @@ export default class ClosetViewer {
     // specular2 : 3c3c3c
 
     /*
-     * scene.add(new THREE.AmbientLight(0x8c8c8c));
+     * scene.add(new AmbientLight(0x8c8c8c));
      * amibent light은 추가하지 않고 shader에서 하드코딩으로 처리한다.
      * CLO와 three.js 의 light 구조가 다르므로 이렇게 하자.
      * by Jaden
@@ -169,7 +170,7 @@ export default class ClosetViewer {
     this.scene.add(DirLight0);
     this.scene.add(DirLight1);
 
-    const textureLoader = new THREE.TextureLoader();
+    const textureLoader = new TextureLoader();
     const texture = textureLoader.load(
       require("@/lib/clo/background/img_3dwindow_bg_Designer.png")
     );
@@ -207,7 +208,7 @@ export default class ClosetViewer {
       const near = 100;
       const far = 100000;
 
-      return new THREE.PerspectiveCamera(fov, aspect, near, far);
+      return new PerspectiveCamera(fov, aspect, near, far);
     }
 
     if (!PRODUCTION && this.stats) {
@@ -620,7 +621,7 @@ export default class ClosetViewer {
     for (const matMesh of matMeshMap.values()) {
       this.safeDeallocation(
         matMesh.material,
-        THREE.ShaderMaterial,
+        ShaderMaterial,
         function () {
           // console.log("success deallocation");
         },

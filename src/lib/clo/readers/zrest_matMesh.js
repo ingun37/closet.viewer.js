@@ -1,6 +1,7 @@
 /* eslint-disable require-jsdoc */
 "use strict";
-import * as THREE from "three";
+import {BufferAttribute, BufferGeometry, Geometry, Line, LineBasicMaterial, Matrix4, Mesh, Object3D, Vector3} from "three";
+
 
 import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 
@@ -38,7 +39,7 @@ MatMeshManager.prototype = {
     this.camera = loadedCamera;
     this.colorwayIndex = colorwayIndex;
 
-    let tf = new THREE.Object3D();
+    let tf = new Object3D();
 
     const listChildrenTransformer3D = map.get("listChildrenTransformer3D");
     if (listChildrenTransformer3D) {
@@ -58,7 +59,7 @@ MatMeshManager.prototype = {
     }
     if (zrestLoader.aborted) return;
 
-    const mat4 = new THREE.Matrix4().identity();
+    const mat4 = new Matrix4().identity();
     if (map.get("m4Matrix")) {
       const localMatrix = map.get("m4Matrix");
       mat4.set(
@@ -144,11 +145,11 @@ MatMeshManager.prototype = {
 
         /**
          * NOTE:
-         * THREE.Geometry 를 사용하면 실제 메쉬의 메모리보다 10배 가까운 메모리를 사용하게 된다.
+         * Geometry 를 사용하면 실제 메쉬의 메모리보다 10배 가까운 메모리를 사용하게 된다.
          * 왜 그정도인지는 모르겠지만.. 그래서 BufferGeometry 사용한다.
          * Jaden 2017.06.08
          */
-        const bufferGeometry = new THREE.BufferGeometry();
+        const bufferGeometry = new BufferGeometry();
 
         /**
          * NOTE:
@@ -172,7 +173,7 @@ MatMeshManager.prototype = {
             changeVertexIndex[index] = count;
             count++;
 
-            const threePos = new THREE.Vector3(dracoGeometry.attributes.position.array[index * 3], dracoGeometry.attributes.position.array[index * 3 + 1], dracoGeometry.attributes.position.array[index * 3 + 2]);
+            const threePos = new Vector3(dracoGeometry.attributes.position.array[index * 3], dracoGeometry.attributes.position.array[index * 3 + 1], dracoGeometry.attributes.position.array[index * 3 + 2]);
             // threePos.applyMatrix4(m4);
 
             posAttrib.push(threePos.x);
@@ -198,15 +199,15 @@ MatMeshManager.prototype = {
         if (m === 0) {
           frontVertexCount = count;
         }
-        bufferGeometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(posAttrib), 3));
+        bufferGeometry.setAttribute("position", new BufferAttribute(new Float32Array(posAttrib), 3));
 
         if (dracoGeometry.attributes.normal !== undefined) {
-          bufferGeometry.setAttribute("normal", new THREE.BufferAttribute(new Float32Array(normalAttrib), 3));
+          bufferGeometry.setAttribute("normal", new BufferAttribute(new Float32Array(normalAttrib), 3));
         }
 
-        bufferGeometry.setAttribute("uv", new THREE.BufferAttribute(new Float32Array(uvAttrib), 2));
+        bufferGeometry.setAttribute("uv", new BufferAttribute(new Float32Array(uvAttrib), 2));
         if (dracoGeometry.attributes.uv2 !== undefined) {
-          bufferGeometry.setAttribute("uv2", new THREE.BufferAttribute(new Float32Array(uv2Attrib), 2));
+          bufferGeometry.setAttribute("uv2", new BufferAttribute(new Float32Array(uv2Attrib), 2));
         }
 
         // Set Indices
@@ -226,7 +227,7 @@ MatMeshManager.prototype = {
             indexAttrib.push(changeVertexIndex[dracoGeometry.index.array[indexOffset + j * 3 + 2]]);
           }
         }
-        bufferGeometry.setIndex(new THREE.BufferAttribute(new Uint32Array(indexAttrib), 1));
+        bufferGeometry.setIndex(new BufferAttribute(new Uint32Array(indexAttrib), 1));
 
         if (dracoGeometry.attributes.normal === undefined) {
           bufferGeometry.computeFaceNormals();
@@ -251,7 +252,7 @@ MatMeshManager.prototype = {
         if (zrestLoader.aborted) return;
         if (!material) return;
 
-        const threeMesh = new THREE.Mesh(bufferGeometry, material);
+        const threeMesh = new Mesh(bufferGeometry, material);
         const matMeshType = listMatMeshIDOnIndexedMesh[m].get("enType");
         // 여기서 center, normal, bounding sphere radius,
 
@@ -277,8 +278,8 @@ MatMeshManager.prototype = {
           }
         }
 
-        const center = new THREE.Vector3(-1, -1, -1);
-        const normal = new THREE.Vector3(-1, -1, -1);
+        const center = new Vector3(-1, -1, -1);
+        const normal = new Vector3(-1, -1, -1);
         const boundingSphereRadius = 0.0;
 
         // 여기도 version 가지고 나누는게 나을까? center랑 이런거 데이터가 없을텐데.
@@ -318,10 +319,10 @@ MatMeshManager.prototype = {
 
         if (zrestVersion > 4) {
           // marker 만들자.
-          const cameraPos = new THREE.Vector3();
+          const cameraPos = new Vector3();
           cameraPos.copy(center);
 
-          const distanceVector = new THREE.Vector3();
+          const distanceVector = new Vector3();
           distanceVector.copy(normal);
           distanceVector.normalize();
 
@@ -351,27 +352,27 @@ MatMeshManager.prototype = {
         return;
       }
 
-      const styleLineMaterial = new THREE.LineBasicMaterial({
+      const styleLineMaterial = new LineBasicMaterial({
         color: 0xfffe00
       });
       const currentStyleLineSet = new Set();
 
       for (let k = 0; k < listLine.length; ++k) {
-        const frontStyleLineGeometry = new THREE.Geometry();
-        const backStyleLineGeometry = new THREE.Geometry();
+        const frontStyleLineGeometry = new Geometry();
+        const backStyleLineGeometry = new Geometry();
 
         const listMeshPointIndex = listLine[k].get("listMeshPointIndex");
         if (listMeshPointIndex !== undefined && listMeshPointIndex !== null) {
           for (let h = 0; h < listMeshPointIndex.length; ++h) {
             let vIndex = listMeshPointIndex[h].get("uiMeshPointIndex");
             if (vIndex !== undefined && vIndex !== null) {
-              const frontStyleLinePos = new THREE.Vector3();
+              const frontStyleLinePos = new Vector3();
               frontStyleLinePos.x = dracoGeometry.attributes.position.array[vIndex * 3];
               frontStyleLinePos.y = dracoGeometry.attributes.position.array[vIndex * 3 + 1];
               frontStyleLinePos.z = dracoGeometry.attributes.position.array[vIndex * 3 + 2];
               frontStyleLineGeometry.vertices.push(frontStyleLinePos);
 
-              const backStyleLinePos = new THREE.Vector3();
+              const backStyleLinePos = new Vector3();
               vIndex += frontVertexCount;
               backStyleLinePos.x = dracoGeometry.attributes.position.array[vIndex * 3];
               backStyleLinePos.y = dracoGeometry.attributes.position.array[vIndex * 3 + 1];
@@ -381,12 +382,12 @@ MatMeshManager.prototype = {
 
           frontStyleLineGeometry.computeFaceNormals();
           frontStyleLineGeometry.computeVertexNormals();
-          const frontStyleLine = new THREE.Line(frontStyleLineGeometry, styleLineMaterial);
+          const frontStyleLine = new Line(frontStyleLineGeometry, styleLineMaterial);
           currentStyleLineSet.add(frontStyleLine);
 
           backStyleLineGeometry.computeFaceNormals();
           backStyleLineGeometry.computeVertexNormals();
-          const backStyleLine = new THREE.Line(backStyleLineGeometry, styleLineMaterial);
+          const backStyleLine = new Line(backStyleLineGeometry, styleLineMaterial);
           currentStyleLineSet.add(backStyleLine);
         }
 

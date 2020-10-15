@@ -1,4 +1,5 @@
-import * as THREE from "three";
+import {Color, MeshBasicMaterial} from "three";
+
 
 export default class Wireframe {
   constructor(matMeshMap) {
@@ -7,7 +8,7 @@ export default class Wireframe {
     this.materialMap = new Map();
 
     // Default mesh material for wire
-    this.wireMaterial = new THREE.MeshBasicMaterial({ color: 0x333333, wireframe: true });
+    this.wireMaterial = new MeshBasicMaterial({ color: 0x333333, wireframe: true });
 
     // External interface
     this.set = this.set.bind(this);
@@ -34,13 +35,13 @@ export default class Wireframe {
 
   // Hexadecimal color (recommended). (ex: 0xff0000)
   setColorHex = hexColor => {
-    const color = new THREE.Color(hexColor);
+    const color = new Color(hexColor);
     this.wireMaterial.color = color;
   }
 
   // Separate RGB values between 0 and 1. (ex: (1, 0, 0.5))
   setColorRGB = (R, G, B) => {
-    const color = new THREE.Color(R, G, B);
+    const color = new Color(R, G, B);
     this.wireMaterial.color = color;
   }
 

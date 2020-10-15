@@ -1,6 +1,7 @@
 /* eslint-disable require-jsdoc */
 "use strict";
-import * as THREE from "three";
+import {BufferGeometry, Line, LineBasicMaterial, Vector3} from "three";
+
 
 export class Measurement {
   constructor(measurementContainer) {
@@ -8,7 +9,7 @@ export class Measurement {
     this.container = measurementContainer;
     this.matMeshMap = null;
 
-    this.lineMaterial = new THREE.LineBasicMaterial({ color: 0x000ff });
+    this.lineMaterial = new LineBasicMaterial({ color: 0x000ff });
   }
 
   load(matMeshMap, listPatternMeasure) {
@@ -26,12 +27,12 @@ export class Measurement {
       // Gather points for measure lines
       const points = [];
       arrPos.forEach((pos) => {
-        points.push(new THREE.Vector3(pos.x, pos.y, pos.z));
+        points.push(new Vector3(pos.x, pos.y, pos.z));
       });
 
       // Build line and add container
-      const geometry = new THREE.BufferGeometry().setFromPoints(points);
-      const line = new THREE.Line(geometry, this.lineMaterial);
+      const geometry = new BufferGeometry().setFromPoints(points);
+      const line = new Line(geometry, this.lineMaterial);
       line.visible = false; // Set invisible as default
       this.container.add(line);
 

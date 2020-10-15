@@ -1,6 +1,7 @@
 /* eslint-disable require-jsdoc */
 "use strict";
-import * as THREE from "three";
+import {Object3D} from "three";
+
 
 export class StyleLine {
   constructor(styleLineContainer) {
@@ -16,7 +17,7 @@ export class StyleLine {
 
   clear() {
     this.styleLineMap.clear();
-    this.styleLineContainer = new THREE.Object3D();
+    this.styleLineContainer = new Object3D();
   }
 
   load(styleLineMap) {

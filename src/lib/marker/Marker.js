@@ -1,5 +1,6 @@
 /* eslint-disable require-jsdoc */
-import * as THREE from "three";
+import {Quaternion, Sprite, SpriteMaterial, Texture, Vector3} from "three";
+
 
 function Marker(
   pointerPosition,
@@ -10,19 +11,19 @@ function Marker(
   message,
   sprite
 ) {
-  this.pointerPos = new THREE.Vector3();
+  this.pointerPos = new Vector3();
   this.pointerPos.copy(pointerPosition);
 
-  this.faceNormal = new THREE.Vector3();
+  this.faceNormal = new Vector3();
   this.faceNormal.copy(normal);
 
-  this.cameraPos = new THREE.Vector3();
+  this.cameraPos = new Vector3();
   this.cameraPos.copy(cameraPosition);
 
-  this.cameraTarget = new THREE.Vector3();
+  this.cameraTarget = new Vector3();
   this.cameraTarget.copy(cameraTarget);
 
-  this.cameraQuaternion = new THREE.Quaternion();
+  this.cameraQuaternion = new Quaternion();
   this.cameraQuaternion.copy(cameraQuaternion);
 
   this.message = message;
@@ -95,16 +96,16 @@ function makeTextSprite(
   context.fillText(message, canvas.width / 2 - 2, canvas.height / 2 + 4);
 
   // canvas contents will be used for a texture
-  const texture = new THREE.Texture(canvas);
+  const texture = new Texture(canvas);
   texture.needsUpdate = true;
 
-  const spriteMaterial = new THREE.SpriteMaterial({
+  const spriteMaterial = new SpriteMaterial({
     map: texture,
     // useScreenCoordinates: false,
     depthTest: false
   });
 
-  const sprite = new THREE.Sprite(spriteMaterial);
+  const sprite = new Sprite(spriteMaterial);
   sprite.scale.set(50, 50, 1.0);
   sprite.name = `${name}_${message}`;
   return sprite;

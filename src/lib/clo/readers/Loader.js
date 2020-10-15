@@ -1,11 +1,12 @@
 "use strict";
-import * as THREE from "three";
+import {Matrix4, Object3D} from "three";
+
 import JSZip from "@/lib/jszip/dist/jszip";
 import { readMap } from "@/lib/clo/file/KeyValueMapReader";
 import { loadTexture } from "@/lib/clo/readers/zrest_texture";
 
 export function readZrestFromBlob(zrestLoader, blob, header) {
-  const object3D = new THREE.Object3D();
+  const object3D = new Object3D();
   object3D.name = "object3D";
 
   const reader = new FileReader();
@@ -63,7 +64,7 @@ export function readZrestFromBlob(zrestLoader, blob, header) {
           this.zProperty.seamPuckeringNormalMap = await loadTexture(zip, "seam_puckering_2ol97pf293f2sdk98.png");
 
           const loadedCamera = {
-            ltow: new THREE.Matrix4(),
+            ltow: new Matrix4(),
             bLoaded: false
           };
 
