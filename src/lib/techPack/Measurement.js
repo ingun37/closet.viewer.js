@@ -1,12 +1,6 @@
 /* eslint-disable require-jsdoc */
 "use strict";
-
-import {Vector3} from "three/src/math/Vector3";
-import {BufferGeometry} from "three/src/core/BufferGeometry";
-import {LineBasicMaterial} from "three/src/materials/LineBasicMaterial";
-
-
-
+import {BufferGeometry, Line, LineBasicMaterial, Vector3} from "three";
 
 
 export class Measurement {

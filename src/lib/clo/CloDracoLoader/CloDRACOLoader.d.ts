@@ -1,8 +1,8 @@
-
-
-import { Loader } from "three/src/loaders/Loader";
-import { LoadingManager } from "three/src/loaders/LoadingManager";
-import { BufferGeometry } from "three/src/core/BufferGeometry";
+import {
+	Loader,
+	LoadingManager,
+	BufferGeometry
+} from 'three';
 
 export class DRACOLoader extends Loader {
 

@@ -1,6 +1,5 @@
 "use strict";
-import { Matrix4 } from "three/src/math/Matrix4";
-import { Object3D } from "three/src/core/Object3D";
+import {Matrix4, Object3D} from "three";
 
 import JSZip from "@/lib/jszip/dist/jszip";
 import { readMap } from "@/lib/clo/file/KeyValueMapReader";

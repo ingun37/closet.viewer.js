@@ -1,6 +1,6 @@
 "use strict";
-import { Vector3 } from "three/src/math/Vector3";
-import { Box3 } from "three/src/math/Box3";
+import {Box3, Vector3} from "three";
+
 
 export function getObjectsCenter(threeJSScene) {
   const box = new Box3();

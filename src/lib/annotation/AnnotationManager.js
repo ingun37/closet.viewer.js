@@ -1,9 +1,6 @@
 /* eslint-disable require-jsdoc */
+import {Object3D, Quaternion, Raycaster, Vector3} from "three";
 
-import { Object3D } from "three/src/core/Object3D";
-import { Quaternion } from "three/src/math/Quaternion";
-import { Raycaster } from "three/src/core/Raycaster";
-import { Vector3 } from "three/src/math/Vector3";
 import { TweenMax } from "gsap/TweenMax";
 import { Marker, makeTextSprite } from "@/lib/marker/Marker";
 import FlashAnnotation from "./FlashAnnotation";
