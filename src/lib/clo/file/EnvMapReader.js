@@ -1,7 +1,6 @@
-import {CubeTextureLoader, LinearFilter, LinearMipmapLinearFilter, NearestFilter, RGBEFormat} from "three";
 
-import { FlatShading } from 'three';
-
+import { CubeTextureLoader } from "three/src/loaders/CubeTextureLoader";
+import { LinearFilter, LinearMipmapLinearFilter, NearestFilter, RGBEFormat } from "three/src/constants";
 function getImages(arr) {
     const fileArr = []
     for (let face = 0; face < arr.length; face++) {

@@ -2,7 +2,13 @@
 "use strict";
 
 /* eslint-disable require-jsdoc */
-import {DefaultLoadingManager, FileLoader, LOD, Matrix4, Object3D} from "three";
+import {Object3D} from "three/src/core/Object3D";
+import {Matrix4} from "three/src/math/Matrix4";
+import {FileLoader} from "three/src/loaders/FileLoader";
+import {DefaultLoadingManager} from "three/src/loaders/LoadingManager";
+
+
+
 
 import JSZip from "@/lib/jszip/dist/jszip";
 import { readHeader } from "@/lib/clo/file/FileHeader";

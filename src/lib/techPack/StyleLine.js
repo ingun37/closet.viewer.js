@@ -1,6 +1,7 @@
 /* eslint-disable require-jsdoc */
 "use strict";
-import {Object3D} from "three";
+
+import {Object3D} from "three/src/core/Object3D";
 
 
 export class StyleLine {
