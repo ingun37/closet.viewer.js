@@ -1,5 +1,13 @@
 /* eslint-disable require-jsdoc */
-import {Quaternion, Sprite, SpriteMaterial, Texture, Vector3} from "three";
+import {Quaternion} from "three/src/math/Quaternion";
+import {Sprite} from "three/src/objects/Sprite";
+import {Vector3} from "three/src/math/Vector3";
+
+import {SpriteMaterial} from "three/src/materials/SpriteMaterial";
+import {Texture} from "three/src/textures/Texture";
+
+
+
 
 
 function Marker(

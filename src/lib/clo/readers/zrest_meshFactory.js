@@ -1,6 +1,6 @@
 /* eslint-disable require-jsdoc */
 "use strict";
-import {Vector3} from "three";
+import { Vector3 } from "three/src/math/Vector3";
 
 
 import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";

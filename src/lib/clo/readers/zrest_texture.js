@@ -1,6 +1,6 @@
 /* eslint-disable require-jsdoc */
 "use strict";
-import {TextureLoader} from "three";
+import { TextureLoader } from "three/src/loaders/TextureLoader";
 
 
 export async function loadTexture(zip, textureFileName) {
