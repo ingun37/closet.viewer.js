@@ -2,7 +2,7 @@
 "use strict";
 
 import { BufferAttribute } from "three/src/core/BufferAttribute";
-import { bufferGeometry } from "three/src/core/BufferGeometry";
+import { BufferGeometry } from "three/src/core/BufferGeometry";
 import { Geometry } from "three/src/core/Geometry";
 import { Line } from "three/src/objects/Line";
 import { LineBasicMaterial } from "three/src/materials/LineBasicMaterial";
