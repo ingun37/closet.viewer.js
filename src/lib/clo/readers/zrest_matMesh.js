@@ -1,21 +1,6 @@
 /* eslint-disable require-jsdoc */
 "use strict";
-
-import { BufferAttribute } from "three/src/core/BufferAttribute";
-import { bufferGeometry } from "three/src/core/BufferGeometry";
-import { Geometry } from "three/src/core/Geometry";
-import { Line } from "three/src/objects/Line";
-import { LineBasicMaterial } from "three/src/materials/LineBasicMaterial";
-import { Matrix4 } from "three/src/math/Matrix4";
-import { Mesh } from "three/src/objects/Mesh";
-import { Vector3 } from "three/src/math/Vector3";
-
-import { Object3D } from "three/src/core/Object3D";
-
-
-
-
-
+import {BufferAttribute, BufferGeometry, Geometry, Line, LineBasicMaterial, Matrix4, Mesh, Object3D, Vector3} from "three";
 
 
 import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";

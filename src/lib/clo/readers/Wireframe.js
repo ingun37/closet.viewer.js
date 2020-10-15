@@ -1,7 +1,4 @@
-
-import {Color} from "three/src/math/Color";
-import {MeshBasicMaterial} from "three/src/materials/MeshBasicMaterial";
-
+import {Color, MeshBasicMaterial} from "three";
 
 
 export default class Wireframe {

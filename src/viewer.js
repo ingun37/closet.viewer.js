@@ -3,14 +3,8 @@ import ZRestLoader, {
   dataWorkerFunction,
   checkFileReaderSyncSupport,
 } from "@/lib/clo/readers/ZrestLoader";
+import {DirectionalLight, PerspectiveCamera, Scene, ShaderMaterial, TextureLoader, VSMShadowMap, Vector3, WebGLRenderer} from "three";
 
-import { DirectionalLight } from "three/src/lights/DirectionalLight";
-import { PerspectiveCamera } from "three/src/cameras/PerspectiveCamera";
-import { Scene } from "three/src/scenes/Scene";
-import { ShaderMaterial} from "three/src/materials/ShaderMaterial";
-import { TextureLoader } from "three/src/loaders/TextureLoader";
-import { Vector3 } from "three/src/math/Vector3";
-import { WebGLRenderer } from "three/src/renderers/WebGLRenderer";
 import { OrbitControls } from "./lib/clo/CloDracoLoader/OrbitControls";
 
 import AnnotationManager from "@/lib/annotation/AnnotationManager";

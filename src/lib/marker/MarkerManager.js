@@ -1,7 +1,5 @@
 /* eslint-disable require-jsdoc */
-import {Vector3} from "three/src/math/Vector3";
-import {Object3D} from "three/src/core/Object3D";
-
+import {Object3D, Vector3} from "three";
 
 import { Marker, makeTextSprite } from "@/lib/marker/Marker";
 
