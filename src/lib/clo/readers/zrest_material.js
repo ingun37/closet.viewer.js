@@ -1,7 +1,12 @@
 /* eslint-disable require-jsdoc */
 "use strict";
-import {BackSide, DoubleSide, FrontSide, GLSL3, MathUtils, Matrix4, RepeatWrapping, ShaderMaterial, UniformsLib, UniformsUtils} from "three";
 
+import { Matrix4 } from "three/src/math/Matrix4";
+import { UniformsLib } from "three/src/renderers/shaders/UniformsLib";
+import { UniformsUtils } from "three/src/renderers/shaders/UniformsUtils";
+import { DoubleSide, BackSide, FrontSide, RepeatWrapping } from "three/src/constants";
+import { MathUtils } from "three/src/math/MathUtils";
+import { ShaderMaterial } from "three/src/materials/ShaderMaterial";
 
 import { envDiffuseMap, envSpecularMap } from "@/lib/clo/file/EnvMapReader";
 import { loadTexture } from "@/lib/clo/readers/zrest_texture";
