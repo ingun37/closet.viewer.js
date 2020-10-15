@@ -55,6 +55,7 @@ module.exports = {
     alias: {
       '@': resolve('src'),
       '@bg': resolve('src/lib/clo/background/'),
+      'three': resolve('node_modules/three/src/Three')
     },
   },
   devServer: {

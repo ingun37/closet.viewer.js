@@ -3,9 +3,9 @@ import ZRestLoader, {
   dataWorkerFunction,
   checkFileReaderSyncSupport,
 } from "@/lib/clo/readers/ZrestLoader";
-import {AmbientLight, DirectionalLight, PCFSoftShadowMap, PerspectiveCamera, Scene, ShaderMaterial, TextureLoader, VSMShadowMap, Vector3, WebGLRenderer} from "three";
+import {DirectionalLight, PerspectiveCamera, Scene, ShaderMaterial, TextureLoader, VSMShadowMap, Vector3, WebGLRenderer} from "three";
 
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { OrbitControls } from "./lib/clo/CloDracoLoader/OrbitControls";
 
 import AnnotationManager from "@/lib/annotation/AnnotationManager";
 import TechPackManager from "@/lib/techPack/TechPackManager";
@@ -15,7 +15,7 @@ import screenfull from "screenfull";
 import MobileDetect from "mobile-detect";
 
 import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
-import { BufferGeometryUtils } from "three/examples/jsm/utils/BufferGeometryUtils";
+
 
 let windowHalfX = window.innerWidth / 2;
 let windowHalfY = window.innerHeight / 2;
