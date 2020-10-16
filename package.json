@@ -6,7 +6,7 @@
   "scripts": {
     "develop": "webpack-dev-server --mode development --hot --open --inline",
     "build": "cross-env NODE_ENV=production webpack --mode production --hide-modules",
-    "test": "jest"
+    "test": "jest --logHeapUsage"
   },
   "repository": "git+https://github.com/clovirtualfashion/closet.viewer.js.git",
   "author": "CLO",
@@ -55,6 +55,7 @@
     "selenium-webdriver": "^4.0.0-alpha.7",
     "serialize-javascript": "^2.1.2",
     "set-value": "^3.0.1",
+    "static-server": "^2.2.1",
     "three": "^0.96.0",
     "ts-jest": "^26.4.0",
     "ts-loader": "^8.0.4",

@@ -10,7 +10,6 @@ import "@/lib/draco/DRACOLoader";
 import AnnotationManager from "@/lib/annotation/AnnotationManager";
 import TechPackManager from "@/lib/techPack/TechPackManager";
 
-import RendererStats from "@xailabs/three-renderer-stats";
 import screenfull from "screenfull";
 import MobileDetect from "mobile-detect";
 
@@ -20,7 +19,6 @@ import "@/lib/threejs/BufferGeometryUtils";
 let windowHalfX = window.innerWidth / 2;
 let windowHalfY = window.innerHeight / 2;
 
-let rendererStats = null;
 
 checkFileReaderSyncSupport();
 
@@ -30,7 +28,6 @@ const camMatrixPushOrder = [0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14];
 
 let requestId = null;
 
-if (!PRODUCTION) rendererStats = new RendererStats();
 
 export default class ClosetViewer {
   constructor() {
@@ -211,12 +208,6 @@ export default class ClosetViewer {
       return new THREE.PerspectiveCamera(fov, aspect, near, far);
     }
 
-    if (!PRODUCTION && this.stats) {
-      rendererStats.domElement.style.position = "absolute";
-      rendererStats.domElement.style.left = "-100px";
-      rendererStats.domElement.style.top = "0px";
-      this.setter.appendChild(rendererStats.domElement);
-    }
 
     this.updateRenderer(1);
   }
@@ -426,7 +417,7 @@ export default class ClosetViewer {
     this.renderer.clear();
     this.renderer.render(this.scene, this.camera); // draw object
 
-    if (!PRODUCTION) rendererStats.update(this.renderer);
+
   }
 
   updateRenderer(t = 100) {
