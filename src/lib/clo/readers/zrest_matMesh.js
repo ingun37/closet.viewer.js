@@ -44,7 +44,7 @@ export default function MatMeshManager({
 }
 
 const dracoLoader = new DRACOLoader();
-dracoLoader.setDecoderPath("https://www.gstatic.com/draco/v1/decoders/");
+dracoLoader.setDecoderPath("./");
 dracoLoader.preload();
 MatMeshManager.prototype = {
   constructor: MatMeshManager,
