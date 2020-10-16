@@ -1,17 +1,16 @@
 /* eslint-disable require-jsdoc */
 "use strict";
 import { TextureLoader } from "three/src/loaders/TextureLoader";
+import LibArchive, { Extraction } from "../../jszip/dist/jszip";
 
 
-export async function loadTexture(zip, textureFileName) {
+export async function loadTexture(zip:Extraction, textureFileName:string) {
+
   const file = zip.file(textureFileName);
   if (!file) {
     return null;
   }
-
-  const arraybuffer = await file.async("arrayBuffer");
-  const bytes = new Uint8Array(arraybuffer);
-  const blob = new Blob([bytes.buffer]);
+  const blob = file;
   const url = URL.createObjectURL(blob);
 
   return new Promise((resolve, reject) => {

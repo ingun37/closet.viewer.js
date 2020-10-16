@@ -357,7 +357,7 @@ MatMeshManager.prototype = {
         return false;
       }
 
-      const arrayBuffer = await zip.file(dracoMeshFilename).async("arraybuffer");
+      const arrayBuffer = await zip.file(dracoMeshFilename).arrayBuffer();
 
       return dracoLoader.decodeArraybufferAsync(arrayBuffer);
     };

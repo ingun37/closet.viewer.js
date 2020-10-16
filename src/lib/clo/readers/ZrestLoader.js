@@ -7,10 +7,6 @@ import {Matrix4} from "three/src/math/Matrix4";
 import {FileLoader} from "three/src/loaders/FileLoader";
 import {DefaultLoadingManager} from "three/src/loaders/LoadingManager";
 
-
-
-
-import JSZip from "@/lib/jszip/dist/jszip";
 import { readHeader } from "@/lib/clo/file/FileHeader";
 import { readMap } from "@/lib/clo/file/KeyValueMapReader";
 
@@ -21,6 +17,7 @@ import MeshFactory from "./zrest_meshFactory";
 import Wireframe from "./Wireframe";
 
 import { getObjectsCenter, zoomToObjects } from "./ObjectUtils";
+import LibArchive from "../../jszip/dist/jszip";
 
 const zrestProperty = {
   version: -1,
@@ -226,7 +223,6 @@ export default class ZRestLoader {
     // const object3D = new LOD();
     object3D.name = "object3D";
 
-    const reader = new FileReader();
 
     const contentBlob = blob.slice(
       header.FileContentPos,
@@ -240,9 +236,9 @@ export default class ZRestLoader {
     const btnNameList = [];
     const bthNameList = [];
 
-    reader.onload = (e) => {
-      this.jsZip = new JSZip();
-      this.jsZip.loadAsync(e.target.result).then((zip) => {
+    {
+      this.jsZip = new LibArchive();
+      this.jsZip.loadAsync(contentBlob).then(zip=>{
         const keyList = Object.keys(zip.files);
         keyList.forEach((value) => {
           const list = value.split(".");
@@ -267,11 +263,9 @@ export default class ZRestLoader {
         });
 
         const fileOffset = { Offset: 0 };
-        zip
-          .file(restName)
-          .async("arrayBuffer")
-          .then(async (restContent) => {
-            const dataView = new DataView(restContent);
+
+        zip.file(restName).arrayBuffer().then(async restContent=>{
+          const dataView = new DataView(restContent);
 
             console.log("pac file size = " + dataView.byteLength);
 
@@ -313,11 +307,11 @@ export default class ZRestLoader {
 
             // 임시 데이터 clear
             // this.zProperty.nameToTextureMap.clear();
-          });
-      });
+        })
+      })
+
     };
 
-    reader.readAsArrayBuffer(contentBlob);
   };
 }
 
