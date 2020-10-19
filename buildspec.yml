@@ -13,10 +13,13 @@ phases:
   build:
     commands:
       - npm run build
-      - npm t -- --verbose
+      - npm t
 reports:
   jest_reports:
     files:
       - report.xml
     file-format: JUNITXML
     base-directory: test-reports
+artifacts:
+  files:
+    - metric-report.json

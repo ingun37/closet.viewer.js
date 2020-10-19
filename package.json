@@ -6,7 +6,7 @@
   "scripts": {
     "develop": "webpack-dev-server --mode development --hot --open --inline",
     "build": "cross-env NODE_ENV=production webpack --mode production --hide-modules",
-    "test": "jest"
+    "test": "jest --logHeapUsage"
   },
   "repository": "git+https://github.com/clovirtualfashion/closet.viewer.js.git",
   "author": "CLO",
@@ -26,7 +26,6 @@
     "exports-loader": "^0.7.0",
     "gsap": "^2.1.3",
     "imports-loader": "^0.8.0",
-    "lodash": "^4.17.19",
     "mobile-detect": "^1.4.4",
     "raw-loader": "^0.5.1",
     "screenfull": "^4.2.1",
@@ -36,7 +35,10 @@
     "webpack-cli": "^3.3.11"
   },
   "devDependencies": {
+    "@jest/reporters": "^26.6.0",
     "@types/jest": "^26.0.14",
+    "@types/lodash": "^4.14.162",
+    "@types/nodegit": "^0.26.11",
     "@types/puppeteer": "^3.0.2",
     "@types/selenium-webdriver": "^4.0.9",
     "babel-preset-es2017": "^6.24.1",
@@ -47,6 +49,7 @@
     "imghash": "0.0.7",
     "jest": "^26.4.2",
     "jest-junit": "^11.1.0",
+    "lodash": "^4.17.20",
     "mixin-deep": "^2.0.1",
     "prettier": "^2.0.2",
     "prettier-eslint": "^9.0.1",

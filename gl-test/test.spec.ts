@@ -5,8 +5,11 @@ import PATH from "path"
 import { hash } from "imghash";
 import leven from "leven";
 import puppeteer from "puppeteer";
+import MetricReporter, { PerformanceMetric } from "../metric-reporter/metric-reporter";
 
 // Consider using jest-puppeteer
+
+declare var metricReporter:MetricReporter;
 
 const casesPath = PATH.join(__dirname, 'cases')
 
@@ -34,7 +37,8 @@ describe.each(testCases)("graphic", (casePath:string) => {
     test(`${expectPath} exists`, () => expect(expectExists).toBeTruthy())
 
     if (htmlExists && expectExists) {
-        test(`${PATH.basename(casePath)} renders as expected`, async () => {
+        const testName = `${PATH.basename(casePath)} renders as expected`;
+        test(testName, async () => {
             const page = await browser.newPage();
             const htmlFileURL = URL.pathToFileURL(htmlFilePath);
             await page.goto(htmlFileURL.toString());
@@ -47,7 +51,8 @@ describe.each(testCases)("graphic", (casePath:string) => {
             expect(difference).toBeLessThan(1);
 
             const metrics = await page.metrics();
-            console.log(metrics)
+
+            metricReporter.report(new PerformanceMetric(testName, metrics.JSHeapUsedSize, metrics.JSHeapTotalSize, metrics.TaskDuration));
             await page.close();
         }, 50000)
     }
