@@ -1,4 +1,6 @@
-#include    <shadowmap_pars_vertex>
+#include <shadowmap_pars_vertex>
+#include <common>
+
 attribute vec2 uv2;
 uniform mat4 gRotMatrix;
 uniform mat4 gTransMatrix;
@@ -39,5 +41,7 @@ void main(void)
 
     #include <begin_vertex>
     #include <worldpos_vertex>
+    #include <beginnormal_vertex>
+    #include <defaultnormal_vertex>
     #include <shadowmap_vertex>
 }

@@ -2,7 +2,7 @@
 "use strict";
 
 /* eslint-disable require-jsdoc */
-import * as THREE from "@/lib/threejs/three";
+import * as THREE from "three";
 import JSZip from "@/lib/jszip/dist/jszip";
 import { readHeader } from "@/lib/clo/file/FileHeader";
 import { readMap } from "@/lib/clo/file/KeyValueMapReader";

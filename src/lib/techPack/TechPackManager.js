@@ -1,5 +1,5 @@
 /* eslint-disable require-jsdoc */
-import * as THREE from "@/lib/threejs/three";
+import * as THREE from "three";
 // import {Marker, makeTextSprite} from '@/lib/marker/Marker';
 import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
 import { StyleLine } from "@/lib/techPack/StyleLine";

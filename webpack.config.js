@@ -19,6 +19,12 @@ module.exports = {
   module: {
     rules: [
       {
+        test: /\.ts?$/,
+        use: 'ts-loader',
+        include: resolve('src'),
+        exclude: [/\.spec\.ts$/]
+      },
+      {
         test: /\.js$/,
         loader: 'babel-loader',
         include: resolve('src'),
@@ -45,7 +51,7 @@ module.exports = {
     fs: 'empty',
   },
   resolve: {
-    extensions: ['.js', '.json'],
+    extensions: ['.js', '.json', '.ts'],
     alias: {
       '@': resolve('src'),
       '@bg': resolve('src/lib/clo/background/'),

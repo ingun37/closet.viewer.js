@@ -1,4 +1,4 @@
-import * as THREE from "@/lib/threejs/three";
+import * as THREE from "three";
 
 export default class Wireframe {
   constructor(matMeshMap) {

@@ -1,4 +1,4 @@
-import * as THREE from '@/lib/threejs/three'
+import * as THREE from 'three'
 import DracoModule from 'exports-loader?DracoDecoderModule!@/lib/draco/draco_decoder'
 // Copyright 2016 The Draco Authors.
 //
