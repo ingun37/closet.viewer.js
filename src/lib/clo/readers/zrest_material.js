@@ -1,6 +1,6 @@
 /* eslint-disable require-jsdoc */
 "use strict";
-import * as THREE from "@/lib/threejs/three";
+import * as THREE from "three";
 
 import { envDiffuseMap, envSpecularMap } from "@/lib/clo/file/EnvMapReader";
 import { loadTexture } from "@/lib/clo/readers/zrest_texture";

@@ -1,6 +1,6 @@
 /* eslint-disable require-jsdoc */
 "use strict";
-import * as THREE from "@/lib/threejs/three";
+import * as THREE from "three";
 
 import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 import { RENDER_FACE_TYPE } from "@/lib/clo/readers/predefined";

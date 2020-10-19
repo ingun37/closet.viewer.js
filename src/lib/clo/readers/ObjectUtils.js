@@ -1,5 +1,5 @@
 "use strict";
-import * as THREE from "@/lib/threejs/three";
+import * as THREE from "three";
 
 export function getObjectsCenter(threeJSScene) {
   const box = new THREE.Box3();

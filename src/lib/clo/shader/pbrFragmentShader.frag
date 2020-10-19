@@ -1,6 +1,9 @@
 // normal map 을 위해 다음 extension 필요함 -> 아니다 three.js 에서는 ShaderMateiral.extensions.derivative = true 로 해 주면 된다. 다음과 같이 하면 warning만 생길 뿐
 //#extension GL_OES_standard_derivatives : enable
-
+#include <common>
+#include <packing>
+#include <shadowmap_pars_fragment>
+#include <lights_pars_begin>
 uniform bool m_bUseMetalnessRoughnessPBR;
 uniform float m_Metalness;
 uniform float m_Glossiness;
@@ -43,19 +46,7 @@ uniform float materialOpacity;
 uniform float normalMapIntensityInPercentage;
 
 // 다음 불러줘야 한다. three.js 버전 업 후에 #include <lights_pars_begin> 로 대체하면 됨
-#if NUM_DIR_LIGHTS > 0
-struct DirectionalLight {
-    vec3 direction;
-    vec3 color;
 
-    int shadow;
-    float shadowBias;
-    float shadowRadius;
-    vec2 shadowMapSize;
-};
-
-uniform DirectionalLight directionalLights[ NUM_DIR_LIGHTS ];
-#endif
 
 varying vec3 vNormal;
 varying vec3 posAtEye;
@@ -63,8 +54,7 @@ varying vec2 vUV;
 varying vec2 vUV2;
 
 #define M_PI 3.1415926535897932384626433832795
-#include <packing>
-#include <shadowmap_pars_fragment>
+
 #include <shadowmask_pars_fragment>
 
 mat3 cotangent_frame( vec3 N, vec3 p, vec2 uv )
@@ -359,6 +349,7 @@ void main( void )
     float faceIntensity = 1.0;
 
     vec3 diffuseEnvColor = m_EnvironmentLightIntensity * RGBEToVec3(textureCube(sDiffuseEnvironmentMap, worldR));
+
     diffuse.rgb += faceIntensity * diffuseColor * diffuseEnvColor.rgb; // ambient 효과 내기 위해 일부러 backface도 라이팅되게 한다.
 
     // specular environment light

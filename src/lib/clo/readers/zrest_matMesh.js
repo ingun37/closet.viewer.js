@@ -1,6 +1,6 @@
 /* eslint-disable require-jsdoc */
 "use strict";
-import * as THREE from "@/lib/threejs/three";
+import * as THREE from "three";
 
 import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 
@@ -76,7 +76,7 @@ MatMeshManager.prototype = {
         localMatrix.a33
       );
     }
-    tf.applyMatrix(mat4);
+    tf.applyMatrix4(mat4);
 
     const listMatShape = map.get("listMatShape");
 
@@ -196,15 +196,15 @@ MatMeshManager.prototype = {
           frontVertexCount = count;
         }
 
-        bufferGeometry.addAttribute("position", new THREE.BufferAttribute(new Float32Array(posAttrib), 3));
+        bufferGeometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(posAttrib), 3));
 
         if (dracoGeometry.useNormal) {
-          bufferGeometry.addAttribute("normal", new THREE.BufferAttribute(new Float32Array(normalAttrib), 3));
+          bufferGeometry.setAttribute("normal", new THREE.BufferAttribute(new Float32Array(normalAttrib), 3));
         }
 
-        bufferGeometry.addAttribute("uv", new THREE.BufferAttribute(new Float32Array(uvAttrib), 2));
+        bufferGeometry.setAttribute("uv", new THREE.BufferAttribute(new Float32Array(uvAttrib), 2));
         if (dracoGeometry.numUVs >= 2) {
-          bufferGeometry.addAttribute("uv2", new THREE.BufferAttribute(new Float32Array(uv2Attrib), 2));
+          bufferGeometry.setAttribute("uv2", new THREE.BufferAttribute(new Float32Array(uv2Attrib), 2));
         }
 
         // Set Indices

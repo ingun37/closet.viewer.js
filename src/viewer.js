@@ -3,8 +3,8 @@ import ZRestLoader, {
   dataWorkerFunction,
   checkFileReaderSyncSupport,
 } from "@/lib/clo/readers/ZrestLoader";
-import * as THREE from "@/lib/threejs/three";
-import "@/lib/threejs/OrbitControls";
+import * as THREE from "three";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 import "@/lib/draco/DRACOLoader";
 
 import AnnotationManager from "@/lib/annotation/AnnotationManager";
@@ -15,7 +15,6 @@ import screenfull from "screenfull";
 import MobileDetect from "mobile-detect";
 
 import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
-import "@/lib/threejs/BufferGeometryUtils";
 
 let windowHalfX = window.innerWidth / 2;
 let windowHalfY = window.innerHeight / 2;
@@ -114,7 +113,7 @@ export default class ClosetViewer {
     this.camera.position.set(0, cameraHeight, cameraDistance);
 
     // create camera controller
-    this.controls = new THREE.OrbitControls(
+    this.controls = new OrbitControls(
       this.camera,
       this.renderer.domElement
     );
