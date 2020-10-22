@@ -78,8 +78,11 @@ var OrbitControls = function ( object, domElement ) {
 	// The four arrow keys
 	this.keys = { LEFT: 37, UP: 38, RIGHT: 39, BOTTOM: 40 };
 
-	// Mouse buttons
-	this.mouseButtons = { LEFT: MOUSE.ROTATE, MIDDLE: MOUSE.DOLLY, RIGHT: MOUSE.PAN };
+	// Mouse buttons.
+	// Ingun - Changed from the original code :
+	// this.mouseButtons = { LEFT: MOUSE.ROTATE, MIDDLE: MOUSE.DOLLY, RIGHT: MOUSE.PAN };
+	// to preserve the old UX. One consequence is that you can't Pan with Trackpad. Consider using the original code for additional Trackpad support.
+	this.mouseButtons = { LEFT: MOUSE.DOLLY, MIDDLE: MOUSE.PAN, RIGHT: MOUSE.ROTATE};
 
 	// Touch fingers
 	this.touches = { ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN };
@@ -604,6 +607,78 @@ var OrbitControls = function ( object, domElement ) {
 			case scope.keys.RIGHT:
 				pan( - scope.keyPanSpeed, 0 );
 				needsUpdate = true;
+				break;
+			//Ingun: Added camera reset shorcuts
+			case 48: // bottom
+			case 96:
+				scope.target = new Vector3(0, 920, 0);
+				scope.object.position.x = 0;
+				scope.object.position.y = -8000 * 0.5;
+				scope.object.position.z = 0;
+				scope.update();
+				break;
+
+			case 49: // left front
+			case 97:
+				scope.target = new Vector3(0, 920, 0);
+				scope.object.position.x = -8000 * Math.sin(Math.PI * 45.0 / 180.0);
+				scope.object.position.y = 920;
+				scope.object.position.z = 8000 * Math.sin(Math.PI * 45.0 / 180.0);
+				scope.update();
+				break;
+
+			case 50: // front
+			case 98:
+				scope.target = new Vector3(0, 920, 0);
+				scope.object.position.x = 0;
+				scope.object.position.y = 920;
+				scope.object.position.z = 8000;
+				scope.update();
+				break;
+
+			case 51: // rigth front
+			case 99:
+				scope.target = new Vector3(0, 920, 0);
+				scope.object.position.x = 8000 * Math.sin(Math.PI * 45.0 / 180.0);
+				scope.object.position.y = 920;
+				scope.object.position.z = 8000 * Math.sin(Math.PI * 45.0 / 180.0);
+				scope.update();
+				break;
+
+			case 52: //left
+			case 100:
+				scope.target = new Vector3(0, 920, 0);
+				scope.object.position.x = -8000;
+				scope.object.position.y = 920;
+				scope.object.position.z = 0;
+				scope.update();
+				break;
+
+			case 53: // top
+			case 101:
+				scope.target = new Vector3(0, 920, 0);
+				scope.object.position.x = 0;
+				scope.object.position.y = 8000;
+				scope.object.position.z = 0;
+				scope.update();
+				break;
+
+			case 54: // right
+			case 102:
+				scope.target = new Vector3(0, 920, 0);
+				scope.object.position.x = 8000;
+				scope.object.position.y = 920;
+				scope.object.position.z = 0;
+				scope.update();
+				break;
+
+			case 56: // back
+			case 104:
+				scope.target = new Vector3(0, 920, 0);
+				scope.object.position.x = 0;
+				scope.object.position.y = 920;
+				scope.object.position.z = -8000;
+				scope.update();
 				break;
 
 		}
